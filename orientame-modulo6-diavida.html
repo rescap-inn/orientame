@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame · Un día en la vida de...</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   ROOT & BASE
+══════════════════════════════════════ */
+:root {
+  --bg:#0c0f1a; --surface:#131828; --surface2:#1a1f34; --surface3:#222840;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#eeeaf4; --muted:rgba(238,234,244,0.5); --muted2:rgba(238,234,244,0.28);
+  --gold:#f5c842; --teal:#34d399; --violet:#7c6af7; --rose:#e05c8a; --sky:#38bdf8;
+  --gradient-main:linear-gradient(135deg,#e05c8a,#f5c842);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 700px 500px at 110% 20%,rgba(224,92,138,0.06) 0%,transparent 60%),
+             radial-gradient(ellipse 500px 400px at -10% 80%,rgba(245,200,66,0.04) 0%,transparent 60%)}
+.page{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px 80px}
+
+/* ── Header ── */
+.page-header{padding:36px 0 28px}
+.header-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(224,92,138,0.1);border:1px solid rgba(224,92,138,0.28);border-radius:100px;padding:6px 16px;margin-bottom:20px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#f09bb5}
+.hb-dot{width:7px;height:7px;border-radius:50%;background:var(--gradient-main);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+.page-title{font-family:'Lora',serif;font-size:clamp(26px,5.5vw,42px);font-weight:600;line-height:1.15;margin-bottom:10px}
+.page-title em{font-style:italic;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:580px}
+
+/* ── AI Narrative Generator ── */
+.ai-gen-section{background:linear-gradient(135deg,rgba(224,92,138,0.07),rgba(245,200,66,0.04));border:1px solid rgba(224,92,138,0.22);border-radius:20px;padding:24px;margin-bottom:28px;position:relative;overflow:hidden}
+.ai-gen-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-main)}
+.ai-gen-title{font-size:13px;font-weight:600;color:#f09bb5;margin-bottom:4px}
+.ai-gen-sub{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px}
+.ai-gen-form{display:flex;gap:10px;flex-wrap:wrap}
+.ai-gen-input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 15px;color:var(--text);font-family:'Sora',sans-serif;font-size:13.5px;outline:none;transition:border-color 0.2s}
+.ai-gen-input:focus{border-color:rgba(224,92,138,0.5)}
+.ai-gen-input::placeholder{color:var(--muted2)}
+.ai-gen-btn{padding:11px 22px;background:var(--gradient-main);border:none;border-radius:11px;color:#0c0f1a;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.ai-gen-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.ai-gen-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.ai-narrative{display:none;margin-top:18px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:fade-up 0.3s ease}
+.ai-narrative.visible{display:block}
+@keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ai-narrative-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.ai-narrative-emoji{font-size:32px}
+.ai-narrative-meta{flex:1}
+.ai-narrative-role{font-family:'Lora',serif;font-size:17px;font-weight:600}
+.ai-narrative-tag{font-size:12px;color:var(--muted)}
+.ai-narrative-body{padding:18px 20px;font-size:14px;line-height:1.85;color:var(--text)}
+.ai-loading{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-style:italic;padding:18px 20px}
+.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--rose);margin:0 2px;animation:dp 1.2s ease-in-out infinite}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* ── Filters ── */
+.filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.filter-btn{padding:8px 16px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);font-size:12.5px;cursor:pointer;transition:all 0.18s;color:var(--muted);font-family:'Sora',sans-serif;white-space:nowrap}
+.filter-btn:hover{border-color:var(--border2);color:var(--text)}
+.filter-btn.active{background:rgba(224,92,138,0.12);border-color:rgba(224,92,138,0.4);color:#f09bb5;font-weight:500}
+.results-count{font-size:11px;color:var(--muted2);align-self:center;margin-left:auto}
+
+/* ── Career Cards Grid ── */
+.careers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:32px}
+
+.career-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;cursor:pointer;transition:all 0.22s;position:relative}
+.career-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.25)}
+.career-card.expanded{border-color:var(--border2)}
+
+.cc-gradient{height:4px}
+.cc-body{padding:20px}
+.cc-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.cc-emoji-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
+.cc-meta{flex:1;min-width:0}
+.cc-role{font-family:'Lora',serif;font-size:16px;font-weight:600;line-height:1.2;margin-bottom:3px}
+.cc-where{font-size:12px;color:var(--muted);margin-bottom:6px}
+.cc-tags{display:flex;flex-wrap:wrap;gap:5px}
+.cc-tag{padding:2px 9px;border-radius:100px;font-size:10.5px;font-weight:500;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--muted)}
+.cc-quote{font-size:13px;color:var(--muted);line-height:1.65;font-style:italic;border-left:2px solid rgba(255,255,255,0.1);padding-left:12px;margin-bottom:14px}
+.cc-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cc-stat{font-size:11.5px;font-weight:600}
+.cc-expand{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;transition:all 0.2s}
+.cc-expand.open{color:var(--text)}
+.cc-expand-icon{display:inline-block;transition:transform 0.2s}
+.cc-expand-icon.open{transform:rotate(180deg)}
+
+/* ── Expanded Detail ── */
+.cc-detail{display:none;border-top:1px solid var(--border);animation:detail-open 0.25s ease}
+@keyframes detail-open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.cc-detail.open{display:block}
+
+/* Tabs */
+.cc-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
+.cc-tabs::-webkit-scrollbar{display:none}
+.cc-tab{padding:11px 16px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Sora',sans-serif}
+.cc-tab:hover{color:var(--text)}
+.cc-tab.active{color:var(--text);border-bottom-color:var(--rose)}
+.cc-pane{display:none;padding:18px 20px}
+.cc-pane.active{display:block}
+
+/* Timeline */
+.timeline-list{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;position:relative;padding-bottom:16px}
+.tl-item:last-child{padding-bottom:0}
+.tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px}
+.tl-time{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.5px;white-space:nowrap;text-align:center}
+.tl-dot{width:10px;height:10px;border-radius:50%;margin:5px auto 0;flex-shrink:0;border:2px solid}
+.tl-line{flex:1;width:1px;background:rgba(255,255,255,0.08);margin:0 auto}
+.tl-item:last-child .tl-line{display:none}
+.tl-content{flex:1;padding-top:1px}
+.tl-activity{font-size:13px;font-weight:500;margin-bottom:2px}
+.tl-detail{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Tools */
+.tools-grid{display:flex;flex-wrap:wrap;gap:8px}
+.tool-chip{padding:6px 13px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);font-size:12.5px;font-weight:400;color:var(--text);display:flex;align-items:center;gap:6px}
+.tool-icon{font-size:14px}
+
+/* Honest section */
+.honest-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.honest-grid{grid-template-columns:1fr}}
+.honest-col{background:var(--surface2);border-radius:12px;border:1px solid var(--border);padding:14px}
+.honest-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.honest-col.pros .honest-title{color:var(--teal)}
+.honest-col.cons .honest-title{color:#f87171}
+.honest-list{display:flex;flex-direction:column;gap:6px}
+.honest-item{font-size:12.5px;color:var(--muted);line-height:1.5;padding-left:14px;position:relative}
+.honest-item::before{position:absolute;left:0;top:1px}
+.honest-col.pros .honest-item::before{content:'✓';color:var(--teal);font-weight:600}
+.honest-col.cons .honest-item::before{content:'↓';color:#f87171}
+
+/* Salary realism */
+.salary-band{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+.salary-label{font-size:12px;color:var(--muted);flex-shrink:0}
+.salary-track{flex:1;height:6px;background:var(--surface3);border-radius:100px;overflow:hidden}
+.salary-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,#34d399,#f5c842)}
+.salary-range{font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
+
+/* Creators section */
+.creators-section{margin-bottom:28px}
+.creators-section-title{font-family:'Lora',serif;font-size:22px;font-weight:600;margin-bottom:6px}
+.creators-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px;max-width:620px}
+.creators-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.creator-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;transition:all 0.2s}
+.creator-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+.creator-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.creator-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid rgba(255,255,255,0.08)}
+.creator-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.creator-platform{font-size:11px;color:var(--muted)}
+.creator-desc{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.creator-tags{display:flex;flex-wrap:wrap;gap:5px}
+.creator-tag{font-size:10.5px;padding:2px 8px;border-radius:100px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
+
+/* Empty */
+.empty-state{text-align:center;padding:60px 20px;display:none}
+.empty-state.visible{display:block}
+.empty-icon{font-size:48px;margin-bottom:14px}
+.empty-title{font-family:'Lora',serif;font-size:20px;font-weight:600;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.7}
+
+@media(max-width:500px){.cc-body{padding:16px}.cc-pane{padding:14px 16px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="header-badge"><div class="hb-dot"></div>Oriéntame · Módulo 6</div>
+  <h1 class="page-title">Un día en la vida de<br><em>tu carrera ideal</em></h1>
+  <p class="page-sub">¿Cómo es realmente trabajar en lo que te apasiona? Aquí no hay teoría — solo días reales, herramientas reales y verdades que nadie te cuenta en el colegio.</p>
+</div>
+
+<!-- AI GENERATOR -->
+<div class="ai-gen-section">
+  <div class="ai-gen-title">✨ Genera tu día personalizado con IA</div>
+  <div class="ai-gen-sub">Escribe la carrera que te interesa y la IA genera una narrativa real de cómo sería tu día de trabajo en esa profesión en 2026.</div>
+  <div class="ai-gen-form">
+    <input type="text" class="ai-gen-input" id="ai-career-input"
+      placeholder="Ej: diseñador UX en startup de Madrid, arquitecta en Buenos Aires, músico productor de beats..."
+      maxlength="150">
+    <button class="ai-gen-btn" id="ai-gen-btn" onclick="generateNarrative()">Generar mi día →</button>
+  </div>
+  <div class="ai-narrative" id="ai-narrative">
+    <div class="ai-narrative-header">
+      <div class="ai-narrative-emoji" id="an-emoji">🌟</div>
+      <div class="ai-narrative-meta">
+        <div class="ai-narrative-role" id="an-role">—</div>
+        <div class="ai-narrative-tag" id="an-tag">—</div>
+      </div>
+    </div>
+    <div class="ai-narrative-body" id="an-body"></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-row" id="filter-row">
+  <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">🌎 Todas</button>
+  <button class="filter-btn" data-filter="tech"   onclick="setFilter('tech',this)">💻 Tecnología</button>
+  <button class="filter-btn" data-filter="arts"   onclick="setFilter('arts',this)">🎨 Arte y Diseño</button>
+  <button class="filter-btn" data-filter="media"  onclick="setFilter('media',this)">🎬 Cine y Media</button>
+  <button class="filter-btn" data-filter="music"  onclick="setFilter('music',this)">🎵 Música</button>
+  <button class="filter-btn" data-filter="arch"   onclick="setFilter('arch',this)">🏛️ Arquitectura</button>
+  <button class="filter-btn" data-filter="health" onclick="setFilter('health',this)">🏥 Salud</button>
+  <button class="filter-btn" data-filter="biz"    onclick="setFilter('biz',this)">💼 Negocios</button>
+  <button class="filter-btn" data-filter="sci"    onclick="setFilter('sci',this)">🔬 Ciencias</button>
+  <button class="filter-btn" data-filter="content"onclick="setFilter('content',this)">📱 Contenido</button>
+  <span class="results-count" id="results-count"></span>
+</div>
+
+<!-- GRID -->
+<div class="careers-grid" id="careers-grid"></div>
+<div class="empty-state" id="empty-state">
+  <div class="empty-icon">🔍</div>
+  <div class="empty-title">Sin resultados</div>
+  <div class="empty-sub">No hay perfiles en esa categoría todavía.<br>Prueba el generador de IA para cualquier carrera.</div>
+</div>
+
+<!-- CREATORS -->
+<div class="creators-section">
+  <h2 class="creators-section-title">📱 Creadores para seguir</h2>
+  <p class="creators-sub">Canales y cuentas reales de YouTube e Instagram donde profesionales muestran su día a día. Estos son los "un día en la vida" más auténticos que encontrarás.</p>
+  <div class="creators-grid" id="creators-grid"></div>
+</div>
+
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   CAREERS DATABASE
+   Each entry = one professional profile
+═══════════════════════════════════════════ */
+const CAREERS = [
+  {
+    id:'ux_designer',
+    emoji:'🖥️',
+    role:'Diseñadora UX/UI',
+    where:'Startup tech · Madrid, España',
+    category:'arts',
+    color:'linear-gradient(135deg,#7c6af7,#38bdf8)',
+    colorHex:'#7c6af7',
+    quote:'"El 80% de mi trabajo es entender por qué la gente se confunde con una app. El 20% es hacerlo bonito."',
+    tags:['Diseño','Tecnología','Remoto posible'],
+    salaryLabel:'Junior → Senior',
+    salaryRange:'$1,200–5,500/mes',
+    salaryFill:55,
+    statLabel:'Alta demanda IA · Crece con tech',
+    timeline:[
+      {time:'8:30',emoji:'☕',dot:'#7c6af7',activity:'Café + revisión de Slack',detail:'Reviso mensajes del equipo de producto y leo feedback de usuarios del día anterior.'},
+      {time:'9:00',emoji:'📊',dot:'#38bdf8',activity:'Sprint Planning o Daily Standup',detail:'15 minutos con el equipo técnico. ¿Qué vamos a diseñar esta semana? ¿Qué bloqueó ayer?'},
+      {time:'10:00',emoji:'🔍',dot:'#7c6af7',activity:'Research de usuarios',detail:'Analizo grabaciones de sesiones en Hotjar o FullStory — veo exactamente dónde se pierden los usuarios.'},
+      {time:'12:00',emoji:'🎨',dot:'#34d399',activity:'Diseño en Figma',detail:'Creo wireframes, prototipos o itero sobre diseños existentes. La mayor parte del trabajo creativo.'},
+      {time:'14:00',emoji:'🍱',dot:'#f5c842',activity:'Almuerzo + inspiración',detail:'Como fuera o en casa. Reviso Behance, Dribbble o X para ver tendencias de diseño.'},
+      {time:'15:00',emoji:'💬',dot:'#e05c8a',activity:'Review con producto y desarrollo',detail:'Presento mis propuestas. Discuto con los desarrolladores qué es técnicamente posible.'},
+      {time:'16:30',emoji:'🧪',dot:'#7c6af7',activity:'Tests de usabilidad',detail:'Pongo prototipos en frente de usuarios reales — 3–5 personas que prueban y comentan en vivo.'},
+      {time:'18:00',emoji:'📝',dot:'#38bdf8',activity:'Documentación y cierre',detail:'Actualizo el design system, añado notas a los componentes, cierro Figma.'},
+    ],
+    tools:[{i:'🎨',n:'Figma'},{i:'📊',n:'Hotjar'},{i:'📋',n:'Notion'},{i:'💬',n:'Slack'},{i:'🤖',n:'Midjourney / Firefly'},{i:'📱',n:'Maze (tests)'},{i:'🖥️',n:'Zeplin'}],
+    pros:['Trabajo remoto frecuente','Alta demanda en toda Latinoamérica y Europa','La IA te hace más rápido, no te reemplaza','Ver tu diseño usado por miles de personas','Portafolio cuenta más que el título'],
+    cons:['Reuniones interminables con stakeholders','"Hazlo más bonito" sin contexto claro','Presión de iterar rápido con poco tiempo','Necesitas defender tus decisiones con datos','La curva de aprendizaje de herramientas es constante']
+  },
+  {
+    id:'filmmaker',
+    emoji:'🎬',
+    role:'Realizador Audiovisual',
+    where:'Productora independiente · Ecuador / España',
+    category:'media',
+    color:'linear-gradient(135deg,#e05c8a,#f87171)',
+    colorHex:'#e05c8a',
+    quote:'"Cada video que hago intenta capturar algo que de otro modo desaparecería para siempre."',
+    tags:['Cine','Video','Freelance'],
+    salaryLabel:'Variable · proyecto a proyecto',
+    salaryRange:'$800–4,000/proyecto',
+    salaryFill:40,
+    statLabel:'Alta demanda en contenido digital · IA como asistente',
+    timeline:[
+      {time:'7:00',emoji:'🌄',dot:'#e05c8a',activity:'Scouting de locaciones',detail:'Fotógrafo de la mente antes que de la cámara — veo la luz de la mañana, busco el encuadre perfecto.'},
+      {time:'9:30',emoji:'📝',dot:'#f5c842',activity:'Pre-producción: guión y planificación',detail:'Reviso el storyboard del proyecto actual. Confirmo con actores/entrevistados. Checklist de equipo.'},
+      {time:'11:00',emoji:'🎥',dot:'#f87171',activity:'Grabación en set o locación',detail:'Día de rodaje. Dirijo, encuadro, ajusto iluminación. El equipo puede ser yo solo o 3–4 personas.'},
+      {time:'14:00',emoji:'🍕',dot:'#f5c842',activity:'Pausa en set',detail:'Comer rápido. Revisar material grabado en el monitor. Ajustar el plan de tarde.'},
+      {time:'15:00',emoji:'🎬',dot:'#e05c8a',activity:'Continúa rodaje o entrevistas',detail:'Segunda parte del día de producción. Los mejores momentos suelen ocurrir cuando el equipo se relaja.'},
+      {time:'18:00',emoji:'💻',dot:'#7c6af7',activity:'Revisión de dailies y backup',detail:'Descargo y organizo el material del día. Backup en dos discos. Nunca falta el backup.'},
+      {time:'20:00',emoji:'✂️',dot:'#34d399',activity:'Edición nocturna',detail:'La edición es donde nace la película. DaVinci Resolve, Adobe Premiere. Puede durar hasta las 2am.'},
+    ],
+    tools:[{i:'🎥',n:'Sony / Canon / BlackMagic'},{i:'✂️',n:'DaVinci Resolve'},{i:'💻',n:'Adobe Premiere'},{i:'🤖',n:'Runway ML'},{i:'🎵',n:'Audition / Logic'},{i:'💾',n:'LTO / SSD Backup'},{i:'🎨',n:'After Effects'}],
+    pros:['Cada proyecto es diferente — nunca te aburres','Crear algo de la nada que emociona a otros','Viajes y locaciones increíbles','Comunidad creativa muy unida','Las redes sociales abrieron un mercado enorme para freelancers'],
+    cons:['Ingresos irregulares — meses muy buenos y muy malos','Cargar equipo pesado es físicamente exigente','Los clientes a veces no saben lo que quieren','Depender del clima y las locaciones','Horas de trabajo imposibles en rodaje']
+  },
+  {
+    id:'music_producer',
+    emoji:'🎵',
+    role:'Productor Musical / Beat Maker',
+    where:'Estudio propio · Ecuador / trabajo global remoto',
+    category:'music',
+    color:'linear-gradient(135deg,#a78bfa,#e05c8a)',
+    colorHex:'#a78bfa',
+    quote:'"Un beat puede viajar de Ecuador a Nigeria en segundos. La geografía ya no limita a un productor."',
+    tags:['Música','Tecnología creativa','Remoto global'],
+    salaryLabel:'Variable · según catálogo y sync',
+    salaryRange:'$300–10,000+/mes',
+    salaryFill:35,
+    statLabel:'Crecimiento enorme con streaming y sync licensing',
+    timeline:[
+      {time:'10:00',emoji:'🎧',dot:'#a78bfa',activity:'Morning session — escucha activa',detail:'Escucho referencias. Analizo qué está pegando en playlists de Spotify, Apple Music, YouTube.'},
+      {time:'11:00',emoji:'🎹',dot:'#e05c8a',activity:'Creación: loops y melodías',detail:'Abro FL Studio o Ableton. Empiezo con un drum pattern o una melodía que me ronda la cabeza desde ayer.'},
+      {time:'13:00',emoji:'🍜',dot:'#f5c842',activity:'Comida + redes',detail:'Almuerzo. Reviso Instagram, TikTok. Los productores que triunfan también son sus propios managers.'},
+      {time:'14:00',emoji:'⚡',dot:'#a78bfa',activity:'Sesión principal de producción',detail:'El bloque más productivo. Construyo el beat completo — kick, bass, melodías, efectos. 2–4 horas.'},
+      {time:'17:00',emoji:'💬',dot:'#34d399',activity:'Colaboraciones y networking',detail:'Respondo DMs de artistas que buscan beats. Envío demos. Negoció licencias o exclusivos.'},
+      {time:'19:00',emoji:'🔊',dot:'#38bdf8',activity:'Mixing y mastering básico',detail:'Equilibro frecuencias, aplico compresión, exporto stems y masters para el cliente o para venta.'},
+      {time:'21:00',emoji:'📤',dot:'#f5c842',activity:'Upload y monetización',detail:'Subo beats a BeatStars, YouTube (con Content ID), Spotify. El catálogo trabaja mientras duermo.'},
+    ],
+    tools:[{i:'🎹',n:'FL Studio / Ableton'},{i:'🎧',n:'Plugins (Omnisphere, Serum)'},{i:'🖥️',n:'iZotope (mastering)'},{i:'📤',n:'BeatStars'},{i:'🤖',n:'Suno AI (referencias)'},{i:'📱',n:'TikTok / IG'},{i:'💰',n:'DistroKid'}],
+    pros:['Horario completamente libre','El catálogo genera ingresos pasivos','Trabajas con artistas de todo el mundo','La IA acelera el proceso creativo sin reemplazarte','Bajo costo de entrada — un laptop y plugins básicos'],
+    cons:['Mercado muy saturado de productores novatos','Ingresos impredecibles al inicio (1–3 años)','Muchos artistas piden beats gratis','La soledad creativa puede ser dura','Requiere también saber de marketing y negocios']
+  },
+  {
+    id:'architect',
+    emoji:'🏛️',
+    role:'Arquitecta Joven',
+    where:'Estudio de arquitectura · Quito, Ecuador',
+    category:'arch',
+    color:'linear-gradient(135deg,#f59e42,#fb923c)',
+    colorHex:'#f59e42',
+    quote:'"Diseño espacios donde la gente va a vivir sus mejores y peores momentos. Eso me da mucha responsabilidad."',
+    tags:['Arquitectura','Diseño espacial','Social'],
+    salaryLabel:'Ecuador → Exterior (gran diferencia)',
+    salaryRange:'$600–4,000/mes',
+    salaryFill:45,
+    statLabel:'Resistente a IA · Crece con sostenibilidad y tech',
+    timeline:[
+      {time:'8:00',emoji:'📐',dot:'#f59e42',activity:'Revisión de planos y novedades de obra',detail:'Leo informes del maestro de obra. Reviso si hubo cambios imprevistos ayer. La obra siempre tiene sorpresas.'},
+      {time:'9:30',emoji:'🏗️',dot:'#fb923c',activity:'Visita a obra',detail:'Casco y botas. Superviso el avance. Resuelvo dudas del contratista en sitio. La teoría del estudio vs la realidad.'},
+      {time:'11:00',emoji:'💻',dot:'#f5c842',activity:'Modelado 3D y documentación',detail:'AutoCAD, Revit, SketchUp. Ajusto diseños según lo visto en obra. Genero planos de detalles constructivos.'},
+      {time:'13:00',emoji:'🥗',dot:'#34d399',activity:'Almuerzo y revistas',detail:'Revisión de Dezeen, ArchDaily. Busco referencias para el proyecto actual. La arquitectura se aprende mirando.'},
+      {time:'14:30',emoji:'👥',dot:'#f59e42',activity:'Reunión con clientes',detail:'Presento avance del proyecto. Muestro renders, explico decisiones de diseño. Manejo expectativas y presupuesto.'},
+      {time:'16:30',emoji:'✏️',dot:'#fb923c',activity:'Diseño conceptual',detail:'La parte más libre — bocetos a mano, exploraciones espaciales. Los mejores proyectos nacen con lápiz.'},
+      {time:'18:30',emoji:'📋',dot:'#f5c842',activity:'Trámites y gestión municipal',detail:'Ecuador: tramitar permisos es parte real del trabajo. Aprender a navegar la burocracia es una habilidad.'},
+    ],
+    tools:[{i:'📐',n:'AutoCAD'},{i:'🏗️',n:'Revit (BIM)'},{i:'🎨',n:'SketchUp + Enscape'},{i:'🖥️',n:'Lumion (renders)'},{i:'📱',n:'BIM 360 (campo)'},{i:'🤖',n:'Midjourney (conceptos)'},{i:'📋',n:'Excel (metrados)'}],
+    pros:['Ves algo que imaginaste convertirse en realidad física','Alta demanda en países con boom de construcción','Diversidad total de proyectos — casas, edificios, espacios públicos','Trabajo en equipo muy humano','Mezcla arte + matemáticas + física + sociología'],
+    cons:['En Ecuador, los honorarios profesionales son bajos vs el trabajo','Los errores son muy costosos y a veces irreversibles','Obra civil = sol, polvo, conflictos con contratistas','El cliente siempre quiere más con menos presupuesto','La carrera requiere 5–6 años + experiencia antes de proyectos propios']
+  },
+  {
+    id:'software_engineer',
+    emoji:'⚙️',
+    role:'Ingeniero de Software',
+    where:'Empresa tech · trabajo remoto desde Ecuador',
+    category:'tech',
+    color:'linear-gradient(135deg,#34d399,#38bdf8)',
+    colorHex:'#34d399',
+    quote:'"Trabajo desde mi casa en Cuenca ganando en dólares para una empresa en San Francisco. Hace 10 años eso era imposible."',
+    tags:['Tech','Remoto global','Alta demanda'],
+    salaryLabel:'Ecuador remoto → USD global',
+    salaryRange:'$1,500–12,000/mes',
+    salaryFill:75,
+    statLabel:'🛡️ Más demandado que nunca — IA amplifica productividad',
+    timeline:[
+      {time:'9:00',emoji:'☕',dot:'#34d399',activity:'Stand-up asincrónico',detail:'Escribo en Slack qué hice ayer, qué haré hoy, qué me bloquea. El equipo está en 3 zonas horarias diferentes.'},
+      {time:'9:30',emoji:'💻',dot:'#38bdf8',activity:'Deep work — código',detail:'El bloque más importante. Sin reuniones. Música o silencio. Resuelvo el problema del día con código puro.'},
+      {time:'12:30',emoji:'🍱',dot:'#f5c842',activity:'Almuerzo en casa',detail:'Una de las ventajas del remoto. Cocino o pido. Salgo a caminar 20 minutos — el cerebro lo necesita.'},
+      {time:'13:30',emoji:'🔍',dot:'#34d399',activity:'Code review de compañeros',detail:'Reviso el código que otros escribieron. Comento, sugiero mejoras. Aprendes más revisando que escribiendo.'},
+      {time:'15:00',emoji:'🤝',dot:'#38bdf8',activity:'Sync con producto o diseño',detail:'30–60 minutos de videollamada. Clarificamos requisitos, discutimos soluciones técnicas, resolvemos dudas.'},
+      {time:'16:00',emoji:'🐛',dot:'#e05c8a',activity:'Debug y resolución de bugs',detail:'Algo salió mal en producción. A veces 10 minutos, a veces 4 horas. La parte más frustrante y satisfactoria.'},
+      {time:'18:00',emoji:'📚',dot:'#7c6af7',activity:'Aprendizaje continuo',detail:'Leo artículos técnicos, veo cursos, experimento con una herramienta nueva. Quien para de aprender, queda obsoleto.'},
+    ],
+    tools:[{i:'💻',n:'VS Code / JetBrains'},{i:'🐙',n:'GitHub / GitLab'},{i:'☁️',n:'AWS / GCP / Azure'},{i:'🤖',n:'GitHub Copilot / Claude'},{i:'📋',n:'Jira / Linear'},{i:'💬',n:'Slack / Discord'},{i:'🐋',n:'Docker / Kubernetes'}],
+    pros:['Los mejores salarios para trabajo desde Ecuador','100% remoto es la norma en tech','La IA te hace 2–3x más productivo, no te reemplaza','Comunidad global enorme — siempre hay respuesta en Stack Overflow','Alta estabilidad laboral en empresas buenas'],
+    cons:['Burn out técnico real — es fácil trabajar 12 horas sin notarlo','La curva de aprendizaje nunca termina — siempre hay algo nuevo','Las reuniones en horario de EE.UU. pueden ser a las 9pm Ecuador','Trabajo solitario — necesitas disciplina para el remoto','La brecha entre junior y senior es enorme y toma años']
+  },
+  {
+    id:'graphic_designer_strategic',
+    emoji:'✏️',
+    role:'Directora Creativa Digital',
+    where:'Agencia de branding · Barcelona',
+    category:'arts',
+    color:'linear-gradient(135deg,#e05c8a,#a78bfa)',
+    colorHex:'#e05c8a',
+    quote:'"No diseño logos — construyo cómo una marca se siente. Eso no lo puede hacer la IA sola."',
+    tags:['Branding','Dirección creativa','Agencia'],
+    salaryLabel:'Director/a creativo/a en agencia',
+    salaryRange:'$1,800–6,000/mes',
+    salaryFill:58,
+    statLabel:'🚀 Crece con IA — el criterio creativo es irreemplazable',
+    timeline:[
+      {time:'9:00',emoji:'📧',dot:'#e05c8a',activity:'Briefs y correos de clientes',detail:'Leo los briefings nuevos. ¿Qué necesita el cliente realmente? Los briefs buenos son raros — los malos, frecuentes.'},
+      {time:'10:00',emoji:'🧠',dot:'#a78bfa',activity:'Conceptualización de campaña',detail:'Con el equipo creativo. Moodboards, referencias, insights de audiencia. La estrategia antes del diseño.'},
+      {time:'12:00',emoji:'🎨',dot:'#e05c8a',activity:'Producción: Illustrator / Photoshop',detail:'Diseño activo. Logos, sistemas de identidad, materiales de campaña. IA para acelerar, criterio para decidir.'},
+      {time:'14:00',emoji:'☕',dot:'#f5c842',activity:'Almuerzo de trabajo o pausa',detail:'En Barcelona, muchas veces almuerzo de trabajo con clientes. Relación personal = fidelización.'},
+      {time:'15:30',emoji:'👁️',dot:'#a78bfa',activity:'Revisión y dirección del equipo',detail:'Veo el trabajo de los diseñadores junior. Doy feedback. Aseguro coherencia visual y estratégica.'},
+      {time:'17:00',emoji:'📊',dot:'#34d399',activity:'Presentación a cliente',detail:'La parte más importante — presentar ideas de forma que el cliente entienda el valor, no solo el resultado.'},
+      {time:'18:30',emoji:'📱',dot:'#e05c8a',activity:'Tendencias e inspiración',detail:'Instagram, Pinterest, Behance, Are.na. Un director creativo que no se actualiza envejece muy rápido.'},
+    ],
+    tools:[{i:'🎨',n:'Adobe CC (Illustrator, PS)'},{i:'🖥️',n:'Figma'},{i:'🤖',n:'Midjourney / Adobe Firefly'},{i:'📋',n:'Notion'},{i:'📊',n:'Google Analytics'},{i:'💬',n:'Zoom / Teams'},{i:'📱',n:'Instagram / Pinterest'}],
+    pros:['Trabajo visualmente estimulante — nunca dos proyectos iguales','El diseño estratégico gana 3–5x más que el diseño genérico','Viajas y trabajas con marcas internacionales','La IA es tu asistente, no tu reemplazo — si tienes criterio','Portafolio sólido abre puertas en todo el mundo'],
+    cons:['Los clientes tienen ego y a veces malas ideas','"Hazlo más poppin" como feedback real','Plazos imposibles son la norma en agencia','La creatividad bajo demanda puede agotar','Necesitas desarrollar piel gruesa para la crítica']
+  },
+  {
+    id:'content_creator',
+    emoji:'📱',
+    role:'Creador/a de Contenido',
+    where:'Ecuador · audiencia global hispanohablante',
+    category:'content',
+    color:'linear-gradient(135deg,#f5c842,#fb923c)',
+    colorHex:'#f5c842',
+    quote:'"La gente cree que subo videos. En realidad dirijo, escribo, edito, administro y soy mi propio gerente general."',
+    tags:['Contenido digital','YouTube / TikTok','Emprendimiento'],
+    salaryLabel:'Variable · depende de audiencia y modelo',
+    salaryRange:'$0 → $20,000+/mes',
+    salaryFill:30,
+    statLabel:'Alto riesgo · Alto potencial · Se necesita constancia feroz',
+    timeline:[
+      {time:'8:00',emoji:'📊',dot:'#f5c842',activity:'Análisis de métricas del día anterior',detail:'CTR, retención, comentarios, nuevos seguidores. Los datos me dicen qué funcionó y qué no.'},
+      {time:'9:00',emoji:'💡',dot:'#fb923c',activity:'Brainstorm de ideas de contenido',detail:'Reviso tendencias, preguntas de seguidores, noticias del nicho. El contenido no cae del cielo.'},
+      {time:'10:00',emoji:'📝',dot:'#f5c842',activity:'Guión y pre-producción',detail:'Escribo el guión del video o la estructura del contenido. MrBeast estructura cada minuto — yo también.'},
+      {time:'12:00',emoji:'🎥',dot:'#e05c8a',activity:'Grabación',detail:'Encuadre, luz, audio, energía en cámara. Los primeros 15 segundos lo son todo — los planifico obsesivamente.'},
+      {time:'14:00',emoji:'✂️',dot:'#7c6af7',activity:'Edición y postproducción',detail:'4–8 horas de edición por cada video. Subtítulos, música, efectos, miniaturas. La edición es el producto.'},
+      {time:'17:00',emoji:'📤',dot:'#fb923c',activity:'Publicación y optimización SEO',detail:'Título, descripción, tags, miniatura optimizada. YouTube es un motor de búsqueda — hay que saber usarlo.'},
+      {time:'18:00',emoji:'💬',dot:'#f5c842',activity:'Comunidad y colaboraciones',detail:'Respondo comentarios, DMs. Coordino colaboraciones con otros creadores. La red lo es todo.'},
+    ],
+    tools:[{i:'🎥',n:'Cámara Sony / iPhone Pro'},{i:'✂️',n:'DaVinci Resolve / Premiere'},{i:'🤖',n:'Runway ML / ElevenLabs'},{i:'📊',n:'YouTube Analytics / TubeBuddy'},{i:'🎨',n:'Canva / Photoshop'},{i:'🎵',n:'Epidemic Sound / Suno'},{i:'📅',n:'Notion (calendario contenido)'}],
+    pros:['Horario 100% tuyo — aunque es más exigente que un trabajo fijo','Construyes un activo que trabaja mientras duermes','Conexión directa con tu audiencia es muy gratificante','Escalabilidad casi ilimitada si encuentras tu nicho','La IA reduce el tiempo de producción drásticamente'],
+    cons:['Los primeros 12–18 meses son gratis — sin garantía de retorno','El algoritmo puede hacerte irrelevante de un día para otro','La comparación con otros creadores es mentalmente agotadora','Requiere ser bueno en 6 cosas: escribir, grabar, editar, publicar, analizar, hacer negocios','El "creador quemado" (burnout) es muy común']
+  },
+  {
+    id:'psychologist',
+    emoji:'🧠',
+    role:'Psicólogo/a Clínico/a',
+    where:'Consulta privada y online · Ecuador / España',
+    category:'health',
+    color:'linear-gradient(135deg,#a78bfa,#38bdf8)',
+    colorHex:'#a78bfa',
+    quote:'"La gente llega rota y yo ayudo a ordenar los pedazos. No hay trabajo más humano que este."',
+    tags:['Salud mental','Humanidades','Consulta'],
+    salaryLabel:'Depende modalidad y especialización',
+    salaryRange:'$600–4,000/mes',
+    salaryFill:42,
+    statLabel:'🛡️ IA no reemplaza la conexión humana terapéutica',
+    timeline:[
+      {time:'8:30',emoji:'📋',dot:'#a78bfa',activity:'Revisión de notas clínicas',detail:'Leo mis notas de los pacientes del día. Me preparo para cada sesión recordando el hilo de su proceso.'},
+      {time:'9:00',emoji:'💬',dot:'#38bdf8',activity:'Primera sesión del día',detail:'50 minutos. Escucho, observo, pregunto. El silencio a veces es más poderoso que las palabras.'},
+      {time:'10:00',emoji:'📝',dot:'#a78bfa',activity:'Notas y documentación',detail:'10 minutos entre sesiones. Escribo lo relevante. Planificar la próxima sesión.'},
+      {time:'11:00',emoji:'💬',dot:'#38bdf8',activity:'Segunda y tercera sesión',detail:'Cada paciente es un mundo distinto. Paso de acompañar un duelo a trabajar fobia social en 50 minutos.'},
+      {time:'14:00',emoji:'🥗',dot:'#34d399',activity:'Almuerzo y descanso activo',detail:'El trabajo emocional agota. La pausa del mediodía es necesaria — no opcional.'},
+      {time:'15:00',emoji:'👩‍💻',dot:'#a78bfa',activity:'Sesiones online (tarde)',detail:'Plataforma de telesalud. Pacientes de otras ciudades o países hispanohablantes. El online cambió todo.'},
+      {time:'18:00',emoji:'📚',dot:'#7c6af7',activity:'Supervisión o formación continua',detail:'Ningún psicólogo trabaja solo. Supervisión con otro profesional o lectura de casos clínicos.'},
+    ],
+    tools:[{i:'💻',n:'TherapyNotes / Doctoralia'},{i:'📹',n:'Zoom / Meet (online)'},{i:'📚',n:'DSM-5 / CIE-11'},{i:'📋',n:'Escalas estandarizadas'},{i:'🤖',n:'IA para notas (asistencia)'},{i:'📱',n:'Apps de seguimiento paciente'},{i:'🎵',n:'Música ambiente / mindfulness'}],
+    pros:['Trabajo profundamente significativo — cambia vidas','Alta demanda post-pandemia en toda LatAm','Posibilidad de trabajo online desde cualquier lugar','Flexibilidad de horario en práctica privada','La IA facilita tareas administrativas, no clínicas'],
+    cons:['Carga emocional alta — absorbes el dolor ajeno','En Ecuador, la salud mental aún tiene estigma','Los honorarios privados son inaccesibles para muchos','Requiere supervisión constante — formación no acaba nunca','El desgaste por empatía (burnout) es riesgo real']
+  },
+  {
+    id:'data_scientist',
+    emoji:'📊',
+    role:'Científico/a de Datos',
+    where:'Empresa fintech · trabajo remoto',
+    category:'sci',
+    color:'linear-gradient(135deg,#38bdf8,#34d399)',
+    colorHex:'#38bdf8',
+    quote:'"Trabajo con números, pero mi trabajo real es contar historias que los datos tienen dentro."',
+    tags:['Datos','IA','Matemáticas aplicadas'],
+    salaryLabel:'Uno de los mejores salarios en tech',
+    salaryRange:'$2,000–10,000/mes',
+    salaryFill:72,
+    statLabel:'🚀 La IA amplifica este rol enormemente · Altísima demanda',
+    timeline:[
+      {time:'9:00',emoji:'📊',dot:'#38bdf8',activity:'Revisión de dashboards y anomalías',detail:'¿Pasó algo raro ayer en los datos? Reviso alertas automáticas y KPIs de negocio.'},
+      {time:'9:30',emoji:'🐍',dot:'#34d399',activity:'Programación en Python/SQL',detail:'Escribo queries, limpio datos, construyo pipelines. El 70% del tiempo es preparación de datos.'},
+      {time:'12:00',emoji:'🤖',dot:'#38bdf8',activity:'Entrenamiento o evaluación de modelos',detail:'Machine learning: regresiones, clasificadores, redes neuronales. Evaluación de métricas.'},
+      {time:'14:00',emoji:'🍜',dot:'#f5c842',activity:'Almuerzo + lecturas técnicas',detail:'Reviso arXiv, papers de Google/Meta. El campo avanza tan rápido que leer es parte del trabajo.'},
+      {time:'15:00',emoji:'📈',dot:'#34d399',activity:'Análisis y storytelling con datos',detail:'Los modelos no valen nada si no comunicas los hallazgos. Hago visualizaciones en Tableau o Python.'},
+      {time:'16:30',emoji:'👥',dot:'#38bdf8',activity:'Reunión con negocio',detail:'Explico a personas no técnicas qué encontraron los datos. Traducir datos a decisiones es un arte.'},
+      {time:'18:00',emoji:'📚',dot:'#7c6af7',activity:'Kaggle o proyectos propios',detail:'Practico con competencias o trabajo en un proyecto de portfolio. El aprendizaje nunca para.'},
+    ],
+    tools:[{i:'🐍',n:'Python (pandas, sklearn)'},{i:'📊',n:'SQL / BigQuery'},{i:'📈',n:'Tableau / Power BI'},{i:'🤖',n:'TensorFlow / PyTorch'},{i:'☁️',n:'AWS SageMaker'},{i:'📓',n:'Jupyter Notebooks'},{i:'🐙',n:'Git / GitHub'}],
+    pros:['Salarios top en cualquier país del mundo','Trabajas con IA como herramienta principal — el futuro ya es tu presente','Alta demanda en todos los sectores: salud, finanzas, marketing, gobierno','El trabajo remoto es la norma','Mezcla perfecta de matemáticas, programación y pensamiento creativo'],
+    cons:['La curva de aprendizaje es larga y constante','El 70% del trabajo es limpiar datos sucios — no tan glamoroso','Las expectativas del negocio vs la realidad estadística generan conflicto','Requiere base matemática sólida','Los modelos de IA ahora hacen parte de tu trabajo — mantén el criterio humano']
+  },
+  {
+    id:'entrepreneur_tech',
+    emoji:'🚀',
+    role:'Fundador/a de Startup Tech',
+    where:'Ecuador · expansión regional',
+    category:'biz',
+    color:'linear-gradient(135deg,#fb923c,#f5c842)',
+    colorHex:'#fb923c',
+    quote:'"Nadie te dice que ser emprendedor es hacer 20 trabajos mal pagados en uno. Pero cuando algo funciona, la sensación es inexplicable."',
+    tags:['Emprendimiento','Tech','Liderazgo'],
+    salaryLabel:'$0 al inicio → sin límite si funciona',
+    salaryRange:'Pérdidas → escala libre',
+    salaryFill:20,
+    statLabel:'Alto riesgo · La IA reduce el costo de emprender enormemente',
+    timeline:[
+      {time:'7:00',emoji:'📰',dot:'#fb923c',activity:'Noticias del ecosistema startup',detail:'Leo TechCrunch, Product Hunt, noticias de LatAm tech. El contexto importa para competir.'},
+      {time:'8:00',emoji:'💬',dot:'#f5c842',activity:'Reunión con equipo fundador',detail:'30 minutos. ¿Qué hicimos ayer? ¿Qué necesitamos hoy? Los startups se mueven en días, no en meses.'},
+      {time:'9:00',emoji:'👥',dot:'#fb923c',activity:'Llamadas con clientes / usuarios',detail:'El CEO habla con usuarios todos los días. La empresa que pierde contacto con el usuario, muere.'},
+      {time:'11:00',emoji:'💻',dot:'#34d399',activity:'Producto: código, diseño o estrategia',detail:'Dependiendo de la etapa: construir, iterar, escalar. En early stage, todos hacen de todo.'},
+      {time:'14:00',emoji:'🤝',dot:'#fb923c',activity:'Reuniones con inversores / mentores',detail:'Pitch, fundraising, reportes de progreso. Aprender a vender la visión es una habilidad crítica.'},
+      {time:'16:00',emoji:'📊',dot:'#f5c842',activity:'Métricas y toma de decisiones',detail:'DAU, retention, churn, MRR. Los números no mienten — aunque las historias que te cuenten los suyos sí.'},
+      {time:'19:00',emoji:'🌙',dot:'#fb923c',activity:'Planificación estratégica',detail:'Sola con el laptop. Próximos 90 días. OKRs. Prioridades. ¿Qué importa realmente?'},
+    ],
+    tools:[{i:'🚀',n:'Product Hunt / YC Startup Library'},{i:'📊',n:'Mixpanel / Amplitude'},{i:'💻',n:'Notion / Linear'},{i:'🤖',n:'Claude / ChatGPT (asistente)'},{i:'💰',n:'Stripe / PayPal'},{i:'☁️',n:'AWS / Vercel'},{i:'📧',n:'Mailchimp / HubSpot'}],
+    pros:['Construyes algo tuyo — la satisfacción es única','Con IA, un equipo de 3 personas puede hacer lo que antes requería 30','Ecuador tiene ecosistema creciente — Impaqto, Kruger, programas Gobierno','Escala global posible desde día 1','Aprendes más en 1 año de startup que en 5 de trabajo corporativo'],
+    cons:['El 90% de startups fracasan — estadística real','Primeros 2 años casi sin sueldo (si arrancas sin inversión)','El estrés y la incertidumbre son constantes','Necesitas convencer a otros de tu visión todo el tiempo','Trabajo 12–16 horas no es heroísmo — es un síntoma de mal diseño de negocio']
+  },
+  {
+    id:'3d_animator',
+    emoji:'🤖',
+    role:'Animador/a 3D',
+    where:'Estudio de animación / Freelance global',
+    category:'arts',
+    color:'linear-gradient(135deg,#7c6af7,#a78bfa)',
+    colorHex:'#7c6af7',
+    quote:'"Creo personajes que nunca existieron y audiencias de millones sienten algo por ellos. La magia más cotidiana."',
+    tags:['Animación 3D','Videojuegos','Cine'],
+    salaryLabel:'Freelance o estudio internacional',
+    salaryRange:'$1,000–7,000/mes',
+    salaryFill:52,
+    statLabel:'🚀 IA aceleró el proceso · creatividad directorial irremplazable',
+    timeline:[
+      {time:'9:00',emoji:'🎮',dot:'#7c6af7',activity:'Revisión del shot del día anterior',detail:'Veo el plano renderizado overnight. ¿Está bien? ¿Necesita ajustes de timing o peso?'},
+      {time:'9:30',emoji:'🦴',dot:'#a78bfa',activity:'Rigging o animación en Blender/Maya',detail:'Construyo el esqueleto del personaje o animo los keyframes. El timing lo es todo en animación.'},
+      {time:'12:00',emoji:'🖥️',dot:'#7c6af7',activity:'Render y simulaciones',detail:'Lanzo renders de alta calidad. Mientras renderizan, aprovecho para otras tareas.'},
+      {time:'14:00',emoji:'🍜',dot:'#f5c842',activity:'Almuerzo + referencias cinematográficas',detail:'Veo clips de referencia de cómo se mueven los humanos reales. La animación es actuación digital.'},
+      {time:'15:00',emoji:'🎨',dot:'#a78bfa',activity:'Texturizado y shading',detail:'Aplico materiales, texturas, light setups. El realismo o el estilo artístico depende de esta etapa.'},
+      {time:'17:00',emoji:'✂️',dot:'#7c6af7',activity:'Compositing en After Effects / Nuke',detail:'Combino renders con efectos, corrección de color, VFX finales.'},
+      {time:'18:30',emoji:'🤖',dot:'#34d399',activity:'Experimentación con IA',detail:'Runway ML, Stable Diffusion para concept art, herramientas de animación AI. El campo evoluciona diariamente.'},
+    ],
+    tools:[{i:'🤖',n:'Blender (gratis y poderoso)'},{i:'🎬',n:'Maya (industria)'},{i:'🎨',n:'Substance Painter'},{i:'✂️',n:'After Effects / Nuke'},{i:'🤖',n:'Runway ML'},{i:'🎮',n:'Unreal Engine'},{i:'☁️',n:'SyncSketch (review)'}],
+    pros:['Blender es gratis — barrera de entrada bajísima','Mercado global — puedes trabajar para estudios de cualquier país','La animación de personajes es una de las ramas más resistentes a la IA total','Videojuegos, cine, publicidad, arquitectura — se aplica en todo','Comunidad online inmensa con tutoriales gratuitos de primer nivel'],
+    cons:['Renderizar puede tomar horas — frustración garantizada','El mercado de NFT/metaverso se infló y bajó rápido — evalúa nichos','Los plazos del cliente no tienen en cuenta que el render tarda 12 horas','La IA puede automatizar partes importantes del pipeline','Requiere invertir en hardware (GPU) para trabajar a nivel profesional']
+  },
+  {
+    id:'gastronomist',
+    emoji:'🍳',
+    role:'Chef Creativo / Gastrónomo/a',
+    where:'Restaurante propio o consultoría · Ecuador',
+    category:'biz',
+    color:'linear-gradient(135deg,#f59e42,#34d399)',
+    colorHex:'#f59e42',
+    quote:'"La cocina no es solo comida — es identidad, memoria y cultura en un plato."',
+    tags:['Gastronomía','Creatividad manual','Cultura'],
+    salaryLabel:'Variable · alto si emprendes bien',
+    salaryRange:'$600–5,000/mes',
+    salaryFill:38,
+    statLabel:'🛡️ Muy resistente a IA · experiencia sensorial irremplazable',
+    timeline:[
+      {time:'6:00',emoji:'🛒',dot:'#f59e42',activity:'Mercado y selección de ingredientes',detail:'La calidad del plato empieza aquí. Conozco a los productores, elijo lo mejor del día.'},
+      {time:'8:00',emoji:'🔪',dot:'#fb923c',activity:'Mise en place',detail:'Preparación de todos los ingredientes antes del servicio. Sin mise en place, el servicio es caos.'},
+      {time:'10:00',emoji:'🍳',dot:'#f59e42',activity:'Cocina de producción',detail:'Fondos, salsas, panes. Las bases que harán posibles los platos del menú.'},
+      {time:'13:00',emoji:'🍽️',dot:'#34d399',activity:'Servicio del almuerzo',detail:'El caos coordinado. Cada plato sale a tiempo y perfecto. La cocina es trabajo en equipo total.'},
+      {time:'15:30',emoji:'✏️',dot:'#f59e42',activity:'Creación de nuevos platos',detail:'Mi tiempo favorito. Experimento, pruebo, fallo, corrijo. Un plato nuevo puede tardar semanas.'},
+      {time:'17:00',emoji:'📸',dot:'#e05c8a',activity:'Foto y contenido digital',detail:'El chef de hoy también es su propio community manager. Las redes generan reservas.'},
+      {time:'19:00',emoji:'🍸',dot:'#fb923c',activity:'Servicio de cena',detail:'El turno nocturno es el de mayor presión y también el más satisfactorio.'},
+    ],
+    tools:[{i:'🔪',n:'Cuchillos japoneses de chef'},{i:'⏱️',n:'Termómetros / timers'},{i:'📸',n:'Cámara para contenido'},{i:'💻',n:'Toast / Square (POS)'},{i:'📱',n:'Instagram / TikTok'},{i:'📋',n:'Notion (recetas y costos)'},{i:'🌡️',n:'Sous vide / técnicas modernistas'}],
+    pros:['Ecuador tiene ingredientes únicos en el mundo — ventaja enorme','La gastronomía ecuatoriana está siendo descubierta internacionalmente','Alta resistencia a la automatización — lo sensorial no se replica','El mundo de la gastronomía tiene presencia internacional accesible','Satisfacción inmediata: la cara de alguien que come algo delicioso'],
+    cons:['Las horas son muy largas y en momentos donde otros descansan','Los márgenes del restaurante son muy bajos — el 60% fracasa en 1 año','De pie 10–12 horas hace daño físico a largo plazo','El ambiente de cocina puede ser muy exigente emocionalmente','Emprender un restaurante requiere capital y mucha gestión administrativa']
+  }
+];
+
+/* ═══════════════════════════════════════════
+   CREATORS DATABASE
+═══════════════════════════════════════════ */
+const CREATORS = [
+  {emoji:'🎬',name:'Corridor Crew',platform:'YouTube',bg:'rgba(224,92,138,0.15)',desc:'Profesionales de VFX y efectos especiales analizan películas y el impacto de la IA en cine.',tags:['VFX','Cine','IA creativa']},
+  {emoji:'🏛️',name:'Architecture Hunter',platform:'YouTube',bg:'rgba(245,158,66,0.15)',desc:'Arquitecto que documenta proyectos modernos, visita estudios y muestra cómo es trabajar en arquitectura.',tags:['Arquitectura','Diseño','Día a día']},
+  {emoji:'💻',name:'Fireship',platform:'YouTube',bg:'rgba(52,211,153,0.15)',desc:'Desarrollador que explica tecnología y programación de forma ultrarrápida y honesta. Referente tech.',tags:['Programación','Tech','IA']},
+  {emoji:'🎵',name:'Simon Servida',platform:'YouTube',bg:'rgba(167,139,250,0.15)',desc:'Productor musical latinoamericano que muestra su proceso de creación de beats y la industria musical.',tags:['Producción musical','Beats','Proceso creativo']},
+  {emoji:'🎨',name:'Femke Design',platform:'YouTube',bg:'rgba(124,106,247,0.15)',desc:'Diseñadora UX/UI que documenta su carrera real, muestra su portafolio y proceso de trabajo.',tags:['UX/UI','Diseño','Carrera']},
+  {emoji:'📱',name:'Nathaniel Drew',platform:'YouTube',bg:'rgba(56,189,248,0.15)',desc:'Creador de contenido que documenta su vida y proceso creativo con gran calidad cinematográfica.',tags:['Contenido','Cinematografía','Proceso']},
+  {emoji:'🍳',name:'Alex French Guy Cooking',platform:'YouTube',bg:'rgba(245,200,66,0.15)',desc:'Chef que muestra su proceso de aprendizaje, errores incluidos. El más honesto sobre la gastronomía.',tags:['Gastronomía','Chef','Proceso real']},
+  {emoji:'🧠',name:'Psych2Go',platform:'YouTube',bg:'rgba(167,139,250,0.15)',desc:'Canal sobre psicología accesible para jóvenes. Muestra cómo la psicología se aplica en la vida real.',tags:['Psicología','Salud mental','Divulgación']},
+  {emoji:'📊',name:'Ken Jee',platform:'YouTube',bg:'rgba(56,189,248,0.15)',desc:'Data scientist que documenta su carrera, proyectos y el mercado laboral en ciencia de datos.',tags:['Data Science','Carrera','IA']},
+  {emoji:'🚀',name:'Startup Grind LATAM',platform:'YouTube',bg:'rgba(251,146,60,0.15)',desc:'Historias de emprendedores latinoamericanos — los fracasos también. La cara real del emprendimiento.',tags:['Startup','LatAm','Emprendimiento']},
+  {emoji:'🤖',name:'Polyfjord',platform:'YouTube',bg:'rgba(124,106,247,0.15)',desc:'Animador 3D que muestra su proceso completo en Blender, desde concept hasta render final.',tags:['Animación 3D','Blender','Proceso']},
+  {emoji:'🎬',name:'Casey Neistat',platform:'YouTube',bg:'rgba(224,92,138,0.15)',desc:'El modelo de creador de contenido más influyente. Documenta su trabajo creativo con nivel cinematográfico.',tags:['Contenido','Cine','NYC']}
+];
+
+/* ═══════════════════════════════════════════
+   STATE & FILTER
+═══════════════════════════════════════════ */
+let activeFilter = 'all';
+let expandedId   = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCareers();
+  renderCreators();
+  document.getElementById('ai-career-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generateNarrative();
+  });
+});
+
+function setFilter(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCareers();
+}
+
+function renderCareers() {
+  const grid  = document.getElementById('careers-grid');
+  const empty = document.getElementById('empty-state');
+  const count = document.getElementById('results-count');
+  const filtered = activeFilter === 'all' ? CAREERS : CAREERS.filter(c => c.category === activeFilter);
+  count.textContent = filtered.length + ' perfiles';
+  if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.add('visible'); return; }
+  empty.classList.remove('visible');
+  grid.innerHTML = '';
+  filtered.forEach(c => grid.appendChild(buildCareerCard(c)));
+  if (expandedId && filtered.find(c => c.id === expandedId)) {
+    const d = document.getElementById('d-' + expandedId);
+    if (d) d.classList.add('open');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   BUILD CAREER CARD
+═══════════════════════════════════════════ */
+function buildCareerCard(c) {
+  const card = document.createElement('div');
+  card.className = 'career-card';
+  card.id = 'card-' + c.id;
+
+  const tagsHtml = c.tags.map(t => `<span class="cc-tag">${t}</span>`).join('');
+
+  card.innerHTML = `
+    <div class="cc-gradient" style="background:${c.color}"></div>
+    <div class="cc-body">
+      <div class="cc-top">
+        <div class="cc-emoji-wrap" style="background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))">${c.emoji}</div>
+        <div class="cc-meta">
+          <div class="cc-role">${c.role}</div>
+          <div class="cc-where">📍 ${c.where}</div>
+          <div class="cc-tags">${tagsHtml}</div>
+        </div>
+      </div>
+      <div class="cc-quote">${c.quote}</div>
+      <div class="cc-footer">
+        <div class="cc-stat" style="color:${c.colorHex}">${c.statLabel}</div>
+        <button class="cc-expand" id="exp-${c.id}" onclick="toggleCard('${c.id}')">
+          Ver día completo <span class="cc-expand-icon" id="exp-icon-${c.id}">▼</span>
+        </button>
+      </div>
+    </div>
+    <div class="cc-detail" id="d-${c.id}">
+      ${buildDetailContent(c)}
+    </div>`;
+
+  return card;
+}
+
+function toggleCard(id) {
+  const detail = document.getElementById('d-' + id);
+  const expBtn  = document.getElementById('exp-' + id);
+  const expIcon = document.getElementById('exp-icon-' + id);
+  if (!detail) return;
+
+  // Close previous
+  if (expandedId && expandedId !== id) {
+    document.getElementById('d-' + expandedId)?.classList.remove('open');
+    document.getElementById('exp-' + expandedId)?.classList.remove('open');
+    document.getElementById('exp-icon-' + expandedId)?.classList.remove('open');
+  }
+
+  const isOpen = detail.classList.contains('open');
+  if (isOpen) {
+    detail.classList.remove('open');
+    expBtn.classList.remove('open');
+    expIcon.classList.remove('open');
+    expandedId = null;
+  } else {
+    detail.classList.add('open');
+    expBtn.classList.add('open');
+    expIcon.classList.add('open');
+    expandedId = id;
+    setTimeout(() => document.getElementById('card-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+}
+
+function buildDetailContent(c) {
+  /* Timeline tab */
+  const tlHtml = c.timeline.map(t => `
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-time">${t.time}</div>
+        <div class="tl-dot" style="background:${t.dot};border-color:${t.dot}"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-activity">${t.emoji} ${t.activity}</div>
+        <div class="tl-detail">${t.detail}</div>
+      </div>
+    </div>`).join('');
+
+  /* Tools tab */
+  const toolsHtml = c.tools.map(t => `
+    <div class="tool-chip"><span class="tool-icon">${t.i}</span>${t.n}</div>`).join('');
+
+  /* Honest tab */
+  const prosHtml = c.pros.map(p => `<div class="honest-item">${p}</div>`).join('');
+  const consHtml = c.cons.map(p => `<div class="honest-item">${p}</div>`).join('');
+
+  return `
+    <div class="cc-tabs">
+      <button class="cc-tab active" onclick="switchTab('${c.id}',0,this)">📅 Un día típico</button>
+      <button class="cc-tab" onclick="switchTab('${c.id}',1,this)">🛠️ Herramientas</button>
+      <button class="cc-tab" onclick="switchTab('${c.id}',2,this)">✅ Lo bueno y lo difícil</button>
+    </div>
+    <div class="cc-pane active" id="p0-${c.id}">
+      <div class="timeline-list">${tlHtml}</div>
+    </div>
+    <div class="cc-pane" id="p1-${c.id}">
+      <div class="tools-grid">${toolsHtml}</div>
+    </div>
+    <div class="cc-pane" id="p2-${c.id}">
+      <div class="honest-grid">
+        <div class="honest-col pros">
+          <div class="honest-title">Lo que mola ✓</div>
+          <div class="honest-list">${prosHtml}</div>
+        </div>
+        <div class="honest-col cons">
+          <div class="honest-title">Lo que cuesta</div>
+          <div class="honest-list">${consHtml}</div>
+        </div>
+      </div>
+      <div class="salary-band">
+        <span class="salary-label">Rango salarial</span>
+        <div class="salary-track"><div class="salary-fill" style="width:${c.salaryFill}%"></div></div>
+        <span class="salary-range">${c.salaryRange}</span>
+      </div>
+    </div>`;
+}
+
+function switchTab(id, idx, btn) {
+  btn.closest('.cc-detail').querySelectorAll('.cc-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('.cc-detail').querySelectorAll('.cc-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`p${idx}-${id}`)?.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════
+   CREATORS
+═══════════════════════════════════════════ */
+function renderCreators() {
+  const grid = document.getElementById('creators-grid');
+  CREATORS.forEach(cr => {
+    const card = document.createElement('div');
+    card.className = 'creator-card';
+    const tagsHtml = cr.tags.map(t => `<span class="creator-tag">${t}</span>`).join('');
+    card.innerHTML = `
+      <div class="creator-top">
+        <div class="creator-avatar" style="background:${cr.bg}">${cr.emoji}</div>
+        <div>
+          <div class="creator-name">${cr.name}</div>
+          <div class="creator-platform">${cr.platform}</div>
+        </div>
+      </div>
+      <div class="creator-desc">${cr.desc}</div>
+      <div class="creator-tags">${tagsHtml}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   AI NARRATIVE GENERATOR
+═══════════════════════════════════════════ */
+async function generateNarrative() {
+  const career = document.getElementById('ai-career-input').value.trim();
+  if (!career) { document.getElementById('ai-career-input').focus(); return; }
+
+  const btn = document.getElementById('ai-gen-btn');
+  const narrative = document.getElementById('ai-narrative');
+  btn.disabled = true;
+  narrative.classList.add('visible');
+
+  document.getElementById('an-emoji').textContent = '⏳';
+  document.getElementById('an-role').textContent = career;
+  document.getElementById('an-tag').textContent = 'Generando narrativa...';
+  document.getElementById('an-body').innerHTML = `
+    <div class="ai-loading">
+      <span>Construyendo tu día</span>
+      <div class="ai-dots"><span></span><span></span><span></span></div>
+    </div>`;
+
+  const prompt = `Eres un orientador vocacional que conoce el mercado laboral de 2026 en América Latina y Europa.
+Genera una narrativa REAL y HONESTA de cómo es "un día en la vida" de: ${career}
+
+Incluye:
+1. Emoji representativo del rol
+2. Descripción del perfil en una línea (rol + ciudad/región)
+3. Una narrativa de 5–7 horas del día en primera persona — con hora, actividad y reflexión honesta
+4. Una frase final sobre lo que más te sorprendería de este trabajo si vienes del colegio
+
+Tono: cercano, honesto, sin glamorizarlo ni demonizarlo. Menciona herramientas reales de 2026.
+Formato: responde SOLO en JSON sin markdown:
+{
+  "emoji": "emoji",
+  "role": "Rol específico",
+  "tag": "Ciudad/región · sector",
+  "narrative": "Narrativa en primera persona con horas y reflexiones..."
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 700,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const raw  = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    document.getElementById('an-emoji').textContent = result.emoji || '🌟';
+    document.getElementById('an-role').textContent  = result.role  || career;
+    document.getElementById('an-tag').textContent   = result.tag   || '';
+    document.getElementById('an-body').innerHTML    = formatNarrative(result.narrative || '');
+
+  } catch (e) {
+    // Offline fallback
+    document.getElementById('an-emoji').textContent = '🌟';
+    document.getElementById('an-role').textContent  = career;
+    document.getElementById('an-tag').textContent   = 'Narrativa generada localmente';
+    document.getElementById('an-body').innerHTML = `
+      <p style="color:var(--muted);line-height:1.8;font-size:14px;">
+        No pude conectar con la IA ahora mismo. Pero puedes explorar los perfiles de carrera de abajo
+        — están diseñados para mostrarte exactamente cómo es un día real en distintas profesiones,
+        con herramientas, pros, contras y rangos salariales honestos.<br><br>
+        Cuando tengas conexión, vuelve a intentar la generación para <strong>${career}</strong>.
+      </p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function formatNarrative(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\n\n+/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+</script>
+</body>
+</html>

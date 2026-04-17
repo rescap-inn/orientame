@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oriéntame · Fase 2 — Mis Habilidades Reales (Arte + Técnica)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117; --surface: #181b24; --surface2: #1f2333;
+  --border: rgba(255,255,255,0.08); --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+  --primary: #56cfad; --primary-light: #8de8ce; --primary-glow: rgba(86,207,173,0.12);
+  --accent: #7c6af7; --accent-glow: rgba(124,106,247,0.12);
+  --rose: #e05c8a; --rose-glow: rgba(224,92,138,0.1);
+  --warning: #f5a623;
+  --gradient: linear-gradient(135deg, #56cfad, #7c6af7);
+  --gradient-art: linear-gradient(135deg, #e05c8a, #f5a623);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-weight: 300; min-height: 100vh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+.bg-glow { position: fixed; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle,rgba(86,207,173,0.06) 0%,transparent 70%); top: -200px; right: -200px; pointer-events: none; z-index: 0; }
+.bg-glow2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle,rgba(224,92,138,0.04) 0%,transparent 70%); bottom: -100px; left: -100px; pointer-events: none; z-index: 0; }
+
+.wrapper { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* HEADER */
+.app-header { padding: 32px 0 36px; text-align: center; }
+.phase-badge { display: inline-flex; align-items: center; gap: 10px; background: var(--primary-glow); border: 1px solid rgba(86,207,173,0.3); border-radius: 100px; padding: 6px 16px; margin-bottom: 20px; }
+.phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gradient); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+.phase-text { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header h1 { font-family: 'Lora', serif; font-size: clamp(24px,5vw,40px); font-weight: 600; line-height: 1.2; margin-bottom: 12px; }
+.app-header h1 em { font-style: italic; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header p { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 520px; margin: 0 auto 24px; }
+
+/* PHASE STEPS */
+.phase-steps { display: flex; justify-content: center; margin-bottom: 28px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0 20px; position: relative; }
+.step:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 65%; width: 70%; height: 1px; background: var(--border); }
+.step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.step.done .step-circle { background: var(--accent); color: white; }
+.step.active .step-circle { background: var(--primary); color: #0f1117; }
+.step.pending .step-circle { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.step-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; white-space: nowrap; }
+.step.active .step-label { color: var(--primary); }
+.step.done .step-label { color: var(--accent); }
+
+/* PROGRESS */
+.progress-bar { background: var(--surface2); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 6px; }
+.progress-fill { height: 100%; background: var(--gradient); border-radius: 100px; transition: width .5s ease; width: 0%; }
+.progress-label { font-size: 11px; color: var(--muted); text-align: right; letter-spacing: 1px; }
+
+/* INFO BOX */
+.info-box { border-radius: 16px; padding: 18px 22px; margin-bottom: 26px; display: flex; gap: 14px; align-items: flex-start; }
+.info-box.main { background: var(--primary-glow); border: 1px solid rgba(86,207,173,0.2); }
+.info-box.art { background: var(--rose-glow); border: 1px solid rgba(224,92,138,0.25); }
+.info-icon { font-size: 20px; flex-shrink: 0; padding-top: 2px; }
+.info-box h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.info-box.main h3 { color: var(--primary-light); }
+.info-box.art h3 { color: #f09bb5; }
+.info-box p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* SECTION CARD */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; margin-bottom: 22px; transition: border-color 0.3s; }
+.section-card:focus-within { border-color: rgba(86,207,173,0.3); }
+.section-card.art-card { border-left: 3px solid rgba(224,92,138,0.4); }
+.section-card.art-card:focus-within { border-color: rgba(224,92,138,0.35); }
+
+.section-num { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px; }
+.section-num.main { color: var(--primary); }
+.section-num.art { color: var(--rose); }
+.section-card h2 { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; margin-bottom: 5px; line-height: 1.3; }
+.section-card .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.65; }
+
+/* QUESTION */
+.question { margin-bottom: 26px; }
+.question:last-child { margin-bottom: 0; }
+.question-text { font-size: 14.5px; line-height: 1.6; margin-bottom: 13px; color: var(--text); }
+.q-num { font-size: 10px; font-weight: 600; opacity: 0.6; display: block; margin-bottom: 3px; letter-spacing: 1px; }
+.q-num.main { color: var(--primary); }
+.q-num.art { color: var(--rose); }
+
+/* CHOICES */
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; text-align: left; cursor: pointer; transition: all 0.2s; font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; color: var(--muted); line-height: 1.5; width: 100%; }
+.choice-btn:hover { border-color: rgba(86,207,173,0.4); background: rgba(86,207,173,0.05); color: var(--text); transform: translateX(3px); }
+.choice-btn.selected { border-color: var(--primary); background: var(--primary-glow); color: var(--text); font-weight: 400; }
+.choice-btn.selected::before { content: '✓ '; color: var(--primary); font-weight: 700; }
+.choice-btn.art:hover { border-color: rgba(224,92,138,0.4); background: rgba(224,92,138,0.05); }
+.choice-btn.art.selected { border-color: var(--rose); background: var(--rose-glow); }
+.choice-btn.art.selected::before { color: var(--rose); }
+
+/* TAGS */
+.tags-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 7px 15px; font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 400; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.tag-btn:hover { border-color: rgba(86,207,173,0.4); color: var(--text); }
+.tag-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 500; }
+.tag-btn.art-tag:hover { border-color: rgba(224,92,138,0.4); }
+.tag-btn.art-tag.selected { background: var(--rose-glow); border-color: var(--rose); color: #f09bb5; }
+
+/* MATRIX */
+.matrix { display: flex; flex-direction: column; gap: 12px; }
+.matrix-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; }
+.matrix-label { font-size: 13.5px; color: var(--text); line-height: 1.4; }
+.matrix-scale { display: flex; gap: 6px; }
+.matrix-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.matrix-btn:hover { border-color: rgba(86,207,173,0.4); color: var(--text); }
+.matrix-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 700; }
+.matrix-btn.art-btn.selected { background: var(--rose-glow); border-color: var(--rose); color: #f09bb5; }
+.matrix-hint { font-size: 10px; color: var(--muted); opacity: 0.55; margin-top: 6px; text-align: right; }
+
+/* SLIDER */
+.slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.slider-name { font-size: 13px; color: var(--text); min-width: 180px; line-height: 1.4; }
+input[type=range] { flex: 1; height: 4px; -webkit-appearance: none; background: var(--surface2); border-radius: 100px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 2px solid var(--bg); cursor: pointer; transition: transform 0.2s; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.slider-val { min-width: 28px; text-align: center; font-size: 14px; font-weight: 700; color: var(--primary); }
+.slider-hint { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); opacity: 0.5; margin-bottom: 6px; }
+
+/* TEXT INPUT */
+.text-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; resize: vertical; min-height: 80px; outline: none; transition: border-color 0.2s; }
+.text-input:focus { border-color: rgba(86,207,173,0.5); }
+.text-input::placeholder { color: var(--muted); opacity: 0.45; }
+
+/* NAME */
+.name-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 400; outline: none; transition: border-color 0.2s; }
+.name-input:focus { border-color: rgba(86,207,173,0.5); }
+.name-input::placeholder { color: var(--muted); opacity: 0.4; }
+
+/* BLOQUE DIVIDER */
+.bloque-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 10px; }
+.bloque-divider span { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+.bloque-divider span.main { color: var(--primary); opacity: 0.8; }
+.bloque-divider span.art { color: var(--rose); opacity: 0.9; }
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+
+/* CTA */
+.btn-primary { width: 100%; padding: 17px; background: var(--gradient); border: none; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: #0f1117; cursor: pointer; letter-spacing: 0.5px; transition: all 0.3s; margin-top: 28px; }
+.btn-primary:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(86,207,173,0.25); }
+
+/* RESULT */
+#result-container { display: none; }
+.result-hero { text-align: center; padding: 36px 0 28px; }
+.result-emoji { font-size: 52px; margin-bottom: 14px; }
+.result-hero h2 { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+.result-hero p { font-size: 13px; color: var(--muted); }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; }
+.result-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--primary); opacity: 0.7; margin-bottom: 14px; }
+.result-text { font-size: 14.5px; color: var(--text); line-height: 1.85; }
+.apt-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.apt-bar-label { font-size: 13px; color: var(--text); min-width: 170px; }
+.apt-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.apt-bar-fill { height: 100%; border-radius: 100px; transition: width 1s ease; }
+.apt-bar-fill.main { background: var(--gradient); }
+.apt-bar-fill.art { background: var(--gradient-art); }
+.apt-bar-score { font-size: 13px; font-weight: 700; min-width: 36px; text-align: right; }
+.score-main { color: var(--primary); }
+.score-art { color: var(--rose); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { border-radius: 100px; padding: 5px 13px; font-size: 12px; font-weight: 500; }
+.chip-green { background: rgba(86,207,173,0.1); border: 1px solid rgba(86,207,173,0.3); color: var(--primary); }
+.chip-purple { background: var(--accent-glow); border: 1px solid rgba(124,106,247,0.3); color: #a99df9; }
+.chip-rose { background: var(--rose-glow); border: 1px solid rgba(224,92,138,0.3); color: #f09bb5; }
+.chip-warn { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.25); color: var(--warning); }
+.loading-state { text-align: center; padding: 56px 24px; }
+.loading-spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; color: var(--muted); font-style: italic; line-height: 1.75; }
+.watermark { text-align: center; padding: 24px 0 0; font-size: 11px; color: var(--muted); opacity: 0.4; }
+@media(max-width:540px){ .section-card{padding:20px} .matrix-row{grid-template-columns:1fr;gap:8px} .slider-name{min-width:120px} }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+<div class="wrapper">
+
+  <div class="app-header">
+    <div class="phase-badge"><div class="phase-dot"></div><span class="phase-text">Oriéntame · Fase 2 de 3</span></div>
+    <h1>Tus habilidades<br><em>reales, todas</em></h1>
+    <p>Aquí medimos lo que sabes hacer — sea con la mente, con las manos, con el cuerpo o con el corazón. Esta fase incluye aptitudes artísticas, manuales, escénicas y técnicas por igual.</p>
+    <div class="phase-steps">
+      <div class="step done"><div class="step-circle">✓</div><div class="step-label">Pasiones</div></div>
+      <div class="step active"><div class="step-circle">2</div><div class="step-label">Habilidades</div></div>
+      <div class="step pending"><div class="step-circle">3</div><div class="step-label">Padres</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0% completado</div>
+  </div>
+
+  <div id="form-container">
+
+    <div class="info-box main">
+      <div class="info-icon">🔬</div>
+      <div>
+        <h3>¿Por qué medir habilidades de todos los tipos?</h3>
+        <p>La psicología vocacional moderna (modelo SCCT + Gardner) confirma que la inteligencia espacial, cinestésica, musical y artística predicen el éxito profesional igual que la inteligencia lógica. Este test evalúa todas — sin jerarquías.</p>
+      </div>
+    </div>
+
+    <!-- NOMBRE -->
+    <div class="section-card">
+      <div class="section-num main">Para personalizar</div>
+      <h2>¿Cómo te llamas?</h2>
+      <input type="text" class="name-input" id="nameInput" placeholder="Tu nombre...">
+    </div>
+
+    <!-- BLOQUE 1: APTITUDES ACADÉMICAS/COGNITIVAS -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 1 de 7 · Aptitudes cognitivas</div>
+      <h2>¿Cómo eres en estas áreas mentales?</h2>
+      <div class="section-sub">Califica del 1 al 5 tu nivel real. (1 = me cuesta mucho, 5 = me sale muy natural)</div>
+      <div class="question">
+        <div class="slider-hint"><span>Me cuesta</span><span>Me sale natural</span></div>
+        <div class="slider-row"><span class="slider-name">Matemáticas y lógica</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="matematicas" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Redactar y escribir</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="escritura" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Hablar y convencer</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="oratoria" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Ciencias (física, química...)</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="ciencias" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Idiomas</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="idiomas" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Atención al detalle y memoria</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="memoria" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2: APTITUDES ARTÍSTICAS Y MANUALES -->
+    <div class="section-card art-card">
+      <div class="section-num art">Bloque 2 de 7 · Aptitudes artísticas y manuales</div>
+      <h2>¿Cómo eres con el arte, las manos y la expresión?</h2>
+      <div class="section-sub">Califica honestamente — aunque no hayas tenido clases formales. El talento natural cuenta igual.</div>
+
+      <div class="info-box art" style="margin-bottom:18px;">
+        <div class="info-icon">🎨</div>
+        <div>
+          <h3>Nota importante</h3>
+          <p>No necesitas haber ganado premios ni tener clases. Si alguien alguna vez te dijo "qué bien lo haces" o si simplemente lo disfrutas y te sale bien, eso cuenta.</p>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="slider-hint"><span>Me cuesta mucho</span><span>Me sale muy natural</span></div>
+        <div class="slider-row"><span class="slider-name">Dibujar o ilustrar</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="dibujo" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Pintar (cualquier técnica)</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="pintura" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Trabajar con las manos (arcilla, madera, costura, etc.)</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="manualidades" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Sentido del ritmo y la música</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="ritmo_musical" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Cantar o usar la voz</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="canto_voz" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Tocar un instrumento</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="instrumento" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Baile, danza o expresión corporal</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="danza_corporal" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Actuación o teatro</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="actuacion" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Composición musical o creación de beats</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="composicion" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+        <div class="slider-row"><span class="slider-name">Sentido estético / buen ojo visual</span><input type="range" min="1" max="5" value="3" class="apt-slider" data-key="estetica" oninput="updateSlider(this)"><span class="slider-val">3</span></div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 3: HABILIDADES DIGITALES/TÉCNICAS -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 3 de 7 · Habilidades digitales y técnicas</div>
+      <h2>¿Qué sabes hacer con tecnología hoy?</h2>
+      <div class="section-sub">Marca todo lo que puedas hacer aunque sea de forma básica.</div>
+      <div class="tags-grid" id="q-digital-tags">
+        <button class="tag-btn" data-val="editar_video">Editar video</button>
+        <button class="tag-btn" data-val="fotografia_edicion">Editar fotos</button>
+        <button class="tag-btn" data-val="diseño_digital">Diseño digital (Canva, Figma...)</button>
+        <button class="tag-btn" data-val="programacion">Programar (cualquier lenguaje)</button>
+        <button class="tag-btn" data-val="excel_datos">Excel o análisis de datos</button>
+        <button class="tag-btn" data-val="redes_gestion">Gestionar redes sociales</button>
+        <button class="tag-btn" data-val="modelado_3d">Modelado 3D o animación digital</button>
+        <button class="tag-btn" data-val="ia_uso">Usar herramientas de IA</button>
+        <button class="tag-btn" data-val="produccion_musical_digital">Producción musical digital (DAW)</button>
+        <button class="tag-btn" data-val="desarrollo_web">Diseño o desarrollo web</button>
+      </div>
+    </div>
+
+    <!-- BLOQUE 4: SITUACIONES REALES -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 4 de 7 · Situaciones reales</div>
+      <h2>Cómo reaccionas cuando...</h2>
+      <div class="section-sub">Situaciones concretas que revelan habilidades naturales.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num main">P1</span>Tienes que entregar un trabajo en grupo y alguien no está cumpliendo. ¿Qué haces primero?</div>
+        <div class="choices" id="q-situ1-choices">
+          <button class="choice-btn" data-val="hablo_directo">Lo hablo directamente sin rodeos</button>
+          <button class="choice-btn" data-val="hago_su_parte">Hago su parte para que el trabajo salga bien</button>
+          <button class="choice-btn" data-val="reorganizo">Reorganizo las tareas del grupo</button>
+          <button class="choice-btn" data-val="busco_acuerdo">Busco una solución que no afecte la relación</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num main">P2</span>Te piden crear algo (un proyecto, una presentación, una pieza) sin decirte cómo. ¿Qué haces?</div>
+        <div class="choices" id="q-situ2-choices">
+          <button class="choice-btn art" data-val="me_lanzo_crear">Me lanzo a crear sin pensarlo mucho</button>
+          <button class="choice-btn" data-val="planifico_primero">Planifico todo antes de empezar</button>
+          <button class="choice-btn" data-val="busco_referencias">Busco referencias de otros trabajos primero</button>
+          <button class="choice-btn art" data-val="experimento_materiales">Experimento con materiales o herramientas disponibles</button>
+          <button class="choice-btn" data-val="pido_mas_instrucciones">Pido más instrucciones — necesito claridad</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 5: HABILIDAD QUE MÁS DESTACA -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 5 de 7 · Tu mayor habilidad</div>
+      <h2>¿En qué destacas más, aunque no siempre te guste?</h2>
+      <div class="section-sub">A veces somos muy buenos en algo que no es nuestra pasión. Eso también es información valiosa.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num main">P3</span>¿Cuál es la habilidad en que más claramente destacas?</div>
+        <div class="choices" id="q-destaca-choices">
+          <button class="choice-btn art" data-val="ojo_visual_estetico">Ver cómo algo debería verse — composición, color, estética</button>
+          <button class="choice-btn art" data-val="habilidad_manual">Hacer cosas con las manos con precisión y creatividad</button>
+          <button class="choice-btn art" data-val="expresion_cuerpo_voz">Expresarme con el cuerpo o la voz</button>
+          <button class="choice-btn art" data-val="oido_musical">Escuchar y reproducir música con facilidad</button>
+          <button class="choice-btn" data-val="logica_sistemas">Entender cómo funcionan sistemas o mecanismos</button>
+          <button class="choice-btn" data-val="empatia_social">Leer cómo se siente alguien y conectar</button>
+          <button class="choice-btn" data-val="persuasion">Convencer o influir en personas</button>
+          <button class="choice-btn" data-val="generacion_ideas">Generar ideas nuevas constantemente</button>
+          <button class="choice-btn" data-val="aprendizaje_veloz">Aprender cosas nuevas más rápido que los demás</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 6: CARÁCTER Y ACTITUD -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 6 de 7 · Carácter</div>
+      <h2>¿Cómo eres cuando las cosas se ponen difíciles?</h2>
+      <div class="section-sub">Habilidades blandas — las más demandadas en 2026 en todos los sectores.</div>
+      <div class="matrix" id="matrix-soft">
+        <div class="matrix-row"><span class="matrix-label">Cuando me equivoco, lo reconozco fácilmente</span><div class="matrix-scale"><button class="matrix-btn" data-key="humildad" data-val="1">1</button><button class="matrix-btn" data-key="humildad" data-val="2">2</button><button class="matrix-btn" data-key="humildad" data-val="3">3</button><button class="matrix-btn" data-key="humildad" data-val="4">4</button><button class="matrix-btn" data-key="humildad" data-val="5">5</button></div></div>
+        <div class="matrix-row"><span class="matrix-label">Sigo intentando cuando algo no me sale</span><div class="matrix-scale"><button class="matrix-btn" data-key="persistencia" data-val="1">1</button><button class="matrix-btn" data-key="persistencia" data-val="2">2</button><button class="matrix-btn" data-key="persistencia" data-val="3">3</button><button class="matrix-btn" data-key="persistencia" data-val="4">4</button><button class="matrix-btn" data-key="persistencia" data-val="5">5</button></div></div>
+        <div class="matrix-row"><span class="matrix-label">Me adapto bien cuando los planes cambian</span><div class="matrix-scale"><button class="matrix-btn" data-key="adaptabilidad" data-val="1">1</button><button class="matrix-btn" data-key="adaptabilidad" data-val="2">2</button><button class="matrix-btn" data-key="adaptabilidad" data-val="3">3</button><button class="matrix-btn" data-key="adaptabilidad" data-val="4">4</button><button class="matrix-btn" data-key="adaptabilidad" data-val="5">5</button></div></div>
+        <div class="matrix-row"><span class="matrix-label">Termino lo que empiezo aunque me aburra</span><div class="matrix-scale"><button class="matrix-btn" data-key="disciplina" data-val="1">1</button><button class="matrix-btn" data-key="disciplina" data-val="2">2</button><button class="matrix-btn" data-key="disciplina" data-val="3">3</button><button class="matrix-btn" data-key="disciplina" data-val="4">4</button><button class="matrix-btn" data-key="disciplina" data-val="5">5</button></div></div>
+        <div class="matrix-row"><span class="matrix-label">Puedo trabajar aunque me critiquen</span><div class="matrix-scale"><button class="matrix-btn" data-key="resiliencia" data-val="1">1</button><button class="matrix-btn" data-key="resiliencia" data-val="2">2</button><button class="matrix-btn" data-key="resiliencia" data-val="3">3</button><button class="matrix-btn" data-key="resiliencia" data-val="4">4</button><button class="matrix-btn" data-key="resiliencia" data-val="5">5</button></div></div>
+        <div class="matrix-row"><span class="matrix-label art" style="color:#f09bb5;">Cuando creo algo, soy muy detallista con el resultado</span><div class="matrix-scale"><button class="matrix-btn art-btn" data-key="detalle_artistico" data-val="1">1</button><button class="matrix-btn art-btn" data-key="detalle_artistico" data-val="2">2</button><button class="matrix-btn art-btn" data-key="detalle_artistico" data-val="3">3</button><button class="matrix-btn art-btn" data-key="detalle_artistico" data-val="4">4</button><button class="matrix-btn art-btn" data-key="detalle_artistico" data-val="5">5</button></div></div>
+      </div>
+      <div class="matrix-hint">1 = Muy poco · 5 = Totalmente yo</div>
+    </div>
+
+    <!-- BLOQUE 7: EVIDENCIAS Y AUTOCONOCIMIENTO -->
+    <div class="section-card">
+      <div class="section-num main">Bloque 7 de 7 · Lo que ya has logrado</div>
+      <h2>Evidencias reales y autoconocimiento</h2>
+      <div class="section-sub">Los logros concretos son el mejor predictor de aptitudes. No importa si parecen pequeños.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num main">P4</span>¿Has ganado algún concurso, reconocimiento o destacado en algo? (académico, artístico, deportivo, técnico — cualquier tipo)</div>
+        <textarea class="text-input" id="q-logros-text" placeholder="Concurso de matemáticas, obra de teatro, exhibición de arte, primer puesto en algo, que te eligieran para representar a tu colegio..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P5</span>¿Hay algo que haces con las manos, con tu cuerpo, con instrumentos o materiales físicos que te sale especialmente bien?</div>
+        <textarea class="text-input" id="q-manos-text" placeholder="Armar cosas, tocar guitarra, esculpir, coser, bailar, maquillaje artístico, carpintería, cerámica, grafiti, hacer beats..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num main">P6</span>¿Cuál es tu mayor debilidad real, la que tú mismo reconoces?</div>
+        <div class="choices" id="q-debilidad-choices">
+          <button class="choice-btn" data-val="procrastinacion">Me cuesta empezar — procrastino mucho</button>
+          <button class="choice-btn" data-val="perfeccionismo">Soy tan perfeccionista que nunca termino</button>
+          <button class="choice-btn" data-val="frustracion">Me frustro rápido cuando algo no sale bien</button>
+          <button class="choice-btn" data-val="trabajo_equipo">Me cuesta trabajar en equipo</button>
+          <button class="choice-btn" data-val="organizacion">Me cuesta organizarme y cumplir plazos</button>
+          <button class="choice-btn" data-val="timidez_escenario">Me paralizo al hablar en público o actuar</button>
+          <button class="choice-btn art" data-val="autocritica_arte">Me critico demasiado con lo que creo</button>
+          <button class="choice-btn" data-val="aburrimiento_rapido">Me aburro muy rápido de lo que ya domino</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P7</span>¿Hay alguna habilidad artística o manual que tienes pero no te gusta usar o no la tomas en serio?</div>
+        <textarea class="text-input" id="q-no-gusta-text" placeholder="Por ejemplo: me dicen que canto bien pero no me gusta, o que tengo manos habilidosas pero nunca lo ejercito..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="analyzePhase2()">🔍 Analizar mis habilidades con IA</button>
+
+  </div><!-- /form-container -->
+
+  <div id="result-container">
+    <div class="result-hero">
+      <div class="result-emoji">⚡</div>
+      <h2 id="result-title">Tu mapa completo de aptitudes</h2>
+      <p>Fase 2 · Arte + Técnica + Carácter · Proyecciones 2026–2035</p>
+    </div>
+    <div id="result-content"></div>
+    <p class="watermark">Oriéntame · Fase 2 de 3 · La Fase 3 integra la perspectiva de tus padres</p>
+  </div>
+
+</div>
+
+<script>
+const answers = {};
+const aptCognitive = {};
+const aptArtistic = {};
+const softSkills = {};
+let answered = 0;
+const TOTAL = 14;
+
+// SLIDERS
+function updateSlider(el) {
+  el.nextElementSibling.textContent = el.value;
+  const key = el.dataset.key;
+  const artKeys = ['dibujo','pintura','manualidades','ritmo_musical','canto_voz','instrumento','danza_corporal','actuacion','composicion','estetica'];
+  if (artKeys.includes(key)) { aptArtistic[key] = parseInt(el.value); answers['apt_artistic'] = aptArtistic; }
+  else { aptCognitive[key] = parseInt(el.value); answers['apt_cognitive'] = aptCognitive; }
+  recalcProgress();
+}
+// Init
+document.querySelectorAll('.apt-slider').forEach(s => {
+  const artKeys = ['dibujo','pintura','manualidades','ritmo_musical','canto_voz','instrumento','danza_corporal','actuacion','composicion','estetica'];
+  if (artKeys.includes(s.dataset.key)) aptArtistic[s.dataset.key] = 3;
+  else aptCognitive[s.dataset.key] = 3;
+});
+answers['apt_cognitive'] = aptCognitive;
+answers['apt_artistic'] = aptArtistic;
+answered = 2;
+
+// TAGS
+function setupTags(id) {
+  const grid = document.getElementById(id);
+  if (!grid) return;
+  grid.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      const sel = [...grid.querySelectorAll('.tag-btn.selected')].map(b => b.dataset.val);
+      const wasEmpty = !answers[id] || answers[id].length === 0;
+      answers[id] = sel;
+      if (wasEmpty && sel.length > 0) { answered++; recalcProgress(); }
+      if (!wasEmpty && sel.length === 0) { answered = Math.max(0, answered-1); recalcProgress(); }
+    });
+  });
+}
+setupTags('q-digital-tags');
+
+// CHOICES
+document.querySelectorAll('.choices').forEach(group => {
+  group.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      const isNew = !answers[group.id];
+      answers[group.id] = this.dataset.val;
+      if (isNew) { answered++; recalcProgress(); }
+    });
+  });
+});
+
+// MATRIX
+document.querySelectorAll('.matrix-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const key = this.dataset.key;
+    this.closest('.matrix-row').querySelectorAll('.matrix-btn').forEach(b => b.classList.remove('selected'));
+    this.classList.add('selected');
+    const isNew = !softSkills[key];
+    softSkills[key] = parseInt(this.dataset.val);
+    answers['soft'] = softSkills;
+    if (isNew) { answered++; recalcProgress(); }
+  });
+});
+
+// TEXTAREAS
+['q-logros-text','q-manos-text','q-no-gusta-text'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    const wasEmpty = !answers[id];
+    answers[id] = this.value;
+    if (wasEmpty && this.value.length > 3) { answered++; recalcProgress(); }
+  });
+});
+
+function recalcProgress() {
+  const pct = Math.min(100, Math.round((answered / TOTAL) * 100));
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = pct < 100 ? `${pct}% completado` : '¡Listo!';
+}
+
+// ──────────────────────
+// ANALYZE
+// ──────────────────────
+async function analyzePhase2() {
+  const name = document.getElementById('nameInput').value.trim() || 'el adolescente';
+  const cogStr = Object.entries(aptCognitive).map(([k,v])=>`${k}:${v}/5`).join(', ');
+  const artStr = Object.entries(aptArtistic).map(([k,v])=>`${k}:${v}/5`).join(', ');
+  const softStr = Object.entries(softSkills).map(([k,v])=>`${k}:${v}/5`).join(', ');
+  const digital = (answers['q-digital-tags']||[]).join(', ')||'ninguna';
+  const situ1 = answers['q-situ1-choices']||'no indicado';
+  const situ2 = answers['q-situ2-choices']||'no indicado';
+  const destaca = answers['q-destaca-choices']||'no indicado';
+  const debilidad = answers['q-debilidad-choices']||'no indicado';
+  const logros = document.getElementById('q-logros-text').value||'no indicado';
+  const manos = document.getElementById('q-manos-text').value||'no indicado';
+  const noGusta = document.getElementById('q-no-gusta-text').value||'no indicado';
+
+  document.getElementById('form-container').style.display = 'none';
+  document.getElementById('result-container').style.display = 'block';
+  document.getElementById('result-content').innerHTML = `
+    <div class="loading-state"><div class="loading-spinner"></div>
+    <p>Analizando aptitudes cognitivas, artísticas y manuales...<br>Cruzando con mercado laboral 2026–2035 ⚡</p></div>`;
+
+  const prompt = `Eres orientador vocacional experto en psicología SCCT, inteligencias múltiples de Gardner y mercado laboral 2026-2035. Abril 2026. Adolescente: ${name}.
+
+APTITUDES COGNITIVAS (1-5): ${cogStr}
+APTITUDES ARTÍSTICAS Y MANUALES (1-5): ${artStr}
+HABILIDADES BLANDAS (1-5): ${softStr}
+Habilidades digitales que ya tiene: ${digital}
+Ante tarea creativa sin instrucciones: ${situ2}
+Ante conflicto de grupo: ${situ1}
+Habilidad en que más destaca: ${destaca}
+Debilidad principal reconocida: ${debilidad}
+Logros y reconocimientos: "${logros}"
+Habilidades con manos/cuerpo/instrumentos: "${manos}"
+Habilidad artística que tiene pero no usa: "${noGusta}"
+
+JSON SOLO, sin markdown:
+{
+  "perfil_aptitudinal": "nombre en 3-4 palabras incluyendo dimensión artística si aplica",
+  "resumen": "3 oraciones sobre el perfil de habilidades. Si hay aptitudes artísticas/manuales altas, destacarlas con la misma importancia que las cognitivas.",
+  "aptitudes_top": [
+    {"nombre":"nombre aptitud","nivel":85,"tipo":"cognitiva|artistica|manual|escenica|digital","descripcion":"una oración específica sobre esta aptitud en él/ella"}
+  ],
+  "perfil_artistico": {
+    "nivel_general": "alto|medio|bajo|ausente",
+    "areas_fuertes": ["área 1","área 2"],
+    "nota": "una oración sobre qué revelan sus aptitudes artísticas específicamente",
+    "carreras_arte_recomendadas": ["carrera arte 1","carrera arte 2"]
+  },
+  "brechas_oportunidad": [
+    {"brecha":"nombre","consejo":"consejo concreto y accionable"}
+  ],
+  "combinacion_unica": "frase describiendo la combinación única de habilidades de este adolescente — incluyendo artísticas si aplica",
+  "carreras_por_aptitudes": [
+    {"nombre":"Nombre","match_pct":88,"razon":"por qué sus aptitudes específicas encajan","habilidad_clave":"la aptitud suya que más la sustenta","tipo":"arte|tecnologia|ciencias|mixta|humanidades"}
+  ],
+  "advertencia_honesta": "observación honesta y específica sobre algo en su perfil que podría ser obstáculo",
+  "mensaje_fase2": "párrafo personal para ${name} en segunda persona. Si tiene aptitudes artísticas fuertes, validarlas explícitamente como camino profesional legítimo y con futuro.",
+  "para_fase3": "una oración sobre qué sería más valioso que los padres validen o aporten en Fase 3"
+}
+
+REGLAS:
+- aptitudes_top: exactamente 5, incluyendo artísticas/manuales si las puntuaciones son altas (≥4)
+- perfil_artistico es obligatorio y específico, no genérico
+- carreras_por_aptitudes: exactamente 4-5, todas con futuro en 2026-2035
+- Si aptitudes artísticas son ≥4 en 2+ áreas: incluye OBLIGATORIAMENTE al menos 2 carreras arte+futuro (Animación 3D, Producción Musical, Diseño de Experiencias, Dirección Artística Digital, Escenografía, Terapia Artística, Arquitectura, Moda Sostenible+Tech, etc.)
+- NUNCA recomiendas carreras en riesgo alto (data entry, contabilidad básica, diseño genérico)
+- El mensaje debe validar explícitamente caminos artísticos si los datos lo justifican`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1400, messages:[{role:"user",content:prompt}] })
+    });
+    const data = await res.json();
+    const raw = data.content.map(i=>i.text||"").join("");
+    renderResult(name, JSON.parse(raw.replace(/```json|```/g,"").trim()));
+  } catch(e) {
+    document.getElementById('result-content').innerHTML = `<div class="result-card"><h3>Error</h3><div class="result-text">Problema de conexión. Recarga e intenta nuevamente.</div></div>`;
+  }
+}
+
+// ──────────────────────
+// RENDER
+// ──────────────────────
+function renderResult(name, r) {
+  document.getElementById('result-title').textContent = `${name}: ${r.perfil_aptitudinal}`;
+  const typeColor = { cognitiva:'main', artistica:'art', manual:'art', escenica:'art', digital:'main' };
+  const typeLabel = { cognitiva:'🧠 Cognitiva', artistica:'🎨 Artística', manual:'🖐 Manual', escenica:'🎭 Escénica', digital:'💻 Digital' };
+  const careerTypeColor = { arte:'chip-rose', tecnologia:'chip-purple', ciencias:'chip-green', mixta:'chip-purple', humanidades:'chip-green' };
+
+  const aptHtml = (r.aptitudes_top||[]).map(a => {
+    const isArt = ['artistica','manual','escenica'].includes(a.tipo);
+    return `
+    <div class="apt-bar-row">
+      <span class="apt-bar-label">${typeLabel[a.tipo]||''} ${a.nombre}</span>
+      <div class="apt-bar-track"><div class="apt-bar-fill ${isArt?'art':'main'}" style="width:0%" data-target="${a.nivel}"></div></div>
+      <span class="apt-bar-score ${isArt?'score-art':'score-main'}">${a.nivel}%</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:-6px 0 14px;line-height:1.5;">${a.descripcion}</p>`}).join('');
+
+  const artHtml = r.perfil_artistico ? `
+    <div class="result-card" style="border-color:rgba(224,92,138,0.3);background:rgba(224,92,138,0.03);">
+      <h3 style="color:#f09bb5;">🎨 Perfil artístico y manual</h3>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="font-size:15px;font-weight:600;color:var(--text);">Nivel general: ${r.perfil_artistico.nivel_general}</span>
+        ${(r.perfil_artistico.areas_fuertes||[]).map(a=>`<span class="chip chip-rose">${a}</span>`).join('')}
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:10px;line-height:1.65;">${r.perfil_artistico.nota}</p>
+      ${r.perfil_artistico.nivel_general!=='ausente'&&r.perfil_artistico.nivel_general!=='bajo'?`
+      <p style="font-size:12px;font-weight:600;color:#f09bb5;margin-bottom:7px;letter-spacing:1px;text-transform:uppercase;opacity:0.7;">Carreras artísticas con futuro para ti:</p>
+      <div class="chip-row">${(r.perfil_artistico.carreras_arte_recomendadas||[]).map(c=>`<span class="chip chip-rose">${c}</span>`).join('')}</div>`:''}
+    </div>` : '';
+
+  const careersHtml = (r.carreras_por_aptitudes||[]).map(c=>`
+    <div style="background:var(--surface2);border-radius:12px;padding:15px 17px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+        <strong style="font-size:14px;">${c.nombre}</strong>
+        <span style="font-size:12px;font-weight:700;color:var(--primary);">${c.match_pct}% match</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:6px;line-height:1.5;">${c.razon}</p>
+      <span class="chip ${careerTypeColor[c.tipo]||'chip-green'}" style="font-size:11px;padding:3px 10px;">Aptitud: ${c.habilidad_clave}</span>
+    </div>`).join('');
+
+  const brechasHtml = (r.brechas_oportunidad||[]).map(b=>`
+    <div style="background:var(--surface2);border-radius:10px;padding:13px 16px;margin-bottom:10px;">
+      <strong style="font-size:13px;color:var(--warning);">⚠ ${b.brecha}</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:5px;line-height:1.55;">${b.consejo}</p>
+    </div>`).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="result-card">
+      <h3>Perfil de aptitudes</h3>
+      <div class="result-text" style="margin-bottom:14px;">${r.resumen}</div>
+    </div>
+
+    <div class="result-card">
+      <h3>Tus 5 aptitudes más fuertes</h3>
+      ${aptHtml}
+    </div>
+
+    ${artHtml}
+
+    <div class="result-card" style="border-color:rgba(124,106,247,0.2);">
+      <h3 style="color:#a99df9;">Tu combinación única</h3>
+      <div class="result-text" style="font-family:'Lora',serif;font-style:italic;font-size:16px;line-height:1.85;">"${r.combinacion_unica}"</div>
+    </div>
+
+    <div class="result-card">
+      <h3>Carreras según tus aptitudes · 2026–2035</h3>
+      ${careersHtml}
+    </div>
+
+    <div class="result-card" style="border-color:rgba(245,166,35,0.18);">
+      <h3 style="color:var(--warning);">Áreas de oportunidad</h3>
+      ${brechasHtml}
+    </div>
+
+    <div class="result-card" style="border-color:rgba(224,92,110,0.18);background:rgba(224,92,110,0.02);">
+      <h3 style="color:#e05c6e;">Una observación honesta</h3>
+      <div class="result-text" style="font-size:14px;">${r.advertencia_honesta}</div>
+    </div>
+
+    <div class="result-card" style="border-color:rgba(86,207,173,0.2);background:rgba(86,207,173,0.025);">
+      <h3 style="color:var(--primary);">Para ti, ${name}</h3>
+      <div class="result-text" style="font-family:'Lora',serif;font-style:italic;font-size:15.5px;line-height:1.9;">"${r.mensaje_fase2}"</div>
+    </div>
+
+    <div style="background:var(--accent-glow);border:1px solid rgba(124,106,247,0.22);border-radius:16px;padding:20px 24px;text-align:center;">
+      <p style="font-size:14px;color:#a99df9;font-weight:600;margin-bottom:6px;">🧩 Lo que la Fase 3 necesita de tus padres</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.65;">${r.para_fase3}</p>
+    </div>`;
+
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.apt-bar-fill[data-target]').forEach(bar=>{
+      bar.style.width = bar.dataset.target+'%';
+    });
+  }, 300);
+}
+</script>
+</body>
+</html>

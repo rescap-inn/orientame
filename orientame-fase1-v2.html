@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oriéntame · Descubre quién eres profesionalmente</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #181b24;
+  --surface2: #1f2333;
+  --border: rgba(255,255,255,0.08);
+  --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+  --primary: #7c6af7;
+  --primary-light: #a99df9;
+  --primary-glow: rgba(124,106,247,0.13);
+  --success: #56cfad;
+  --warning: #f5a623;
+  --rose: #e05c8a;
+  --gradient: linear-gradient(135deg, #7c6af7, #56cfad);
+  --gradient-art: linear-gradient(135deg, #e05c8a, #f5a623);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Sora', sans-serif; font-weight: 300;
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+.bg-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(124,106,247,0.07) 0%, transparent 70%); top: -200px; left: -200px; pointer-events: none; z-index: 0; }
+.bg-glow2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(86,207,173,0.05) 0%, transparent 70%); bottom: -100px; right: -100px; pointer-events: none; z-index: 0; }
+.bg-glow3 { position: fixed; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(224,92,138,0.04) 0%, transparent 70%); top: 40%; right: -100px; pointer-events: none; z-index: 0; }
+
+.wrapper { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* HEADER */
+.app-header { padding: 32px 0 36px; text-align: center; }
+.logo-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--primary-glow); border: 1px solid rgba(124,106,247,0.3);
+  border-radius: 100px; padding: 6px 16px; margin-bottom: 22px;
+}
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gradient); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+.logo-text { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header h1 { font-family: 'Lora', serif; font-size: clamp(26px,5.5vw,44px); font-weight: 600; line-height: 1.15; margin-bottom: 12px; }
+.app-header h1 em { font-style: italic; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header p { font-size: 14px; color: var(--muted); line-height: 1.75; max-width: 520px; margin: 0 auto 24px; }
+
+/* PROGRESS */
+.progress-bar { background: var(--surface2); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 6px; }
+.progress-fill { height: 100%; background: var(--gradient); border-radius: 100px; transition: width .5s ease; width: 0%; }
+.progress-label { font-size: 11px; color: var(--muted); text-align: right; letter-spacing: 1px; }
+
+/* INFO BOX */
+.info-box { background: var(--primary-glow); border: 1px solid rgba(124,106,247,0.2); border-radius: 16px; padding: 18px 22px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start; }
+.info-icon { font-size: 20px; flex-shrink: 0; padding-top: 2px; }
+.info-box h3 { font-size: 13px; font-weight: 600; color: var(--primary-light); margin-bottom: 4px; }
+.info-box p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* ART INFO BOX */
+.art-info-box { background: rgba(224,92,138,0.08); border: 1px solid rgba(224,92,138,0.25); border-radius: 16px; padding: 18px 22px; margin-bottom: 28px; display: flex; gap: 14px; align-items: flex-start; }
+.art-info-box h3 { font-size: 13px; font-weight: 600; color: #f09bb5; margin-bottom: 4px; }
+.art-info-box p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* SECTION CARD */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; margin-bottom: 22px; transition: border-color 0.3s; }
+.section-card:focus-within { border-color: rgba(124,106,247,0.35); }
+.section-card.art-card { border-left: 3px solid rgba(224,92,138,0.5); }
+.section-card.art-card:focus-within { border-color: rgba(224,92,138,0.4); }
+
+.section-num { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--primary); opacity: 0.7; margin-bottom: 7px; }
+.section-num.art { color: var(--rose); }
+.section-card h2 { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; margin-bottom: 5px; line-height: 1.3; }
+.section-card .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.65; }
+
+/* QUESTION */
+.question { margin-bottom: 26px; }
+.question:last-child { margin-bottom: 0; }
+.question-text { font-size: 14.5px; line-height: 1.6; margin-bottom: 13px; color: var(--text); }
+.q-num { font-size: 10px; font-weight: 600; color: var(--primary); opacity: 0.6; display: block; margin-bottom: 3px; letter-spacing: 1px; }
+.q-num.art { color: var(--rose); }
+
+/* TAGS */
+.tags-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 7px 15px; font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 400; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.tag-btn:hover { border-color: rgba(124,106,247,0.4); color: var(--text); }
+.tag-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 500; }
+.tag-btn.art-tag:hover { border-color: rgba(224,92,138,0.45); }
+.tag-btn.art-tag.selected { background: rgba(224,92,138,0.1); border-color: var(--rose); color: #f09bb5; }
+
+/* CHOICES */
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; text-align: left; cursor: pointer; transition: all 0.2s; font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; color: var(--muted); line-height: 1.5; width: 100%; }
+.choice-btn:hover { border-color: rgba(124,106,247,0.4); background: rgba(124,106,247,0.05); color: var(--text); transform: translateX(3px); }
+.choice-btn.selected { border-color: var(--primary); background: var(--primary-glow); color: var(--text); font-weight: 400; }
+.choice-btn.selected::before { content: '✓ '; color: var(--primary); font-weight: 700; }
+.choice-btn.art-choice:hover { border-color: rgba(224,92,138,0.4); background: rgba(224,92,138,0.05); }
+.choice-btn.art-choice.selected { border-color: var(--rose); background: rgba(224,92,138,0.08); }
+.choice-btn.art-choice.selected::before { color: var(--rose); }
+
+/* SCALE */
+.scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 8px; opacity: 0.7; }
+.scale-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.scale-btn { width: 46px; height: 46px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.scale-btn:hover { border-color: rgba(124,106,247,0.4); color: var(--text); }
+.scale-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 700; }
+
+/* TEXT INPUT */
+.text-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; resize: vertical; min-height: 80px; outline: none; transition: border-color 0.2s; }
+.text-input:focus { border-color: rgba(124,106,247,0.5); }
+.text-input::placeholder { color: var(--muted); opacity: 0.45; }
+
+/* NAME INPUT */
+.name-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 400; outline: none; transition: border-color 0.2s; }
+.name-input:focus { border-color: rgba(124,106,247,0.5); }
+.name-input::placeholder { color: var(--muted); opacity: 0.4; }
+
+/* DIVIDER LABEL */
+.bloque-divider { display: flex; align-items: center; gap: 14px; margin: 32px 0 8px; }
+.bloque-divider span { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+.bloque-divider span.main { color: var(--primary); opacity: 0.7; }
+.bloque-divider span.art { color: var(--rose); opacity: 0.8; }
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+
+/* CTA */
+.btn-primary { width: 100%; padding: 17px; background: var(--gradient); border: none; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: white; cursor: pointer; letter-spacing: 0.5px; transition: all 0.3s; margin-top: 28px; }
+.btn-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,106,247,0.28); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* RESULT */
+#result-container { display: none; }
+.result-hero { text-align: center; padding: 40px 0 28px; }
+.result-emoji { font-size: 54px; margin-bottom: 14px; }
+.result-hero h2 { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; margin-bottom: 8px; }
+.result-hero p { font-size: 13px; color: var(--muted); }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; }
+.result-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--primary); opacity: 0.7; margin-bottom: 14px; }
+.result-text { font-size: 14.5px; color: var(--text); line-height: 1.85; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { border-radius: 100px; padding: 5px 13px; font-size: 12px; font-weight: 500; }
+.chip-purple { background: var(--primary-glow); border: 1px solid rgba(124,106,247,0.3); color: var(--primary-light); }
+.chip-green { background: rgba(86,207,173,0.1); border: 1px solid rgba(86,207,173,0.3); color: var(--success); }
+.chip-rose { background: rgba(224,92,138,0.1); border: 1px solid rgba(224,92,138,0.3); color: #f09bb5; }
+.chip-warn { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.25); color: var(--warning); }
+
+.loading-state { text-align: center; padding: 56px 24px; }
+.loading-spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; color: var(--muted); font-style: italic; line-height: 1.7; }
+
+.watermark { text-align: center; padding: 24px 0 0; font-size: 11px; color: var(--muted); opacity: 0.4; }
+
+@media (max-width: 500px) {
+  .section-card { padding: 20px; }
+  .scale-btn { width: 40px; height: 40px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+<div class="bg-glow3"></div>
+
+<div class="wrapper">
+
+  <div class="app-header">
+    <div class="logo-badge">
+      <div class="logo-dot"></div>
+      <span class="logo-text">Oriéntame · Fase 1 de 3</span>
+    </div>
+    <h1><em>Descubre</em> quién eres<br>profesionalmente</h1>
+    <p>Un test diseñado con psicología vocacional moderna y proyecciones reales del mercado laboral al 2035. Sin respuestas correctas ni incorrectas — solo tu verdad.</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">Comenzando...</div>
+  </div>
+
+  <div id="form-container">
+
+    <div class="info-box">
+      <div class="info-icon">🧭</div>
+      <div>
+        <h3>¿Por qué este test es diferente?</h3>
+        <p>Este test combina los mejores modelos de orientación vocacional (Holland, teoría de inteligencias múltiples, y análisis de habilidades) con datos reales sobre qué profesiones tienen futuro en 2026–2035 y cuáles corren riesgo de desaparecer por la IA. No te dará una respuesta final — te dará un <strong style="color:var(--primary-light)">espejo de quién eres hoy</strong>. Incluye arte, música, teatro, manualidades y expresión corporal al mismo nivel que la lógica o la tecnología.</p>
+      </div>
+    </div>
+
+    <!-- NOMBRE -->
+    <div class="section-card">
+      <div class="section-num">Antes de empezar</div>
+      <h2>¿Cómo te llamas?</h2>
+      <div class="section-sub">Para personalizar tu análisis.</div>
+      <input type="text" class="name-input" id="nameInput" placeholder="Tu nombre...">
+    </div>
+
+    <!-- BLOQUE 1: ACTIVIDADES GENERALES + ARTE -->
+    <div class="section-card">
+      <div class="section-num">Bloque 1 de 6 · Actividades y pasiones</div>
+      <h2>¿Qué haces cuando nadie te obliga?</h2>
+      <div class="section-sub">Selecciona <strong>todas</strong> las que apliquen — de cualquier tipo. No hay límite.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P1</span>Cuando tienes tiempo libre sin nada planeado, ¿qué terminas haciendo?</div>
+
+        <div class="bloque-divider"><div class="divider-line"></div><span class="main">Digital y tecnología</span><div class="divider-line"></div></div>
+        <div class="tags-grid" style="margin-bottom:14px;" id="q1a-tags">
+          <button class="tag-btn" data-val="crear_videos">Crear o editar videos</button>
+          <button class="tag-btn" data-val="programar">Programar o crear apps</button>
+          <button class="tag-btn" data-val="juegos_digitales">Videojuegos / diseñar mundos</button>
+          <button class="tag-btn" data-val="redes_contenido">Crear contenido para redes</button>
+          <button class="tag-btn" data-val="fotografia_digital">Fotografía</button>
+          <button class="tag-btn" data-val="investigar_internet">Investigar y aprender online</button>
+          <button class="tag-btn" data-val="ia_herramientas">Experimentar con IA</button>
+        </div>
+
+        <div class="bloque-divider"><div class="divider-line"></div><span class="art">🎨 Arte visual y plástico</span><div class="divider-line"></div></div>
+        <div class="tags-grid" style="margin-bottom:14px;" id="q1b-tags">
+          <button class="tag-btn art-tag" data-val="dibujar_ilustrar">Dibujar o ilustrar</button>
+          <button class="tag-btn art-tag" data-val="pintar">Pintar (óleo, acuarela, acrílico...)</button>
+          <button class="tag-btn art-tag" data-val="escultura_arcilla">Escultura, arcilla o modelado</button>
+          <button class="tag-btn art-tag" data-val="manualidades_craft">Manualidades, craft, DIY</button>
+          <button class="tag-btn art-tag" data-val="diseño_grafico">Diseño gráfico o digital</button>
+          <button class="tag-btn art-tag" data-val="tatuaje_arte_corporal">Arte corporal, tatuaje, maquillaje artístico</button>
+          <button class="tag-btn art-tag" data-val="ceramica_vidrio">Cerámica, vitral, joyería</button>
+          <button class="tag-btn art-tag" data-val="moda_textil">Moda, costura o textiles</button>
+        </div>
+
+        <div class="bloque-divider"><div class="divider-line"></div><span class="art">🎭 Artes escénicas y expresivas</span><div class="divider-line"></div></div>
+        <div class="tags-grid" style="margin-bottom:14px;" id="q1c-tags">
+          <button class="tag-btn art-tag" data-val="actuacion_teatro">Actuación o teatro</button>
+          <button class="tag-btn art-tag" data-val="danza_baile">Danza o baile (cualquier estilo)</button>
+          <button class="tag-btn art-tag" data-val="musica_cantar">Cantar</button>
+          <button class="tag-btn art-tag" data-val="musica_instrumento">Tocar un instrumento</button>
+          <button class="tag-btn art-tag" data-val="componer_musica">Componer música o hacer beats</button>
+          <button class="tag-btn art-tag" data-val="stand_up_humor">Stand-up, improv, humor</button>
+          <button class="tag-btn art-tag" data-val="narracion_oral">Contar historias en voz alta</button>
+        </div>
+
+        <div class="bloque-divider"><div class="divider-line"></div><span class="main">Otras actividades</span><div class="divider-line"></div></div>
+        <div class="tags-grid" id="q1d-tags">
+          <button class="tag-btn" data-val="leer_escribir">Leer o escribir</button>
+          <button class="tag-btn" data-val="construir_armar">Construir o armar cosas</button>
+          <button class="tag-btn" data-val="cocinar_gastronomia">Cocinar o experimentar en cocina</button>
+          <button class="tag-btn" data-val="deportes_ejercicio">Deporte o ejercicio</button>
+          <button class="tag-btn" data-val="naturaleza_explorar">Explorar la naturaleza</button>
+          <button class="tag-btn" data-val="hablar_debatir">Hablar, debatir o persuadir</button>
+          <button class="tag-btn" data-val="resolver_acertijos">Resolver acertijos o puzzles</button>
+          <button class="tag-btn" data-val="voluntariado_ayudar">Ayudar a personas o animales</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2: EXPRESIÓN ARTÍSTICA ESPECÍFICA -->
+    <div class="section-card art-card">
+      <div class="section-num art">Bloque 2 de 6 · Mundo del arte (para todos)</div>
+      <h2>¿Cómo te relacionas con el arte y la expresión?</h2>
+      <div class="section-sub">Este bloque es para <strong>todos</strong> — tanto si te considerás artístico como si no. Las respuestas revelan mucho sobre cómo piensas y cómo creas.</div>
+
+      <div class="art-info-box">
+        <div class="info-icon">🎨</div>
+        <div>
+          <h3>El arte no es solo talento innato</h3>
+          <p>La neurociencia muestra que las habilidades artísticas, musicales y manuales son formas de inteligencia igual de valiosas que las matemáticas. Y en 2026–2035, las profesiones que combinan arte + tecnología son de las más demandadas del mundo.</p>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P2</span>Cuando ves algo muy bien hecho — una pintura, una canción, una película, una escultura — ¿qué sientes primero?</div>
+        <div class="choices" id="q2-choices">
+          <button class="choice-btn art-choice" data-val="admiracion_quiero_aprender">Admiración y ganas de aprender a hacerlo</button>
+          <button class="choice-btn art-choice" data-val="analizo_como_esta_hecho">Me pregunto inmediatamente cómo está hecho</button>
+          <button class="choice-btn art-choice" data-val="me_emociona_profundo">Me emociona o me mueve por dentro</button>
+          <button class="choice-btn art-choice" data-val="lo_disfruto_sin_mas">Lo disfruto pero no me genera necesidad de crearlo</button>
+          <button class="choice-btn art-choice" data-val="pienso_lo_haria_diferente">Pienso cómo lo haría yo diferente</button>
+          <button class="choice-btn" data-val="me_da_igual">Generalmente no me llama la atención</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P3</span>¿En cuál de estas formas de expresarte te sientes más cómodo o capaz? (aunque no seas "el mejor")</div>
+        <div class="choices" id="q3-choices">
+          <button class="choice-btn art-choice" data-val="visual_imagen">A través de imágenes, colores o formas visuales</button>
+          <button class="choice-btn art-choice" data-val="cuerpo_movimiento">A través del cuerpo: baile, expresión física, deporte</button>
+          <button class="choice-btn art-choice" data-val="sonido_musica">A través del sonido: música, ritmo, voz</button>
+          <button class="choice-btn art-choice" data-val="manos_construir">A través de las manos: construir, hacer, moldear</button>
+          <button class="choice-btn art-choice" data-val="palabras_escena">A través de palabras o actuación: teatro, escritura</button>
+          <button class="choice-btn" data-val="ideas_conceptos">A través de ideas y conceptos: razonamiento, análisis</button>
+          <button class="choice-btn" data-val="todas_igual">Me siento cómodo en varias por igual</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P4</span>Si tuvieras que crear algo desde cero esta semana, ¿qué elegirías hacer?</div>
+        <div class="choices" id="q4-choices">
+          <button class="choice-btn art-choice" data-val="pintar_dibujar_obra">Pintar o dibujar una obra</button>
+          <button class="choice-btn art-choice" data-val="esculpir_modelar">Esculpir, modelar con arcilla o construir con las manos</button>
+          <button class="choice-btn art-choice" data-val="componer_cancion">Componer una canción o crear música</button>
+          <button class="choice-btn art-choice" data-val="coreografia_danza">Crear una coreografía o actuación</button>
+          <button class="choice-btn art-choice" data-val="obra_teatro_guion">Escribir y montar una obra de teatro o cortometraje</button>
+          <button class="choice-btn" data-val="app_programa">Crear una app, programa o videojuego</button>
+          <button class="choice-btn" data-val="proyecto_tecnologia">Un proyecto con tecnología o ciencia</button>
+          <button class="choice-btn" data-val="no_me_gusta_crear">Prefiero consumir lo que otros crean</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P5</span>¿Alguna vez alguien te dijo algo relacionado con estas áreas?</div>
+        <div class="tags-grid" id="q5-tags">
+          <button class="tag-btn art-tag" data-val="tienes_buen_ojo">Tienes buen ojo para los colores / diseño</button>
+          <button class="tag-btn art-tag" data-val="dibujas_bien">Dibujas o pintas bien</button>
+          <button class="tag-btn art-tag" data-val="buena_voz">Tienes buena voz</button>
+          <button class="tag-btn art-tag" data-val="buen_ritmo">Tienes buen ritmo o coordinación</button>
+          <button class="tag-btn art-tag" data-val="manos_habilidosas">Tus manos son muy hábiles</button>
+          <button class="tag-btn art-tag" data-val="actor_actriz_natural">Eres un(a) actor/actriz natural</button>
+          <button class="tag-btn art-tag" data-val="muy_creativo">Eres muy creativo/a</button>
+          <button class="tag-btn art-tag" data-val="sentido_estetico">Tienes muy buen gusto estético</button>
+          <button class="tag-btn" data-val="ninguna_art">Ninguna de las anteriores</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 3: SATISFACCIÓN Y ROL -->
+    <div class="section-card">
+      <div class="section-num">Bloque 3 de 6 · Lo que te mueve</div>
+      <h2>¿Cuándo te sientes más vivo/a?</h2>
+      <div class="section-sub">Estas preguntas revelan tu motivación profunda — lo que te impulsa aunque nadie te lo pida.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P6</span>¿Cuál de estas situaciones te genera más satisfacción real?</div>
+        <div class="choices" id="q6-choices">
+          <button class="choice-btn" data-val="resolver_problema">Resolver un problema difícil que nadie más pudo</button>
+          <button class="choice-btn art-choice" data-val="crear_algo_nuevo">Terminar de crear algo que imaginaste desde cero</button>
+          <button class="choice-btn" data-val="ayudar_alguien">Que alguien te diga que lo ayudaste de verdad</button>
+          <button class="choice-btn" data-val="ganar_competir">Ganar una competencia o superar un reto personal</button>
+          <button class="choice-btn" data-val="aprender_algo">Entender algo que antes parecía imposible</button>
+          <button class="choice-btn art-choice" data-val="actuacion_impacto">Actuar, tocar, bailar o presentarte ante otros</button>
+          <button class="choice-btn art-choice" data-val="obra_terminada">Ver tu obra, pieza o creación terminada y lista</button>
+          <button class="choice-btn" data-val="liderar_grupo">Que un grupo funcione bien porque tú lo organizaste</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P7</span>Cuando hay un grupo trabajando en algo, ¿qué rol terminas tomando naturalmente?</div>
+        <div class="choices" id="q7-choices">
+          <button class="choice-btn" data-val="propongo_ideas">Propongo las ideas y el enfoque creativo</button>
+          <button class="choice-btn" data-val="ejecuto_hago">Me encargo de hacer, no de planificar</button>
+          <button class="choice-btn" data-val="analizo_todo">Analizo todos los ángulos antes de actuar</button>
+          <button class="choice-btn" data-val="uno_al_grupo">Ayudo a que el grupo se ponga de acuerdo</button>
+          <button class="choice-btn art-choice" data-val="le_doy_forma">Le doy la forma visual o estética al resultado</button>
+          <button class="choice-btn art-choice" data-val="le_pongo_emocion">Le pongo la emoción, energía o carisma al grupo</button>
+          <button class="choice-btn" data-val="apoyo_al_lider">Apoyo al que tiene la mejor idea</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 4: MUNDO IDEAL DE TRABAJO -->
+    <div class="section-card">
+      <div class="section-num">Bloque 4 de 6 · Tu mundo ideal</div>
+      <h2>¿Cómo imaginas tu vida laboral ideal?</h2>
+      <div class="section-sub">Sin pensar en el dinero por ahora. Solo en cómo quieres pasar tus días.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P8</span>¿Cuál de estos ambientes te energiza más?</div>
+        <div class="choices" id="q8-choices">
+          <button class="choice-btn art-choice" data-val="estudio_taller">Un taller o estudio creativo (pintura, escultura, música)</button>
+          <button class="choice-btn art-choice" data-val="escenario_set">Un escenario, set de grabación o teatro</button>
+          <button class="choice-btn" data-val="empresa_tecnologia">Una empresa de tecnología o startup</button>
+          <button class="choice-btn" data-val="laboratorio">Un laboratorio de investigación o ciencia</button>
+          <button class="choice-btn" data-val="al_aire_libre">Al aire libre, con personas o en la naturaleza</button>
+          <button class="choice-btn" data-val="propio_negocio">Mi propio negocio o espacio independiente</button>
+          <button class="choice-btn" data-val="escuela_comunidad">Un lugar de servicio: escuela, hospital, comunidad</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P9</span>¿Qué impacto quieres tener en el mundo con lo que hagas?</div>
+        <div class="choices" id="q9-choices">
+          <button class="choice-btn art-choice" data-val="emocionar_inspirar">Emocionar, inspirar o cambiar cómo la gente siente</button>
+          <button class="choice-btn art-choice" data-val="crear_belleza">Crear belleza, orden visual o experiencias estéticas</button>
+          <button class="choice-btn" data-val="resolver_problemas_reales">Resolver problemas reales de la sociedad</button>
+          <button class="choice-btn" data-val="construir_cosas">Construir cosas que la gente usa todos los días</button>
+          <button class="choice-btn" data-val="contar_historias">Contar historias que hagan pensar o sentir</button>
+          <button class="choice-btn" data-val="ensenar_transmitir">Enseñar o transmitir conocimiento</button>
+          <button class="choice-btn" data-val="descubrir_investigar">Descubrir cosas que nadie sabe todavía</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 5: TECNOLOGÍA E IA -->
+    <div class="section-card">
+      <div class="section-num">Bloque 5 de 6 · Tú y el futuro</div>
+      <h2>¿Cómo te relacionas con la tecnología y la IA?</h2>
+      <div class="section-sub">Clave para orientarte hacia profesiones con futuro real en 2026–2035.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P10</span>Cuando aparece una tecnología nueva que nadie conoce, ¿cuál es tu reacción instintiva?</div>
+        <div class="choices" id="q10-choices">
+          <button class="choice-btn" data-val="me_lanzo_explorar">Me lanzo a explorarla antes que nadie</button>
+          <button class="choice-btn" data-val="espero_entender">Espero a entender bien cómo funciona antes de usarla</button>
+          <button class="choice-btn" data-val="veo_si_me_sirve">Evalúo si me sirve para algo que ya hago</button>
+          <button class="choice-btn art-choice" data-val="pienso_como_usarla_arte">Pienso inmediatamente cómo usarla para crear algo</button>
+          <button class="choice-btn" data-val="me_da_igual_tech">Me da igual si no la necesito</button>
+          <button class="choice-btn" data-val="desconfianza_tech">Le tengo desconfianza al principio</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P11</span>¿Cuál de estas frases te describe mejor en relación a la tecnología?</div>
+        <div class="choices" id="q11-choices">
+          <button class="choice-btn" data-val="tech_es_mi_mundo">La tecnología es mi mundo natural</button>
+          <button class="choice-btn art-choice" data-val="tech_para_crear">Uso la tecnología principalmente para crear cosas artísticas</button>
+          <button class="choice-btn" data-val="tech_herramienta">Para mí la tecnología es una herramienta, no una pasión</button>
+          <button class="choice-btn art-choice" data-val="prefiero_analogico">Prefiero lo analógico: lápiz, arcilla, instrumento real</button>
+          <button class="choice-btn" data-val="mezclo_todo">Mezclo lo digital y lo analógico según lo que quiero crear</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P12</span>Nivel de comodidad con la tecnología (1 = muy poco / 5 = me apasiona):</div>
+        <div class="scale-labels"><span>Muy poco cómodo</span><span>Me apasiona</span></div>
+        <div class="scale-container" id="q12-scale">
+          <button class="scale-btn" data-val="1">1</button>
+          <button class="scale-btn" data-val="2">2</button>
+          <button class="scale-btn" data-val="3">3</button>
+          <button class="scale-btn" data-val="4">4</button>
+          <button class="scale-btn" data-val="5">5</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOQUE 6: VOZ PROPIA -->
+    <div class="section-card">
+      <div class="section-num">Bloque 6 de 6 · Tu voz</div>
+      <h2>Cuatro preguntas abiertas</h2>
+      <div class="section-sub">Escribe como si nadie más lo fuera a leer. Cuanto más honesto, más útil el análisis.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P13</span>¿Hay algo que harías aunque no te pagaran? Descríbelo con tus palabras.</div>
+        <textarea class="text-input" id="q13-text" placeholder="Puede ser algo artístico, técnico, social, físico... cualquier cosa que hagas por puro gusto."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num art">P14</span>¿Tienes alguna habilidad con las manos, con tu cuerpo, con instrumentos o con materiales físicos que disfrutes mucho? ¿Cuál?</div>
+        <textarea class="text-input" id="q14-text" placeholder="Por ejemplo: armar cosas, tocar guitarra, bailar, dibujar, hacer cerámica, coser, trabajar con madera, maquillaje artístico..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P15</span>¿Qué problema del mundo te molesta tanto que a veces piensas en cómo resolverlo?</div>
+        <textarea class="text-input" id="q15-text" placeholder="No tiene que ser algo enorme. Puede ser algo de tu entorno..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P16</span>Si supieras que vas a tener éxito sin importar qué elijas, ¿qué estudiarías o harías?</div>
+        <textarea class="text-input" id="q16-text" placeholder="Sin miedo. Esta respuesta es solo para ti..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="submitBtn" onclick="analyzeResponses()">
+      ✨ Analizar mi perfil completo con IA
+    </button>
+
+  </div><!-- /form-container -->
+
+  <!-- RESULT -->
+  <div id="result-container">
+    <div class="result-hero">
+      <div class="result-emoji">🌟</div>
+      <h2 id="result-name">Tu perfil vocacional completo</h2>
+      <p>Basado en psicología vocacional moderna, inteligencias múltiples y proyecciones de mercado 2026–2035</p>
+    </div>
+    <div id="result-content"></div>
+    <p class="watermark">Oriéntame · Fase 1 de 3 · La Fase 2 explorará tus aptitudes y habilidades específicas</p>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+const answers = {};
+let answered = 0;
+const TOTAL = 16;
+
+// TAG GROUPS — all groups combined into one tracker
+function setupTagGroup(id) {
+  const grid = document.getElementById(id);
+  if (!grid) return;
+  grid.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      const sel = [...grid.querySelectorAll('.tag-btn.selected')].map(b => b.dataset.val);
+      const wasEmpty = !answers[id] || answers[id].length === 0;
+      answers[id] = sel;
+      if (wasEmpty && sel.length > 0) { answered++; recalcProgress(); }
+      if (!wasEmpty && sel.length === 0) { answered = Math.max(0, answered - 1); recalcProgress(); }
+    });
+  });
+}
+
+['q1a-tags','q1b-tags','q1c-tags','q1d-tags','q5-tags'].forEach(setupTagGroup);
+
+// Merge all q1 groups for analysis
+function getQ1All() {
+  return [
+    ...(answers['q1a-tags']||[]),
+    ...(answers['q1b-tags']||[]),
+    ...(answers['q1c-tags']||[]),
+    ...(answers['q1d-tags']||[]),
+  ];
+}
+
+// CHOICES
+document.querySelectorAll('.choices').forEach(group => {
+  group.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      const qId = group.id;
+      const isNew = !answers[qId];
+      answers[qId] = this.dataset.val;
+      if (isNew) { answered++; recalcProgress(); }
+    });
+  });
+});
+
+// SCALE
+document.querySelectorAll('.scale-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const group = this.closest('.scale-container');
+    group.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+    this.classList.add('selected');
+    const qId = group.id;
+    const isNew = !answers[qId];
+    answers[qId] = this.dataset.val;
+    if (isNew) { answered++; recalcProgress(); }
+  });
+});
+
+// TEXTAREAS
+['q13-text','q14-text','q15-text','q16-text'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', function() {
+    const wasEmpty = !answers[id];
+    answers[id] = this.value;
+    if (wasEmpty && this.value.length > 3) { answered++; recalcProgress(); }
+  });
+});
+
+function recalcProgress() {
+  const pct = Math.min(100, Math.round((answered / TOTAL) * 100));
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = pct < 100 ? `${pct}% completado` : '¡Listo para analizar!';
+}
+
+// ──────────────────────
+// ANALYZE
+// ──────────────────────
+async function analyzeResponses() {
+  const name = document.getElementById('nameInput').value.trim() || 'Tú';
+  const q1_all = getQ1All().join(', ') || 'no indicado';
+  const q1_arte_visual = (answers['q1b-tags']||[]).join(', ') || 'ninguna';
+  const q1_arte_escenico = (answers['q1c-tags']||[]).join(', ') || 'ninguna';
+  const q2 = answers['q2-choices'] || 'no indicado';
+  const q3 = answers['q3-choices'] || 'no indicado';
+  const q4 = answers['q4-choices'] || 'no indicado';
+  const q5_reconocimientos_arte = (answers['q5-tags']||[]).join(', ') || 'ninguno';
+  const q6 = answers['q6-choices'] || 'no indicado';
+  const q7 = answers['q7-choices'] || 'no indicado';
+  const q8 = answers['q8-choices'] || 'no indicado';
+  const q9 = answers['q9-choices'] || 'no indicado';
+  const q10 = answers['q10-choices'] || 'no indicado';
+  const q11 = answers['q11-choices'] || 'no indicado';
+  const q12 = answers['q12-scale'] || 'no indicado';
+  const q13 = document.getElementById('q13-text').value || 'no indicado';
+  const q14 = document.getElementById('q14-text').value || 'no indicado';
+  const q15 = document.getElementById('q15-text').value || 'no indicado';
+  const q16 = document.getElementById('q16-text').value || 'no indicado';
+
+  document.getElementById('form-container').style.display = 'none';
+  document.getElementById('result-container').style.display = 'block';
+  document.getElementById('result-content').innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Analizando tu perfil completo...<br>Incluyendo dimensiones artísticas, manuales y escénicas ✨</p>
+    </div>`;
+
+  const prompt = `Eres un orientador vocacional experto en psicología de las inteligencias múltiples (Howard Gardner), modelo Holland, SCCT y análisis de mercado laboral 2026-2035. Es abril de 2026. El adolescente se llama ${name}.
+
+RESPUESTAS COMPLETAS — FASE 1:
+Actividades generales y digitales: ${q1_all}
+Arte visual/plástico específico: ${q1_arte_visual}
+Artes escénicas/musicales específicas: ${q1_arte_escenico}
+Reacción ante algo bien hecho: ${q2}
+Forma de expresión con que más cómodo: ${q3}
+Elegiría crear: ${q4}
+Reconocimientos artísticos recibidos: ${q5_reconocimientos_arte}
+Mayor satisfacción personal: ${q6}
+Rol natural en grupos: ${q7}
+Ambiente que lo energiza: ${q8}
+Impacto que quiere tener: ${q9}
+Reacción ante tecnología nueva: ${q10}
+Relación con tecnología: ${q11}
+Nivel tecnología (1-5): ${q12}
+Haría sin que le paguen: "${q13}"
+Habilidades con manos/cuerpo/instrumentos: "${q14}"
+Problema del mundo que le preocupa: "${q15}"
+Estudiaría si garantizara éxito: "${q16}"
+
+Genera un análisis vocacional COMPLETO en español, SOLO JSON válido (sin markdown):
+{
+  "tipo_perfil": "nombre del perfil en 3-5 palabras (incluye dimensión artística si aplica, ej: 'Creador Visual Estratégico', 'Artista Escénico Digital', 'Constructor Analítico')",
+  "descripcion_perfil": "3 oraciones describiendo a este adolescente como ser creativo y profesional. Tono cálido, específico y motivador. Si hay elementos artísticos fuertes, destacarlos.",
+  "tipo_inteligencia_dominante": "El tipo de inteligencia Gardner predominante (ej: Espacial-Visual, Musical, Cinestésica, Lingüística, Lógico-Matemática, Interpersonal, etc.) con una frase breve explicando qué significa para él/ella",
+  "fortalezas_clave": ["fortaleza 1","fortaleza 2","fortaleza 3","fortaleza 4"],
+  "dimension_artistica": {
+    "presente": true o false,
+    "tipo": "qué tipo de arte/expresión predomina en sus respuestas",
+    "nivel_señal": "fuerte / moderado / leve / ausente",
+    "nota": "una oración sobre qué revelan sus respuestas artísticas"
+  },
+  "carreras_recomendadas": [
+    {
+      "nombre": "Nombre de la carrera",
+      "por_que": "una oración conectando sus respuestas con esta carrera",
+      "futuro_ia": "safe|growing|watch",
+      "nota_futuro": "una oración sobre el futuro de esta carrera al 2035",
+      "categoria": "arte|tecnologia|ciencias|humanidades|negocios|mixta"
+    }
+  ],
+  "advertencia_carreras": ["carrera o camino que NO recomendarías con una oración explicando por qué"],
+  "consejo_para_el": "Un párrafo personal y directo para ${name} usando 'tú'. Si tiene dimensión artística fuerte, valídala explícitamente. Conecta sus respuestas con su potencial real. Sin clichés.",
+  "proximos_pasos": ["paso concreto 1","paso concreto 2","paso concreto 3"]
+}
+
+REGLAS CRÍTICAS:
+- Si tiene señales artísticas/manuales/escénicas, INCLUYE al menos 2 carreras de ese mundo con futuro (ej: Dirección Cinematográfica, Diseño UX/UI, Producción Musical Digital, Arquitectura, Animación 3D, Artes Escénicas y Tecnología, Diseño de Experiencias, Terapia a través del Arte)
+- NUNCA recomiendas: data entry, contabilidad básica, diseño gráfico genérico sin estrategia, periodismo impreso tradicional
+- SÍ recomiendas cuando hay arte: carreras que combinan arte + tecnología + futuro (2026-2035)
+- Exactamente 4-5 carreras recomendadas
+- futuro_ia: safe=muy resistente, growing=crece con IA, watch=hay que adaptarse
+- La dimensión_artistica es obligatoria — si no hay señales, nivel_señal='ausente'
+- El tono debe sentirse como un orientador que realmente conoce a este adolescente`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content.map(i => i.text || "").join("");
+    const clean = raw.replace(/```json|```/g, "").trim();
+    renderResult(name, JSON.parse(clean));
+  } catch(e) {
+    document.getElementById('result-content').innerHTML = `<div class="result-card"><h3>Error</h3><div class="result-text">Hubo un problema. Recarga e intenta nuevamente.</div></div>`;
+  }
+}
+
+// ──────────────────────
+// RENDER
+// ──────────────────────
+function renderResult(name, r) {
+  document.getElementById('result-name').textContent = `${name}: ${r.tipo_perfil}`;
+
+  const futureLabel = { safe:'🛡️ Resistente a IA', growing:'🚀 Crece con IA', watch:'⚡ Requiere adaptación' };
+  const catColor = { arte:'chip-rose', tecnologia:'chip-purple', ciencias:'chip-green', humanidades:'chip-green', negocios:'chip-warn', mixta:'chip-purple' };
+
+  const artHtml = r.dimension_artistica && r.dimension_artistica.presente ? `
+    <div class="result-card" style="border-color:rgba(224,92,138,0.3);background:rgba(224,92,138,0.04);">
+      <h3 style="color:#f09bb5;">🎨 Dimensión artística detectada</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:15px;font-weight:500;color:var(--text);">${r.dimension_artistica.tipo || ''}</span>
+        <span class="chip chip-rose">Señal ${r.dimension_artistica.nivel_señal}</span>
+      </div>
+      <p style="font-size:14px;color:var(--muted);line-height:1.7;">${r.dimension_artistica.nota || ''}</p>
+    </div>` : '';
+
+  const careersHtml = (r.carreras_recomendadas || []).map(c => `
+    <div style="background:var(--surface2);border-radius:12px;padding:15px 17px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+        <strong style="font-size:14px;">${c.nombre}</strong>
+        <span class="chip ${catColor[c.categoria]||'chip-purple'}" style="padding:4px 10px;font-size:11px;">${futureLabel[c.futuro_ia]}</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:5px;line-height:1.5;">${c.por_que}</p>
+      <p style="font-size:12px;color:var(--success);opacity:0.8;">📅 2035: ${c.nota_futuro}</p>
+    </div>`).join('');
+
+  const stepsHtml = (r.proximos_pasos||[]).map((s,i) => `
+    <div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;">
+      <span style="min-width:24px;height:24px;background:var(--primary-glow);border:1px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary-light);flex-shrink:0;">${i+1}</span>
+      <span style="font-size:14px;color:var(--text);line-height:1.55;">${s}</span>
+    </div>`).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="result-card">
+      <h3>Tu perfil</h3>
+      <div class="result-text">${r.descripcion_perfil}</div>
+      <div class="chip-row" style="margin-top:14px;">
+        ${(r.fortalezas_clave||[]).map(f=>`<span class="chip chip-purple">${f}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="result-card" style="border-color:rgba(124,106,247,0.2);">
+      <h3>Tu tipo de inteligencia dominante</h3>
+      <div class="result-text" style="font-size:15px;">${r.tipo_inteligencia_dominante}</div>
+    </div>
+
+    ${artHtml}
+
+    <div class="result-card">
+      <h3>Carreras con futuro para ti · 2026–2035</h3>
+      ${careersHtml}
+    </div>
+
+    <div class="result-card" style="border-color:rgba(245,166,35,0.18);">
+      <h3 style="color:var(--warning);">⚠️ Caminos que te recomendamos evitar</h3>
+      ${(r.advertencia_carreras||[]).map(a=>`<p style="font-size:13.5px;color:var(--muted);margin-bottom:6px;line-height:1.6;">• ${a}</p>`).join('')}
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;opacity:0.55;">Basado en proyecciones WEF Future of Jobs 2025 y McKinsey Global Institute.</p>
+    </div>
+
+    <div class="result-card" style="border-color:rgba(86,207,173,0.2);background:rgba(86,207,173,0.025);">
+      <h3 style="color:var(--success);">Un mensaje para ti, ${name}</h3>
+      <div class="result-text" style="font-family:'Lora',serif;font-style:italic;font-size:15.5px;line-height:1.9;">"${r.consejo_para_el}"</div>
+    </div>
+
+    <div class="result-card">
+      <h3>Próximos pasos concretos</h3>
+      ${stepsHtml}
+    </div>
+
+    <div style="background:var(--primary-glow);border:1px solid rgba(124,106,247,0.22);border-radius:16px;padding:20px 24px;text-align:center;">
+      <p style="font-size:14px;color:var(--primary-light);font-weight:600;margin-bottom:6px;">✅ Fase 1 completada</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.65;">La Fase 2 medirá tus aptitudes y habilidades específicas — incluyendo manuales, artísticas y escénicas.<br>La Fase 3 integrará la perspectiva de tus padres.</p>
+    </div>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame · Mi Progreso</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   ROOT & BASE
+══════════════════════════════════════ */
+:root {
+  --bg: #0b0d17;
+  --surface: #131625;
+  --surface2: #1a1e30;
+  --surface3: #222740;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+  --muted2: rgba(238,234,244,0.28);
+
+  --gold: #f5c842;
+  --gold-glow: rgba(245,200,66,0.15);
+  --violet: #7c6af7;
+  --violet-glow: rgba(124,106,247,0.15);
+  --teal: #34d399;
+  --teal-glow: rgba(52,211,153,0.13);
+  --orange: #fb923c;
+  --orange-glow: rgba(251,146,60,0.13);
+  --red: #f87171;
+
+  --level-gradient: linear-gradient(135deg, var(--gold), var(--orange));
+  --xp-gradient: linear-gradient(90deg, var(--violet), var(--teal));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Sora', sans-serif; font-weight: 300;
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 10% 20%, rgba(124,106,247,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 500px 400px at 85% 80%, rgba(52,211,153,0.04) 0%, transparent 60%);
+}
+
+.page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ══════════════════════════════════════
+   SETUP MODAL (first time)
+══════════════════════════════════════ */
+#setup-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(11,13,23,0.96); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+#setup-overlay.gone { display: none; }
+.setup-modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 24px; padding: 32px 28px; max-width: 440px; width: 100%;
+  text-align: center; animation: modal-in 0.3s ease-out;
+}
+@keyframes modal-in { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+.setup-modal h2 { font-family:'Lora',serif; font-size:24px; font-weight:700; margin:16px 0 8px; }
+.setup-modal p { font-size:13.5px; color:var(--muted); line-height:1.75; margin-bottom:24px; }
+.setup-emoji { font-size:52px; }
+.setup-field { text-align:left; margin-bottom:14px; }
+.setup-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:6px; }
+.setup-input {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:11px; padding:12px 15px; color:var(--text);
+  font-family:'Sora',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s;
+}
+.setup-input:focus { border-color:rgba(124,106,247,0.5); }
+.setup-input::placeholder { color:var(--muted2); }
+.setup-btn {
+  width:100%; padding:14px; background:linear-gradient(135deg,var(--violet),var(--teal));
+  border:none; border-radius:12px; color:white; font-family:'Sora',sans-serif;
+  font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; letter-spacing:0.3px;
+}
+.setup-btn:hover { opacity:0.9; transform:translateY(-1px); }
+
+/* ══════════════════════════════════════
+   BADGE UNLOCK MODAL
+══════════════════════════════════════ */
+#badge-unlock-modal {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(11,13,23,0.85); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+#badge-unlock-modal.visible { opacity:1; pointer-events:all; }
+.unlock-card {
+  background: var(--surface); border: 1px solid rgba(245,200,66,0.4);
+  border-radius: 24px; padding: 36px 32px; max-width: 360px; width: 100%;
+  text-align: center; position: relative; overflow: hidden;
+  animation: unlock-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes unlock-bounce { from{transform:scale(0.6);opacity:0} to{transform:scale(1);opacity:1} }
+.unlock-card::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(245,200,66,0.1) 0%, transparent 60%);
+}
+.unlock-emoji-wrap {
+  width:80px; height:80px; border-radius:50%; margin:0 auto 16px;
+  background:var(--gold-glow); border:2px solid rgba(245,200,66,0.4);
+  display:flex; align-items:center; justify-content:center; font-size:38px;
+  animation: spin-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+@keyframes spin-in { from{transform:rotate(-180deg) scale(0);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
+.unlock-label { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.unlock-name { font-family:'Lora',serif; font-size:22px; font-weight:700; margin-bottom:6px; }
+.unlock-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+.unlock-pts { font-size:16px; font-weight:700; color:var(--gold); margin-bottom:20px; }
+.unlock-close-btn {
+  padding:12px 32px; background:var(--gold-glow); border:1px solid rgba(245,200,66,0.4);
+  border-radius:10px; color:var(--gold); font-family:'Sora',sans-serif; font-size:13px;
+  font-weight:600; cursor:pointer; transition:all 0.2s;
+}
+.unlock-close-btn:hover { background:rgba(245,200,66,0.2); }
+
+/* Confetti particles */
+.confetti-piece {
+  position:fixed; width:8px; height:8px; border-radius:2px;
+  animation: confetti-fall linear forwards;
+  pointer-events:none; z-index:500;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity:1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+}
+
+/* ══════════════════════════════════════
+   PAGE HEADER
+══════════════════════════════════════ */
+.page-header { padding:36px 0 28px; }
+.header-top { display:flex; align-items:flex-start; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+.user-avatar {
+  width:58px; height:58px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--violet),var(--teal));
+  display:flex; align-items:center; justify-content:center; font-size:24px;
+  box-shadow:0 0 24px rgba(124,106,247,0.3);
+}
+.user-info { flex:1; min-width:0; }
+.user-name { font-family:'Lora',serif; font-size:20px; font-weight:700; margin-bottom:3px; }
+.user-level { font-size:12px; font-weight:600; letter-spacing:1px; }
+.header-pts {
+  display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0;
+}
+.pts-num { font-family:'Lora',serif; font-size:26px; font-weight:700; color:var(--gold); line-height:1; }
+.pts-label { font-size:10px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
+
+/* XP bar */
+.xp-wrap { margin-top:4px; }
+.xp-row { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:6px; }
+.xp-track { height:8px; background:var(--surface2); border-radius:100px; overflow:hidden; position:relative; }
+.xp-fill { height:100%; border-radius:100px; background:var(--xp-gradient); transition:width 1.2s cubic-bezier(0.4,0,0.2,1); position:relative; }
+.xp-fill::after {
+  content:''; position:absolute; right:0; top:0; bottom:0; width:8px;
+  background:rgba(255,255,255,0.4); border-radius:100px;
+  animation: xp-pulse 2s ease-in-out infinite;
+}
+@keyframes xp-pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* ══════════════════════════════════════
+   SECTION STYLES (shared)
+══════════════════════════════════════ */
+.section { margin-bottom:28px; }
+.section-title {
+  font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+  color:var(--muted); opacity:0.65; margin-bottom:14px;
+}
+
+/* ══════════════════════════════════════
+   PROGRESS JOURNEY
+══════════════════════════════════════ */
+.journey-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:22px 24px; margin-bottom:28px;
+}
+.journey-steps { display:flex; align-items:center; gap:0; overflow-x:auto; padding:8px 0; }
+.journey-steps::-webkit-scrollbar { display:none; }
+.journey-step { display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; }
+.journey-connector { flex:1; min-width:28px; height:2px; margin-top:-28px; flex-shrink:0; }
+.j-node {
+  width:44px; height:44px; border-radius:50%; border:2px solid;
+  display:flex; align-items:center; justify-content:center; font-size:18px;
+  transition:all 0.3s; position:relative; cursor:default;
+}
+.j-node.done {
+  background:rgba(52,211,153,0.15); border-color:var(--teal);
+  box-shadow:0 0 16px rgba(52,211,153,0.2);
+}
+.j-node.active {
+  background:rgba(124,106,247,0.15); border-color:var(--violet);
+  box-shadow:0 0 16px rgba(124,106,247,0.25);
+  animation:active-pulse 2s ease-in-out infinite;
+}
+.j-node.locked { background:var(--surface2); border-color:rgba(255,255,255,0.1); opacity:0.45; }
+@keyframes active-pulse { 0%,100%{box-shadow:0 0 16px rgba(124,106,247,0.25)} 50%{box-shadow:0 0 28px rgba(124,106,247,0.45)} }
+.j-check {
+  position:absolute; top:-4px; right:-4px; width:16px; height:16px;
+  background:var(--teal); border-radius:50%; border:2px solid var(--bg);
+  display:flex; align-items:center; justify-content:center; font-size:8px;
+}
+.j-label { font-size:10px; color:var(--muted); text-align:center; max-width:64px; line-height:1.4; }
+.j-connector-done { background:linear-gradient(90deg,var(--teal),rgba(52,211,153,0.3)); }
+.j-connector-partial { background:linear-gradient(90deg,rgba(52,211,153,0.3),rgba(255,255,255,0.07)); }
+.j-connector-locked { background:rgba(255,255,255,0.07); }
+
+/* Mark-done button */
+.mark-done-wrap { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.mark-btn {
+  padding:7px 14px; border-radius:100px; font-size:11.5px; font-weight:500;
+  cursor:pointer; transition:all 0.2s; font-family:'Sora',sans-serif; border:1px solid;
+}
+.mark-btn.unmarked { background:var(--surface2); border-color:var(--border); color:var(--muted); }
+.mark-btn.unmarked:hover { border-color:var(--border2); color:var(--text); }
+.mark-btn.marked { background:rgba(52,211,153,0.1); border-color:rgba(52,211,153,0.35); color:var(--teal); }
+
+/* ══════════════════════════════════════
+   STREAK
+══════════════════════════════════════ */
+.streak-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:20px 22px; margin-bottom:28px;
+  display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+}
+.streak-flame { font-size:44px; flex-shrink:0; }
+.streak-info { flex:1; min-width:0; }
+.streak-num {
+  font-family:'Lora',serif; font-size:36px; font-weight:700;
+  color:var(--orange); line-height:1; margin-bottom:4px;
+}
+.streak-label { font-size:13px; color:var(--muted); }
+.streak-days { display:flex; gap:6px; }
+.streak-day {
+  width:32px; height:32px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface2); display:flex; flex-direction:column; align-items:center;
+  justify-content:center; font-size:9px; color:var(--muted); flex-shrink:0;
+}
+.streak-day.active { background:rgba(251,146,60,0.15); border-color:var(--orange); }
+.streak-day .day-dot { width:7px; height:7px; border-radius:50%; background:var(--surface3); margin-top:3px; }
+.streak-day.active .day-dot { background:var(--orange); }
+
+/* ══════════════════════════════════════
+   BADGES GRID
+══════════════════════════════════════ */
+.badges-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(148px,1fr)); gap:12px;
+  margin-bottom:28px;
+}
+.badge-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:18px 14px; text-align:center;
+  transition:all 0.2s; position:relative; overflow:hidden;
+}
+.badge-card.unlocked { cursor:default; }
+.badge-card.locked { opacity:0.45; filter:grayscale(0.6); }
+.badge-card.unlocked::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(245,200,66,0.08) 0%, transparent 60%);
+}
+.badge-card.unlocked:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+.badge-emoji { font-size:32px; margin-bottom:8px; display:block; }
+.badge-name { font-size:12px; font-weight:600; color:var(--text); margin-bottom:4px; line-height:1.3; }
+.badge-desc { font-size:10.5px; color:var(--muted); line-height:1.5; }
+.badge-pts { font-size:11px; font-weight:700; color:var(--gold); margin-top:6px; }
+.badge-lock-icon { font-size:16px; color:var(--muted2); margin-top:6px; display:block; }
+.badge-new {
+  position:absolute; top:8px; right:8px;
+  background:var(--gold); color:var(--bg); font-size:9px; font-weight:700;
+  padding:2px 6px; border-radius:100px; letter-spacing:0.5px;
+}
+/* Badge category colors */
+.badge-card.cat-explorer.unlocked  { border-color:rgba(124,106,247,0.3); }
+.badge-card.cat-aptitude.unlocked  { border-color:rgba(52,211,153,0.3); }
+.badge-card.cat-reflection.unlocked{ border-color:rgba(56,189,248,0.3); }
+.badge-card.cat-streak.unlocked    { border-color:rgba(251,146,60,0.3); }
+.badge-card.cat-master.unlocked    { border-color:rgba(245,200,66,0.4); }
+
+/* Category filter */
+.cat-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.cat-filter {
+  padding:6px 14px; border-radius:100px; border:1px solid var(--border);
+  background:var(--surface2); font-size:12px; cursor:pointer; transition:all 0.2s;
+  color:var(--muted); font-family:'Sora',sans-serif;
+}
+.cat-filter:hover { border-color:var(--border2); color:var(--text); }
+.cat-filter.active { background:var(--gold-glow); border-color:rgba(245,200,66,0.4); color:var(--gold); font-weight:500; }
+
+/* ══════════════════════════════════════
+   SHAREABLE PROFILE CARD
+══════════════════════════════════════ */
+.card-section {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:24px; margin-bottom:28px;
+}
+.card-preview-wrap { display:flex; justify-content:center; margin:16px 0; }
+#card-preview {
+  border-radius:20px; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5); max-width:270px; width:100%;
+}
+canvas#share-canvas { display:none; }
+
+.card-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.btn-action {
+  flex:1; min-width:140px; padding:13px 20px; border-radius:12px; border:1px solid;
+  font-family:'Sora',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-download { background:var(--gold-glow); border-color:rgba(245,200,66,0.4); color:var(--gold); }
+.btn-download:hover { background:rgba(245,200,66,0.2); }
+.btn-edit-card { background:var(--surface2); border-color:var(--border); color:var(--muted); }
+.btn-edit-card:hover { color:var(--text); border-color:var(--border2); }
+.card-note { font-size:11px; color:var(--muted2); text-align:center; margin-top:10px; line-height:1.6; }
+
+/* Card customizer */
+.card-customizer { display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:16px; }
+.card-customizer.open { display:block; }
+.customizer-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.customizer-label { font-size:12px; color:var(--muted); min-width:100px; }
+.theme-options { display:flex; gap:8px; }
+.theme-dot {
+  width:28px; height:28px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:all 0.2s;
+}
+.theme-dot:hover, .theme-dot.active { border-color:white; transform:scale(1.15); }
+
+/* ══════════════════════════════════════
+   STATS GRID
+══════════════════════════════════════ */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:28px; }
+@media(max-width:400px){ .stats-grid { grid-template-columns:repeat(2,1fr); } }
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:16px 14px; text-align:center;
+}
+.stat-icon { font-size:22px; margin-bottom:6px; }
+.stat-num { font-family:'Lora',serif; font-size:22px; font-weight:700; line-height:1; margin-bottom:3px; }
+.stat-lbl { font-size:11px; color:var(--muted); line-height:1.4; }
+
+/* ══════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════ */
+.hidden { display:none !important; }
+@media(max-width:480px){
+  .journey-step { min-width:56px; }
+  .badge-card { padding:14px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     SETUP MODAL
+═══════════════════════════════════ -->
+<div id="setup-overlay">
+  <div class="setup-modal">
+    <div class="setup-emoji">🏆</div>
+    <h2>Bienvenido/a a<br>tu progreso</h2>
+    <p>Aquí ves tus logros, insignias y puedes generar tu tarjeta de perfil para compartir. Cuéntanos un poco sobre ti.</p>
+    <div class="setup-field">
+      <label class="setup-label">Tu nombre</label>
+      <input type="text" class="setup-input" id="su-name" placeholder="¿Cómo te llamas?" maxlength="30" autocomplete="off">
+    </div>
+    <div class="setup-field">
+      <label class="setup-label">Tu tipo de perfil (opcional)</label>
+      <input type="text" class="setup-input" id="su-profile" placeholder="Ej: Creador Visual, Analítico Digital..." maxlength="40">
+    </div>
+    <div class="setup-field">
+      <label class="setup-label">Carrera que más te llama la atención</label>
+      <input type="text" class="setup-input" id="su-career" placeholder="Ej: Diseño UX/UI, Arquitectura..." maxlength="40">
+    </div>
+    <button class="setup-btn" onclick="setupProfile()">Comenzar →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     BADGE UNLOCK MODAL
+═══════════════════════════════════ -->
+<div id="badge-unlock-modal">
+  <div class="unlock-card">
+    <div class="unlock-label">🎉 ¡Insignia desbloqueada!</div>
+    <div class="unlock-emoji-wrap" id="unlock-emoji">🏅</div>
+    <div class="unlock-name" id="unlock-name">Nombre</div>
+    <div class="unlock-desc" id="unlock-desc">Descripción</div>
+    <div class="unlock-pts" id="unlock-pts">+50 XP</div>
+    <button class="unlock-close-btn" onclick="closeUnlockModal()">¡Genial! ✨</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MAIN PAGE
+═══════════════════════════════════ -->
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-top">
+      <div class="user-avatar" id="ua">🌟</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name-display">—</div>
+        <div class="user-level" id="user-level-display" style="color:var(--gold)">Nivel 1 · Explorador</div>
+      </div>
+      <div class="header-pts">
+        <div class="pts-num" id="pts-display">0</div>
+        <div class="pts-label">puntos XP</div>
+      </div>
+    </div>
+    <div class="xp-wrap">
+      <div class="xp-row">
+        <span id="xp-label">Progreso al siguiente nivel</span>
+        <span id="xp-pct">0%</span>
+      </div>
+      <div class="xp-track">
+        <div class="xp-fill" id="xp-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="section">
+    <div class="section-title">Resumen de actividad</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-num" id="stat-badges">0</div><div class="stat-lbl">Insignias ganadas</div></div>
+      <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-num" id="stat-streak">0</div><div class="stat-lbl">Días de racha</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" id="stat-modules">0/5</div><div class="stat-lbl">Módulos completados</div></div>
+      <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-num" id="stat-chats">0</div><div class="stat-lbl">Preguntas a Leo</div></div>
+      <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-num" id="stat-games">—</div><div class="stat-lbl">Mejor juego</div></div>
+      <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-num" id="stat-rank">—</div><div class="stat-lbl">Nivel actual</div></div>
+    </div>
+  </div>
+
+  <!-- JOURNEY -->
+  <div class="section">
+    <div class="section-title">Tu camino en Oriéntame</div>
+    <div class="journey-card">
+      <div class="journey-steps" id="journey-steps"></div>
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Marcar como completado:</div>
+        <div class="mark-done-wrap" id="mark-done-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STREAK -->
+  <div class="section">
+    <div class="section-title">Racha diaria</div>
+    <div class="streak-card">
+      <div class="streak-flame" id="streak-flame">🔥</div>
+      <div class="streak-info">
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-label" id="streak-label">días seguidos explorando tu vocación</div>
+      </div>
+      <div class="streak-days" id="streak-days"></div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="section">
+    <div class="section-title">Insignias</div>
+    <div class="cat-filters" id="cat-filters"></div>
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+
+  <!-- SHAREABLE CARD -->
+  <div class="section">
+    <div class="section-title">Tu tarjeta de perfil</div>
+    <div class="card-section">
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:4px;">
+        Genera tu tarjeta personalizada para compartir en Instagram o WhatsApp.
+      </p>
+      <div class="card-preview-wrap">
+        <div id="card-preview">
+          <canvas id="card-canvas" width="540" height="960" style="width:270px;height:480px;display:block;border-radius:20px;"></canvas>
+        </div>
+      </div>
+      <canvas id="share-canvas" width="540" height="960"></canvas>
+      <div class="card-actions">
+        <button class="btn-action btn-download" onclick="downloadCard()">⬇️ Descargar imagen</button>
+        <button class="btn-action btn-edit-card" onclick="toggleCustomizer()">🎨 Personalizar</button>
+      </div>
+      <div class="card-customizer" id="card-customizer">
+        <div class="customizer-row">
+          <span class="customizer-label">Tema de color</span>
+          <div class="theme-options" id="theme-options">
+            <div class="theme-dot active" data-theme="0" style="background:linear-gradient(135deg,#7c6af7,#34d399)" onclick="setTheme(0,this)" title="Violeta-Verde"></div>
+            <div class="theme-dot" data-theme="1" style="background:linear-gradient(135deg,#f5c842,#fb923c)" onclick="setTheme(1,this)" title="Dorado-Naranja"></div>
+            <div class="theme-dot" data-theme="2" style="background:linear-gradient(135deg,#e05c8a,#7c6af7)" onclick="setTheme(2,this)" title="Rosa-Violeta"></div>
+            <div class="theme-dot" data-theme="3" style="background:linear-gradient(135deg,#38bdf8,#34d399)" onclick="setTheme(3,this)" title="Azul-Verde"></div>
+          </div>
+        </div>
+      </div>
+      <p class="card-note">📱 En móvil: mantén presionada la imagen para guardarla<br>💻 En escritorio: botón "Descargar imagen"</p>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────── */
+const SK_PROGRESS  = 'orientame:gamification:progress';
+const SK_LEO_STATS = 'orientame:leo:stats';     // from Module 2
+const SK_LEO_PROF  = 'orientame:leo:profile';   // from Module 2
+
+const LEVELS = [
+  { min:0,    name:'Explorador',    emoji:'🌱' },
+  { min:100,  name:'Curioso',       emoji:'🔍' },
+  { min:250,  name:'Reflexivo',     emoji:'💭' },
+  { min:450,  name:'Comprometido',  emoji:'⚡' },
+  { min:700,  name:'Orientado',     emoji:'🎯' },
+  { min:1000, name:'Maestro',       emoji:'🏆' }
+];
+
+const MODULES = [
+  { id:'fase1',   label:'Fase 1\nPasiones', emoji:'🔍', pts:50  },
+  { id:'fase2',   label:'Fase 2\nHabilidades', emoji:'⚡', pts:75 },
+  { id:'fase3',   label:'Fase 3\nPadres',   emoji:'💜', pts:100 },
+  { id:'juegos',  label:'Juegos\nAptitud',  emoji:'🎮', pts:80  },
+  { id:'mapa',    label:'Mapa de\nCarrera', emoji:'🗺️', pts:70  }
+];
+
+const BADGES_DEF = [
+  { id:'fase1',     cat:'explorer',   emoji:'🔍', name:'Explorador de Pasiones', desc:'Completaste la Fase 1 del test vocacional',   pts:50,  cond: p => p.modules.fase1  },
+  { id:'fase2',     cat:'explorer',   emoji:'⚡', name:'Conocedor de Aptitudes', desc:'Completaste la Fase 2 del test vocacional',   pts:75,  cond: p => p.modules.fase2  },
+  { id:'fase3',     cat:'explorer',   emoji:'💜', name:'Perspectiva Completa',   desc:'Integraste la mirada de tus padres en el perfil', pts:100, cond: p => p.modules.fase3 },
+  { id:'trilogia',  cat:'master',     emoji:'🌟', name:'Trilogía Completada',    desc:'Completaste las 3 fases del test vocacional',  pts:150, cond: p => p.modules.fase1 && p.modules.fase2 && p.modules.fase3 },
+  { id:'juegos',    cat:'aptitude',   emoji:'🎮', name:'Mente Ágil',             desc:'Completaste los 4 juegos de aptitud cognitiva', pts:80,  cond: p => p.modules.juegos },
+  { id:'mapa',      cat:'explorer',   emoji:'🗺️', name:'Cartógrafo Vocacional',  desc:'Generaste tu mapa de carrera personalizado',   pts:70,  cond: p => p.modules.mapa  },
+  { id:'chat1',     cat:'reflection', emoji:'💬', name:'Primera Conversación',   desc:'Hablaste con Leo por primera vez',             pts:30,  cond: p => p.chatMsgs >= 1  },
+  { id:'chat10',    cat:'reflection', emoji:'🤔', name:'Curioso Profundo',        desc:'Enviaste 10 o más preguntas a Leo',            pts:60,  cond: p => p.chatMsgs >= 10 },
+  { id:'chat25',    cat:'reflection', emoji:'🧠', name:'Reflexivo Activo',        desc:'Llevas 25 conversaciones con Leo',             pts:90,  cond: p => p.chatMsgs >= 25 },
+  { id:'streak3',   cat:'streak',     emoji:'🔥', name:'Constante',               desc:'Visitaste Oriéntame 3 días seguidos',          pts:40,  cond: p => p.streak >= 3    },
+  { id:'streak7',   cat:'streak',     emoji:'💪', name:'Dedicado',                desc:'7 días de racha consecutivos',                pts:80,  cond: p => p.streak >= 7    },
+  { id:'streak14',  cat:'streak',     emoji:'🏅', name:'Imparable',               desc:'14 días de racha — increíble compromiso',     pts:140, cond: p => p.streak >= 14   },
+  { id:'completo',  cat:'master',     emoji:'🏆', name:'Oriéntame Pro',           desc:'Completaste todos los módulos del programa',   pts:200, cond: p => Object.values(p.modules).every(Boolean) },
+  { id:'card',      cat:'explorer',   emoji:'📸', name:'Identidad Compartida',    desc:'Descargaste tu tarjeta de perfil',             pts:35,  cond: p => p.cardDownloaded },
+];
+
+const THEMES = [
+  { name:'Violeta', c1:'#7c6af7', c2:'#34d399', bg:'#0f0d1e' },
+  { name:'Dorado',  c1:'#f5c842', c2:'#fb923c', bg:'#1a1208' },
+  { name:'Rosa',    c1:'#e05c8a', c2:'#7c6af7', bg:'#1a0d14' },
+  { name:'Azul',    c1:'#38bdf8', c2:'#34d399', bg:'#0d1620' }
+];
+
+/* ─────────────────────────────────────
+   STATE
+───────────────────────────────────── */
+let PROGRESS = null;
+let CURRENT_THEME = 0;
+let ACTIVE_CAT_FILTER = 'all';
+let UNLOCK_QUEUE = [];   // badges to animate one by one
+let IS_SHOWING_UNLOCK = false;
+
+/* ─────────────────────────────────────
+   STORAGE HELPERS
+───────────────────────────────────── */
+function storageGet(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+  catch(e) { return null; }
+}
+function storageSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch(e) { return false; }
+}
+
+/* ─────────────────────────────────────
+   DEFAULT PROGRESS
+───────────────────────────────────── */
+function defaultProgress(name, profileType, topCareer) {
+  return {
+    name:         name || 'Usuario',
+    profileType:  profileType || 'Explorador Vocacional',
+    topCareer:    topCareer || '',
+    profileEmoji: '🌟',
+    modules:  { fase1:false, fase2:false, fase3:false, juegos:false, mapa:false },
+    badges:   [],
+    newBadges:[],
+    streak:   1,
+    lastVisit: today(),
+    chatMsgs: 0,
+    cardDownloaded: false,
+    totalXP:  0,
+    created:  new Date().toISOString()
+  };
+}
+
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function daysBetween(d1, d2) {
+  const a = new Date(d1), b = new Date(d2);
+  return Math.round((b - a) / 86400000);
+}
+
+/* ─────────────────────────────────────
+   SETUP
+───────────────────────────────────── */
+function setupProfile() {
+  const name        = document.getElementById('su-name').value.trim();
+  const profileType = document.getElementById('su-profile').value.trim();
+  const topCareer   = document.getElementById('su-career').value.trim();
+
+  if (!name) {
+    document.getElementById('su-name').style.borderColor = 'rgba(224,92,110,0.6)';
+    setTimeout(() => document.getElementById('su-name').style.borderColor = '', 2000);
+    return;
+  }
+
+  PROGRESS = defaultProgress(name, profileType, topCareer);
+  storageSet(SK_PROGRESS, PROGRESS);
+  document.getElementById('setup-overlay').classList.add('gone');
+  initPage();
+}
+
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+function init() {
+  PROGRESS = storageGet(SK_PROGRESS);
+
+  if (!PROGRESS) {
+    // Try to auto-import from Leo module
+    const leoProf  = storageGet(SK_LEO_PROF);
+    const leoStats = storageGet(SK_LEO_STATS);
+    if (leoProf) {
+      document.getElementById('su-name').value    = leoProf.name || '';
+      document.getElementById('su-career').value  = leoProf.passions?.split(/[,;]/)[0]?.trim() || '';
+      // Auto-set chatMsgs if Leo has data
+      if (leoStats) {
+        // Will be merged after setup
+        document.getElementById('setup-overlay').querySelector('p').textContent =
+          `Detectamos datos de Leo. Confirma tu nombre y empieza.`;
+      }
+    }
+    return; // show setup overlay
+  }
+
+  document.getElementById('setup-overlay').classList.add('gone');
+  importExternalData();
+  updateStreak();
+  computeAndAwardBadges();
+  initPage();
+}
+
+/* Import data from other modules */
+function importExternalData() {
+  const leoStats = storageGet(SK_LEO_STATS);
+  if (leoStats?.totalMsgs) PROGRESS.chatMsgs = Math.max(PROGRESS.chatMsgs, leoStats.totalMsgs);
+}
+
+/* ─────────────────────────────────────
+   STREAK
+───────────────────────────────────── */
+function updateStreak() {
+  const todayStr = today();
+  if (PROGRESS.lastVisit === todayStr) return; // already counted today
+
+  const diff = daysBetween(PROGRESS.lastVisit, todayStr);
+  if (diff === 1) {
+    PROGRESS.streak += 1; // consecutive day
+  } else if (diff > 1) {
+    PROGRESS.streak = 1;  // streak broken
+  }
+  PROGRESS.lastVisit = todayStr;
+  storageSet(SK_PROGRESS, PROGRESS);
+}
+
+/* ─────────────────────────────────────
+   BADGE COMPUTATION
+───────────────────────────────────── */
+function computeAndAwardBadges() {
+  let xpGained = 0;
+  const newlyUnlocked = [];
+
+  BADGES_DEF.forEach(b => {
+    if (!PROGRESS.badges.includes(b.id) && b.cond(PROGRESS)) {
+      PROGRESS.badges.push(b.id);
+      PROGRESS.newBadges = PROGRESS.newBadges || [];
+      PROGRESS.newBadges.push(b.id);
+      PROGRESS.totalXP += b.pts;
+      xpGained += b.pts;
+      newlyUnlocked.push(b);
+    }
+  });
+
+  if (xpGained > 0) storageSet(SK_PROGRESS, PROGRESS);
+
+  // Queue badge animations
+  newlyUnlocked.forEach(b => UNLOCK_QUEUE.push(b));
+  if (!IS_SHOWING_UNLOCK) processUnlockQueue();
+}
+
+/* ─────────────────────────────────────
+   BADGE UNLOCK ANIMATION
+───────────────────────────────────── */
+function processUnlockQueue() {
+  if (UNLOCK_QUEUE.length === 0) { IS_SHOWING_UNLOCK = false; return; }
+  IS_SHOWING_UNLOCK = true;
+  const badge = UNLOCK_QUEUE.shift();
+  showUnlockModal(badge);
+}
+
+function showUnlockModal(badge) {
+  document.getElementById('unlock-emoji').textContent = badge.emoji;
+  document.getElementById('unlock-name').textContent  = badge.name;
+  document.getElementById('unlock-desc').textContent  = badge.desc;
+  document.getElementById('unlock-pts').textContent   = `+${badge.pts} XP`;
+  document.getElementById('badge-unlock-modal').classList.add('visible');
+  spawnConfetti();
+}
+
+function closeUnlockModal() {
+  document.getElementById('badge-unlock-modal').classList.remove('visible');
+  setTimeout(() => processUnlockQueue(), 400);
+}
+
+function spawnConfetti() {
+  const colors = ['#f5c842','#7c6af7','#34d399','#fb923c','#e05c8a','#38bdf8'];
+  for (let i = 0; i < 28; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${20 + Math.random()*60}%;
+      top: -10px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      width: ${6+Math.random()*8}px;
+      height: ${6+Math.random()*8}px;
+      border-radius: ${Math.random()>0.5 ? '50%' : '2px'};
+      animation-duration: ${1.5+Math.random()*2}s;
+      animation-delay: ${Math.random()*0.8}s;
+    `;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3500);
+  }
+}
+
+/* ─────────────────────────────────────
+   INIT PAGE RENDERING
+───────────────────────────────────── */
+function initPage() {
+  renderHeader();
+  renderStats();
+  renderJourney();
+  renderStreak();
+  renderBadges('all');
+  renderCatFilters();
+  renderCard();
+}
+
+/* ─────────────────────────────────────
+   HEADER
+───────────────────────────────────── */
+function renderHeader() {
+  const xp  = PROGRESS.totalXP;
+  const lvl = getLevel(xp);
+  const nextLvl = getNextLevel(xp);
+
+  document.getElementById('ua').textContent           = lvl.emoji;
+  document.getElementById('user-name-display').textContent = PROGRESS.name;
+  document.getElementById('user-level-display').textContent = `Nivel ${LEVELS.indexOf(lvl)+1} · ${lvl.name}`;
+  document.getElementById('pts-display').textContent   = xp;
+
+  // XP bar
+  const pctToNext = nextLvl
+    ? Math.min(99, Math.round(((xp - lvl.min) / (nextLvl.min - lvl.min)) * 100))
+    : 100;
+  document.getElementById('xp-pct').textContent  = pctToNext + '%';
+  document.getElementById('xp-label').textContent = nextLvl
+    ? `Nivel ${LEVELS.indexOf(nextLvl)+1} · ${nextLvl.name} (${nextLvl.min - xp} XP)`
+    : '¡Nivel máximo alcanzado!';
+
+  setTimeout(() => {
+    document.getElementById('xp-fill').style.width = pctToNext + '%';
+  }, 300);
+}
+
+function getLevel(xp) {
+  let cur = LEVELS[0];
+  LEVELS.forEach(l => { if (xp >= l.min) cur = l; });
+  return cur;
+}
+
+function getNextLevel(xp) {
+  return LEVELS.find(l => l.min > xp) || null;
+}
+
+/* ─────────────────────────────────────
+   STATS
+───────────────────────────────────── */
+function renderStats() {
+  const unlockedCount = PROGRESS.badges.length;
+  const moduleCount   = Object.values(PROGRESS.modules).filter(Boolean).length;
+  const lvl           = getLevel(PROGRESS.totalXP);
+
+  document.getElementById('stat-badges').textContent  = unlockedCount;
+  document.getElementById('stat-streak').textContent  = PROGRESS.streak;
+  document.getElementById('stat-modules').textContent = `${moduleCount}/5`;
+  document.getElementById('stat-chats').textContent   = PROGRESS.chatMsgs;
+  document.getElementById('stat-games').textContent   = PROGRESS.modules.juegos ? '✓' : '—';
+  document.getElementById('stat-rank').textContent    = lvl.emoji + ' ' + lvl.name;
+}
+
+/* ─────────────────────────────────────
+   JOURNEY
+───────────────────────────────────── */
+function renderJourney() {
+  const stepsEl = document.getElementById('journey-steps');
+  const markEl  = document.getElementById('mark-done-wrap');
+  stepsEl.innerHTML = '';
+  markEl.innerHTML  = '';
+
+  MODULES.forEach((mod, i) => {
+    const done   = PROGRESS.modules[mod.id];
+    const active = !done && (i === 0 || PROGRESS.modules[MODULES[i-1]?.id]);
+
+    // Connector before step (not first)
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'journey-connector ' +
+        (PROGRESS.modules[MODULES[i-1].id] ? 'j-connector-done' : 'j-connector-locked');
+      stepsEl.appendChild(conn);
+    }
+
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'journey-step';
+
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'j-node ' + (done ? 'done' : active ? 'active' : 'locked');
+    nodeDiv.textContent = mod.emoji;
+
+    if (done) {
+      const check = document.createElement('div');
+      check.className = 'j-check';
+      check.textContent = '✓';
+      nodeDiv.appendChild(check);
+    }
+
+    const label = document.createElement('div');
+    label.className = 'j-label';
+    label.textContent = mod.label;
+
+    stepDiv.appendChild(nodeDiv);
+    stepDiv.appendChild(label);
+    stepsEl.appendChild(stepDiv);
+
+    // Mark-done button
+    if (!done) {
+      const btn = document.createElement('button');
+      btn.className = 'mark-btn unmarked';
+      btn.textContent = mod.emoji + ' ' + mod.label.replace('\n',' ');
+      btn.setAttribute('data-mod', mod.id);
+      btn.addEventListener('click', () => markModuleDone(mod.id));
+      markEl.appendChild(btn);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'mark-btn marked';
+      btn.textContent = '✓ ' + mod.label.replace('\n',' ');
+      btn.disabled = true;
+      markEl.appendChild(btn);
+    }
+  });
+}
+
+function markModuleDone(modId) {
+  PROGRESS.modules[modId] = true;
+  PROGRESS.totalXP += (MODULES.find(m=>m.id===modId)?.pts || 50);
+  storageSet(SK_PROGRESS, PROGRESS);
+  computeAndAwardBadges();
+  renderHeader();
+  renderStats();
+  renderJourney();
+  renderBadges(ACTIVE_CAT_FILTER);
+  renderCard();
+}
+
+/* ─────────────────────────────────────
+   STREAK DISPLAY
+───────────────────────────────────── */
+function renderStreak() {
+  document.getElementById('streak-num').textContent = PROGRESS.streak;
+  document.getElementById('streak-flame').textContent = PROGRESS.streak >= 7 ? '🔥' : PROGRESS.streak >= 3 ? '🔥' : '💧';
+
+  if (PROGRESS.streak === 0) {
+    document.getElementById('streak-label').textContent = 'Empieza hoy tu racha';
+  }
+
+  // Last 7 days calendar
+  const daysEl = document.getElementById('streak-days');
+  daysEl.innerHTML = '';
+  const dayNames = ['D','L','M','M','J','V','S'];
+  const today_ = new Date();
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today_);
+    d.setDate(d.getDate() - i);
+    const isToday = i === 0;
+    const withinStreak = i < PROGRESS.streak;
+
+    const div = document.createElement('div');
+    div.className = 'streak-day ' + (withinStreak ? 'active' : '');
+    div.innerHTML = `<span style="font-size:9px">${dayNames[d.getDay()]}</span><div class="day-dot"></div>`;
+    daysEl.appendChild(div);
+  }
+}
+
+/* ─────────────────────────────────────
+   BADGES
+───────────────────────────────────── */
+function renderCatFilters() {
+  const cats = [
+    { id:'all', label:'Todas' },
+    { id:'explorer',   label:'🔍 Explorador' },
+    { id:'aptitude',   label:'⚡ Aptitud' },
+    { id:'reflection', label:'💬 Reflexión' },
+    { id:'streak',     label:'🔥 Racha' },
+    { id:'master',     label:'🏆 Maestro' }
+  ];
+  const el = document.getElementById('cat-filters');
+  el.innerHTML = '';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-filter ' + (cat.id === 'all' ? 'active' : '');
+    btn.textContent = cat.label;
+    btn.addEventListener('click', () => {
+      ACTIVE_CAT_FILTER = cat.id;
+      el.querySelectorAll('.cat-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderBadges(cat.id);
+    });
+    el.appendChild(btn);
+  });
+}
+
+function renderBadges(filterCat) {
+  const grid = document.getElementById('badges-grid');
+  grid.innerHTML = '';
+  const newSet = new Set(PROGRESS.newBadges || []);
+
+  const filtered = filterCat === 'all' ? BADGES_DEF : BADGES_DEF.filter(b => b.cat === filterCat);
+
+  // Sort: unlocked first, then locked
+  const sorted = [...filtered].sort((a,b) => {
+    const ua = PROGRESS.badges.includes(a.id);
+    const ub = PROGRESS.badges.includes(b.id);
+    if (ua && !ub) return -1;
+    if (!ua && ub) return 1;
+    return 0;
+  });
+
+  sorted.forEach(b => {
+    const unlocked = PROGRESS.badges.includes(b.id);
+    const isNew    = newSet.has(b.id);
+
+    const card = document.createElement('div');
+    card.className = `badge-card cat-${b.cat} ${unlocked ? 'unlocked' : 'locked'}`;
+    card.setAttribute('title', unlocked ? b.desc : 'Bloqueado');
+
+    card.innerHTML = `
+      ${isNew ? '<span class="badge-new">¡NUEVO!</span>' : ''}
+      <span class="badge-emoji">${unlocked ? b.emoji : '🔒'}</span>
+      <div class="badge-name">${unlocked ? b.name : '???'}</div>
+      <div class="badge-desc">${unlocked ? b.desc : 'Completa más módulos para desbloquear'}</div>
+      ${unlocked ? `<div class="badge-pts">+${b.pts} XP</div>` : `<span class="badge-lock-icon">🔐</span>`}`;
+
+    grid.appendChild(card);
+  });
+
+  // Clear newBadges after showing
+  if (newSet.size > 0) {
+    PROGRESS.newBadges = [];
+    storageSet(SK_PROGRESS, PROGRESS);
+  }
+}
+
+/* ─────────────────────────────────────
+   PROFILE CARD — CANVAS
+───────────────────────────────────── */
+function renderCard() {
+  const canvas = document.getElementById('card-canvas');
+  drawCard(canvas, 540, 960, CURRENT_THEME, false);
+}
+
+function drawCard(canvas, w, h, themeIdx, forDownload) {
+  const ctx = canvas.getContext('2d');
+  canvas.width  = w;
+  canvas.height = h;
+  const theme = THEMES[themeIdx];
+
+  // ── Background ──
+  const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+  bgGrad.addColorStop(0, theme.bg);
+  bgGrad.addColorStop(0.5, adjustHex(theme.bg, 15));
+  bgGrad.addColorStop(1, theme.bg);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // ── Radial glow top ──
+  const glow = ctx.createRadialGradient(w/2, h*0.18, 0, w/2, h*0.18, w*0.7);
+  glow.addColorStop(0, hexToRgba(theme.c1, 0.18));
+  glow.addColorStop(0.5, hexToRgba(theme.c2, 0.07));
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+
+  // ── Grid lines (subtle) ──
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y = 0; y <= h; y += 60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+  // ── Top brand ──
+  ctx.font = '500 22px -apple-system, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.textAlign = 'center';
+  ctx.fillText('ORIÉNTAME', w/2, 60);
+
+  // ── Profile emoji circle ──
+  const cx = w/2, cy = h * 0.28;
+  // Glow rings
+  [120, 95, 70].forEach((r, i) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = hexToRgba(theme.c1, 0.08 + i*0.04);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+  // Circle background
+  const circleGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 65);
+  circleGrad.addColorStop(0, hexToRgba(theme.c1, 0.35));
+  circleGrad.addColorStop(1, hexToRgba(theme.c2, 0.15));
+  ctx.beginPath();
+  ctx.arc(cx, cy, 65, 0, Math.PI*2);
+  ctx.fillStyle = circleGrad;
+  ctx.fill();
+  ctx.strokeStyle = hexToRgba(theme.c1, 0.5);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // Emoji
+  ctx.font = '52px -apple-system';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(PROGRESS.profileEmoji || '🌟', cx, cy);
+  ctx.textBaseline = 'alphabetic';
+
+  // ── Name ──
+  ctx.font = `700 48px -apple-system, system-ui, sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.fillText(PROGRESS.name || 'Tu Nombre', w/2, cy + 110);
+
+  // ── Profile type ──
+  const typeGrad = ctx.createLinearGradient(0, 0, w, 0);
+  typeGrad.addColorStop(0, theme.c1);
+  typeGrad.addColorStop(1, theme.c2);
+  ctx.font = `500 28px -apple-system, system-ui, sans-serif`;
+  ctx.fillStyle = typeGrad;
+  ctx.textAlign = 'center';
+  ctx.fillText(PROGRESS.profileType || 'Explorador Vocacional', w/2, cy + 158);
+
+  // ── Divider line ──
+  const lineGrad = ctx.createLinearGradient(80, 0, w-80, 0);
+  lineGrad.addColorStop(0, 'transparent');
+  lineGrad.addColorStop(0.3, hexToRgba(theme.c1, 0.5));
+  lineGrad.addColorStop(0.7, hexToRgba(theme.c2, 0.5));
+  lineGrad.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.moveTo(80, cy+190); ctx.lineTo(w-80, cy+190);
+  ctx.strokeStyle = lineGrad; ctx.lineWidth = 1; ctx.stroke();
+
+  // ── Badges row ──
+  const unlockedBadges = BADGES_DEF.filter(b => PROGRESS.badges.includes(b.id));
+  const showBadges = unlockedBadges.slice(0,5);
+  if (showBadges.length > 0) {
+    ctx.font = '400 20px -apple-system';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('INSIGNIAS', w/2, cy + 235);
+
+    ctx.font = '32px -apple-system';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const startX = w/2 - (showBadges.length - 1) * 36;
+    showBadges.forEach((b, i) => {
+      ctx.fillText(b.emoji, startX + i * 72, cy + 278);
+    });
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // ── Career card ──
+  if (PROGRESS.topCareer) {
+    const cardY = cy + 330;
+    const cardH = 90;
+    // Background
+    roundRect(ctx, 60, cardY, w-120, cardH, 20);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fill();
+    ctx.strokeStyle = hexToRgba(theme.c1, 0.25);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '400 20px -apple-system';
+    ctx.fillStyle = hexToRgba(theme.c1, 0.8);
+    ctx.textAlign = 'center';
+    ctx.fillText('MI CARRERA', w/2, cardY + 28);
+
+    ctx.font = `600 26px -apple-system`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.fillText(truncateStr(PROGRESS.topCareer, 30), w/2, cardY + 63);
+  }
+
+  // ── XP / Level ──
+  const xpY = cy + 455;
+  const lvl = getLevel(PROGRESS.totalXP);
+  ctx.font = '400 20px -apple-system';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.textAlign = 'center';
+  ctx.fillText(`NIVEL ${LEVELS.indexOf(lvl)+1} · ${lvl.name.toUpperCase()}`, w/2, xpY);
+
+  // XP bar
+  const barX = 80, barY = xpY + 18, barW = w - 160, barH2 = 10;
+  roundRect(ctx, barX, barY, barW, barH2, 5);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill();
+
+  const nextLvl2 = getNextLevel(PROGRESS.totalXP);
+  const pct = nextLvl2
+    ? (PROGRESS.totalXP - lvl.min) / (nextLvl2.min - lvl.min)
+    : 1;
+  const fillGrad = ctx.createLinearGradient(barX, 0, barX+barW, 0);
+  fillGrad.addColorStop(0, theme.c1);
+  fillGrad.addColorStop(1, theme.c2);
+  roundRect(ctx, barX, barY, Math.max(20, barW * pct), barH2, 5);
+  ctx.fillStyle = fillGrad; ctx.fill();
+
+  ctx.font = '600 22px -apple-system';
+  ctx.fillStyle = hexToRgba(THEMES[0].c1, 0.85);
+  ctx.textAlign = 'center';
+  ctx.fillText(`${PROGRESS.totalXP} XP`, w/2, xpY + 55);
+
+  // ── Bottom watermark ──
+  ctx.font = '400 20px -apple-system';
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.textAlign = 'center';
+  ctx.fillText('Descúbrete en orienta.me', w/2, h - 44);
+
+  const tagGrad2 = ctx.createLinearGradient(w/2-80, 0, w/2+80, 0);
+  tagGrad2.addColorStop(0, theme.c1);
+  tagGrad2.addColorStop(1, theme.c2);
+  ctx.font = '600 22px -apple-system';
+  ctx.fillStyle = tagGrad2;
+  ctx.textAlign = 'center';
+  ctx.fillText('#OrientameApp', w/2, h - 18);
+}
+
+/* ─── Canvas helpers ─── */
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function adjustHex(hex, amount) {
+  const r = Math.min(255, parseInt(hex.slice(1,3),16)+amount);
+  const g = Math.min(255, parseInt(hex.slice(3,5),16)+amount);
+  const b = Math.min(255, parseInt(hex.slice(5,7),16)+amount);
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function truncateStr(str, n) { return str.length > n ? str.slice(0,n-1)+'…' : str; }
+
+/* ─────────────────────────────────────
+   DOWNLOAD CARD
+───────────────────────────────────── */
+function downloadCard() {
+  // Draw at full resolution on hidden canvas
+  const shareCanvas = document.getElementById('share-canvas');
+  drawCard(shareCanvas, 1080, 1920, CURRENT_THEME, true);
+
+  try {
+    const link = document.createElement('a');
+    link.download = `orientame-${(PROGRESS.name||'perfil').toLowerCase().replace(/\s/g,'-')}.png`;
+    link.href = shareCanvas.toDataURL('image/png', 1.0);
+    link.click();
+
+    // Award badge
+    if (!PROGRESS.cardDownloaded) {
+      PROGRESS.cardDownloaded = true;
+      storageSet(SK_PROGRESS, PROGRESS);
+      computeAndAwardBadges();
+      renderBadges(ACTIVE_CAT_FILTER);
+      renderHeader();
+      renderStats();
+    }
+  } catch(e) {
+    // Canvas tainted or other error — try opening in new tab
+    try {
+      const shareCanvas2 = document.getElementById('share-canvas');
+      window.open(shareCanvas2.toDataURL('image/png'));
+    } catch(e2) {
+      alert('Para guardar: mantén presionada la imagen de la tarjeta y elige "Guardar imagen".');
+    }
+  }
+}
+
+/* ─────────────────────────────────────
+   CARD CUSTOMIZER
+───────────────────────────────────── */
+function toggleCustomizer() {
+  const c = document.getElementById('card-customizer');
+  c.classList.toggle('open');
+}
+
+function setTheme(idx, el) {
+  CURRENT_THEME = idx;
+  document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  renderCard();
+}
+
+/* ─────────────────────────────────────
+   LEGEND RENDER & START
+───────────────────────────────────── */
+function renderLegendBadges() {} // unused in this module
+
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+
+  // Enter on setup form
+  document.querySelectorAll('#setup-overlay input').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') setupProfile();
+    });
+  });
+});
+</script>
+</body>
+</html>

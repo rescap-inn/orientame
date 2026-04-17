@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame · Juegos de Aptitud</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   BASE & RESET
+═══════════════════════════════════════ */
+:root {
+  --bg: #0c0e14;
+  --surface: #14161f;
+  --surface2: #1b1d2a;
+  --border: rgba(255,255,255,0.07);
+  --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+
+  /* Game colors */
+  --g1: #4fc3f7; /* Tablero — cyan */
+  --g2: #a78bfa; /* Secuencia — violet */
+  --g3: #34d399; /* Lógica — emerald */
+  --g4: #fb923c; /* Globo — orange */
+
+  --seq-r: #f87171; /* Sequence button red */
+  --seq-g: #4ade80; /* Sequence button green */
+  --seq-b: #60a5fa; /* Sequence button blue */
+  --seq-y: #fbbf24; /* Sequence button yellow */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════
+   BACKGROUND EFFECTS
+═══════════════════════════════════════ */
+.bg-layer {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0;
+  transition: opacity 1s ease, background 1s ease;
+}
+.bg-orb.active { opacity: 0.12; }
+.orb1 { width: 500px; height: 500px; top: -150px; left: -150px; }
+.orb2 { width: 400px; height: 400px; bottom: -100px; right: -100px; }
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.screen {
+  display: none;
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  padding: 24px 20px 48px;
+  max-width: 560px;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════
+   INTRO SCREEN
+═══════════════════════════════════════ */
+#screen-intro {
+  text-align: center;
+  gap: 0;
+}
+
+.intro-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 100px; padding: 6px 16px; margin-bottom: 28px;
+  background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.25);
+  font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--g1);
+}
+.intro-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--g1);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.7);opacity:0.5} }
+
+.intro-title {
+  font-family: 'Lora', serif; font-size: clamp(28px,6vw,42px);
+  font-weight: 600; line-height: 1.15; margin-bottom: 14px;
+}
+.intro-title em { font-style: italic; color: var(--g1); }
+
+.intro-sub {
+  font-size: 14px; color: var(--muted); line-height: 1.75;
+  max-width: 420px; margin: 0 auto 36px;
+}
+
+.games-preview {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; width: 100%; max-width: 400px; margin-bottom: 36px;
+}
+.preview-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; text-align: left;
+}
+.preview-card .icon { font-size: 26px; margin-bottom: 8px; }
+.preview-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.preview-card p { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.preview-card.c1 { border-top: 2px solid var(--g1); }
+.preview-card.c2 { border-top: 2px solid var(--g2); }
+.preview-card.c3 { border-top: 2px solid var(--g3); }
+.preview-card.c4 { border-top: 2px solid var(--g4); }
+
+.name-input {
+  width: 100%; max-width: 320px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 18px; color: var(--text); font-family: 'Sora', sans-serif;
+  font-size: 15px; font-weight: 400; outline: none;
+  transition: border-color 0.2s; margin-bottom: 20px;
+  text-align: center;
+}
+.name-input:focus { border-color: var(--g1); }
+.name-input::placeholder { color: var(--muted); opacity: 0.5; }
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 14px 32px; border-radius: 12px; border: none;
+  font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  min-width: 180px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: linear-gradient(135deg, var(--g1), #2196f3); color: #0c0e14; }
+.btn-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,195,247,0.25); }
+.btn-ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: rgba(255,255,255,0.2); background: var(--surface); }
+.btn-lg { padding: 17px 40px; font-size: 15px; min-width: 220px; border-radius: 14px; }
+
+/* ═══════════════════════════════════════
+   GAME FRAME (shared)
+═══════════════════════════════════════ */
+.game-frame {
+  width: 100%; display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+}
+.game-header { width: 100%; text-align: center; }
+.game-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 100px; padding: 5px 14px; margin-bottom: 12px;
+  font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase;
+}
+.game-title {
+  font-family: 'Lora', serif; font-size: clamp(22px,5vw,32px);
+  font-weight: 600; line-height: 1.2; margin-bottom: 6px;
+}
+.game-subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 360px; }
+
+/* Progress dots */
+.game-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.game-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.game-dot.done { background: var(--muted); border-color: var(--muted); }
+.game-dot.active { transform: scale(1.3); border-color: currentColor; }
+
+/* Timer bar */
+.timer-wrap { width: 100%; max-width: 440px; }
+.timer-bar { height: 4px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.timer-fill { height: 100%; border-radius: 100px; transition: width 0.1s linear; width: 100%; }
+.timer-label { font-size: 11px; color: var(--muted); text-align: right; margin-top: 5px; letter-spacing: 1px; }
+
+/* Round indicator */
+.round-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; opacity: 0.5; margin-bottom: -8px;
+}
+
+/* Score chip */
+.score-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 6px 14px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.score-num { font-size: 18px; font-weight: 700; }
+
+/* Feedback flash */
+.feedback-flash {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0; transition: opacity 0.1s;
+}
+.feedback-flash.show { opacity: 1; }
+.feedback-icon { font-size: 80px; filter: drop-shadow(0 0 24px currentColor); }
+
+/* ═══════════════════════════════════════
+   GAME 1 — EL TABLERO (Memory Grid)
+═══════════════════════════════════════ */
+#screen-g1 { gap: 20px; }
+.g1-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; width: 100%; max-width: 300px;
+}
+.g1-cell {
+  aspect-ratio: 1; border-radius: 14px;
+  background: var(--surface2); border: 2px solid var(--border);
+  cursor: pointer; transition: all 0.15s; position: relative;
+  overflow: hidden;
+}
+.g1-cell.lit {
+  background: var(--g1); border-color: var(--g1);
+  box-shadow: 0 0 20px rgba(79,195,247,0.4);
+}
+.g1-cell.correct {
+  background: var(--g3); border-color: var(--g3);
+  box-shadow: 0 0 20px rgba(52,211,153,0.4);
+}
+.g1-cell.wrong {
+  background: #f87171; border-color: #f87171;
+  animation: shake 0.3s ease;
+}
+.g1-cell.clickable:hover {
+  background: rgba(79,195,247,0.15);
+  border-color: rgba(79,195,247,0.5);
+  transform: scale(1.04);
+}
+.g1-cell.selected {
+  background: var(--g1); border-color: var(--g1);
+  box-shadow: 0 0 16px rgba(79,195,247,0.35);
+}
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.g1-instruction {
+  font-size: 14px; color: var(--muted); text-align: center;
+  min-height: 40px; transition: all 0.3s;
+}
+.g1-instruction strong { color: var(--text); font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   GAME 2 — SECUENCIA (Simon-style)
+═══════════════════════════════════════ */
+#screen-g2 { gap: 20px; }
+.g2-pad {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; width: 100%; max-width: 280px;
+}
+.g2-btn {
+  aspect-ratio: 1; border-radius: 20px; border: none; cursor: pointer;
+  transition: all 0.1s; position: relative; overflow: hidden;
+  opacity: 0.3; transform: scale(0.97);
+}
+.g2-btn.idle { opacity: 0.4; }
+.g2-btn.active-anim {
+  opacity: 1; transform: scale(1.06);
+  box-shadow: 0 0 30px currentColor;
+}
+.g2-btn.clickable { opacity: 0.75; cursor: pointer; }
+.g2-btn.clickable:hover { opacity: 0.9; transform: scale(1.03); }
+.g2-btn.clicked { opacity: 1; transform: scale(1.06); }
+.g2-btn:nth-child(1) { background: var(--seq-r); color: var(--seq-r); }
+.g2-btn:nth-child(2) { background: var(--seq-g); color: var(--seq-g); }
+.g2-btn:nth-child(3) { background: var(--seq-b); color: var(--seq-b); }
+.g2-btn:nth-child(4) { background: var(--seq-y); color: var(--seq-y); }
+
+.g2-instruction {
+  font-size: 14px; color: var(--muted); text-align: center; min-height: 40px;
+}
+.g2-instruction strong { color: var(--text); font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   GAME 3 — ¿CUÁL SIGUE? (Logic)
+═══════════════════════════════════════ */
+#screen-g3 { gap: 20px; }
+.g3-question-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 440px;
+}
+.g3-question-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--g3); opacity: 0.7; margin-bottom: 12px;
+}
+.g3-sequence {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.g3-item {
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.g3-item.unknown {
+  background: rgba(52,211,153,0.1); border: 2px dashed var(--g3);
+  color: var(--g3); font-size: 22px;
+}
+.g3-context {
+  font-size: 12px; color: var(--muted); text-align: center; margin-top: 8px;
+  font-style: italic; min-height: 18px;
+}
+
+.g3-options {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; width: 100%; max-width: 440px;
+}
+.g3-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+  font-size: 18px; font-weight: 700; font-family: 'Lora', serif;
+}
+.g3-option:hover { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.06); transform: translateY(-2px); }
+.g3-option.correct { background: rgba(52,211,153,0.15); border-color: var(--g3); color: var(--g3); }
+.g3-option.wrong { background: rgba(248,113,113,0.12); border-color: #f87171; color: #f87171; }
+.g3-option.disabled { pointer-events: none; }
+
+.g3-progress-bar { font-size: 11px; color: var(--muted); text-align: center; }
+
+/* ═══════════════════════════════════════
+   GAME 4 — EL GLOBO (Risk)
+═══════════════════════════════════════ */
+#screen-g4 { gap: 20px; }
+.g4-arena {
+  width: 100%; max-width: 340px; height: 280px;
+  position: relative; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 8px;
+}
+.g4-balloon-wrap {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  transition: bottom 0.1s;
+}
+.g4-balloon {
+  border-radius: 50%; position: relative; transition: all 0.12s ease-out;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.g4-balloon::after {
+  content: ''; position: absolute; top: 18%; left: 22%;
+  width: 25%; height: 20%; background: rgba(255,255,255,0.3);
+  border-radius: 50%; transform: rotate(-30deg);
+}
+.g4-string {
+  width: 2px; height: 40px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+}
+.g4-pump-val {
+  position: absolute; font-size: 16px; font-weight: 700;
+  color: rgba(255,255,255,0.9); text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+.g4-controls { display: flex; gap: 12px; align-items: center; }
+.g4-stats {
+  display: flex; gap: 20px; justify-content: center;
+  font-size: 13px; color: var(--muted);
+}
+.g4-stat strong { font-size: 20px; font-weight: 700; display: block; color: var(--text); }
+.g4-balloon-count { display: flex; gap: 6px; justify-content: center; }
+.g4-mini-balloon {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--g4); opacity: 0.3;
+}
+.g4-mini-balloon.remaining { opacity: 1; }
+.g4-mini-balloon.popped { background: #f87171; opacity: 0.5; }
+.g4-mini-balloon.banked { background: var(--g3); opacity: 0.8; }
+
+.btn-pump {
+  padding: 16px 30px; background: linear-gradient(135deg, var(--g4), #ef4444);
+  border: none; border-radius: 14px; color: white;
+  font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;
+}
+.btn-pump:hover { opacity: 0.9; transform: scale(1.04); }
+.btn-pump:active { transform: scale(0.97); }
+.btn-pump:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.btn-bank {
+  padding: 16px 24px; background: linear-gradient(135deg, var(--g3), #059669);
+  border: none; border-radius: 14px; color: #0c0e14;
+  font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;
+}
+.btn-bank:hover { opacity: 0.9; transform: scale(1.03); }
+.btn-bank:active { transform: scale(0.97); }
+.btn-bank:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.g4-risk-meter {
+  width: 100%; max-width: 340px;
+}
+.g4-risk-bar-wrap { position: relative; height: 8px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.g4-risk-fill { height: 100%; border-radius: 100px; transition: width 0.15s; background: linear-gradient(90deg, var(--g3), var(--g4), #ef4444); }
+.g4-risk-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 5px; opacity: 0.6; }
+
+/* Explosion animation */
+.explode-overlay {
+  position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.1s;
+}
+.explode-overlay.active { opacity: 1; }
+.explode-ring {
+  position: absolute; width: 20px; height: 20px; border-radius: 50%;
+  background: transparent; border: 3px solid var(--g4);
+  animation: explode-ring 0.5s ease-out forwards;
+}
+@keyframes explode-ring {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(15); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════
+   BETWEEN GAMES
+═══════════════════════════════════════ */
+#screen-between { text-align: center; gap: 24px; }
+.between-icon { font-size: 64px; margin-bottom: 4px; }
+.between-title { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; }
+.between-sub { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 360px; }
+.between-score-display {
+  background: var(--surface); border-radius: 16px; padding: 16px 32px;
+  border: 1px solid var(--border);
+}
+.between-score-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.between-score-num { font-family: 'Lora', serif; font-size: 42px; font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════ */
+#screen-results { text-align: center; gap: 28px; padding-top: 40px; }
+.results-header { }
+.results-emoji { font-size: 60px; margin-bottom: 12px; }
+.results-title { font-family: 'Lora', serif; font-size: clamp(24px,5vw,36px); font-weight: 600; margin-bottom: 8px; }
+.results-sub { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 400px; }
+
+/* Radar chart */
+.radar-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px; width: 100%; max-width: 440px;
+}
+.radar-title { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.5; margin-bottom: 16px; }
+#radar-canvas { display: block; margin: 0 auto; }
+
+/* Aptitude bars */
+.apt-grid { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 440px; }
+.apt-row { display: flex; align-items: center; gap: 12px; }
+.apt-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+.apt-info { flex: 1; }
+.apt-name { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+.apt-track { height: 7px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.apt-fill { height: 100%; border-radius: 100px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); width: 0; }
+.apt-pct { font-size: 13px; font-weight: 700; min-width: 36px; text-align: right; }
+
+/* AI Analysis */
+.ai-analysis-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px; width: 100%; max-width: 440px;
+  text-align: left;
+}
+.ai-analysis-label { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.5; margin-bottom: 14px; }
+.ai-analysis-text { font-size: 14.5px; line-height: 1.85; color: var(--text); }
+.ai-careers { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ai-career-chip {
+  padding: 5px 13px; border-radius: 100px; font-size: 12px; font-weight: 500;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+}
+
+.loading-pulse {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--muted); font-style: italic;
+}
+.pulse-dots span {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted); margin: 0 2px;
+  animation: pulse-seq 1.2s ease-in-out infinite;
+}
+.pulse-dots span:nth-child(2) { animation-delay: 0.2s; }
+.pulse-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse-seq { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+/* Countdown overlay */
+.countdown-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(12,14,20,0.92); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.countdown-overlay.visible { opacity: 1; pointer-events: all; }
+.countdown-number {
+  font-family: 'Lora', serif; font-size: 96px; font-weight: 600;
+  line-height: 1; animation: count-pop 0.8s ease-out;
+}
+@keyframes count-pop { 0%{transform:scale(1.6);opacity:0} 100%{transform:scale(1);opacity:1} }
+.countdown-label { font-size: 16px; color: var(--muted); }
+
+/* ═══════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════ */
+.mt-4 { margin-top: 16px; }
+.text-center { text-align: center; }
+.gap-12 { gap: 12px; }
+
+@media (max-width: 400px) {
+  .g4-controls { flex-direction: column; }
+  .g3-item { width: 44px; height: 44px; font-size: 16px; }
+  .g2-pad { max-width: 240px; }
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-layer">
+  <div class="bg-orb orb1" id="orb1"></div>
+  <div class="bg-orb orb2" id="orb2"></div>
+</div>
+
+<!-- FEEDBACK FLASH -->
+<div class="feedback-flash" id="feedbackFlash">
+  <span class="feedback-icon" id="feedbackIcon"></span>
+</div>
+
+<!-- EXPLOSION OVERLAY -->
+<div class="explode-overlay" id="explodeOverlay">
+  <div class="explode-ring"></div>
+</div>
+
+<!-- COUNTDOWN OVERLAY -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-number" id="countdownNum">3</div>
+  <div class="countdown-label" id="countdownLabel">Prepárate...</div>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: INTRO
+════════════════════════════ -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-badge"><div class="dot"></div>Oriéntame · Juegos de Aptitud</div>
+  <h1 class="intro-title">Juega y <em>descubre</em><br>cómo piensas</h1>
+  <p class="intro-sub">4 mini-juegos de 90 segundos cada uno. No hay respuestas buenas ni malas — solo patrones que revelan cómo funciona tu mente. Sin trampa posible.</p>
+
+  <div class="games-preview">
+    <div class="preview-card c1">
+      <div class="icon">🧩</div>
+      <h4>El Tablero</h4>
+      <p>Memoria visual y espacial</p>
+    </div>
+    <div class="preview-card c2">
+      <div class="icon">🎵</div>
+      <h4>Secuencia</h4>
+      <p>Ritmo y patrón musical</p>
+    </div>
+    <div class="preview-card c3">
+      <div class="icon">🔢</div>
+      <h4>¿Cuál sigue?</h4>
+      <p>Lógica y razonamiento</p>
+    </div>
+    <div class="preview-card c4">
+      <div class="icon">🎈</div>
+      <h4>El Globo</h4>
+      <p>Decisiones y riesgo</p>
+    </div>
+  </div>
+
+  <input type="text" class="name-input" id="playerName" placeholder="Tu nombre..." maxlength="30" autocomplete="off">
+  <button class="btn btn-primary btn-lg" onclick="startGames()">Empezar juegos →</button>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: GAME 1 — EL TABLERO
+════════════════════════════ -->
+<div class="screen" id="screen-g1">
+  <div class="game-frame">
+    <div class="game-header">
+      <div class="game-dots" id="g1-dots"></div>
+      <div class="game-badge" style="background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.25);color:var(--g1);">🧩 Juego 1 de 4 · El Tablero</div>
+      <h2 class="game-title">Memoriza el patrón</h2>
+      <p class="game-subtitle" id="g1-subtitle">Observa qué celdas se iluminan, luego reprodúcelo</p>
+    </div>
+
+    <div class="timer-wrap" id="g1-timer-wrap" style="display:none;">
+      <div class="timer-bar"><div class="timer-fill" id="g1-timer" style="background:var(--g1);"></div></div>
+      <div class="timer-label" id="g1-timer-label">— s</div>
+    </div>
+
+    <div class="score-chip">⭐ <span class="score-num" id="g1-score">0</span> pts</div>
+
+    <div class="g1-grid" id="g1-grid">
+      <!-- 9 cells generated by JS -->
+    </div>
+
+    <p class="g1-instruction" id="g1-instruction"><strong>Observa bien...</strong></p>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: BETWEEN (reusable)
+════════════════════════════ -->
+<div class="screen" id="screen-between">
+  <div class="between-icon" id="between-icon">✅</div>
+  <h2 class="between-title" id="between-title">¡Bien hecho!</h2>
+  <p class="between-sub" id="between-sub">Pasando al siguiente juego...</p>
+  <div class="between-score-display">
+    <div class="between-score-label" id="between-score-label">Puntuación</div>
+    <div class="between-score-num" id="between-score-num" style="color:var(--g1);">—</div>
+  </div>
+  <button class="btn btn-primary" id="between-next-btn" onclick="proceedFromBetween()">Siguiente juego →</button>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: GAME 2 — SECUENCIA
+════════════════════════════ -->
+<div class="screen" id="screen-g2">
+  <div class="game-frame">
+    <div class="game-header">
+      <div class="game-dots" id="g2-dots"></div>
+      <div class="game-badge" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);color:var(--g2);">🎵 Juego 2 de 4 · Secuencia</div>
+      <h2 class="game-title">Repite la secuencia</h2>
+      <p class="game-subtitle" id="g2-subtitle">Observa los colores, luego repítellos en orden</p>
+    </div>
+
+    <div class="score-chip">🎵 <span class="score-num" id="g2-score">0</span> pts</div>
+
+    <div class="g2-pad">
+      <button class="g2-btn" id="g2-b0" onclick="g2Click(0)"></button>
+      <button class="g2-btn" id="g2-b1" onclick="g2Click(1)"></button>
+      <button class="g2-btn" id="g2-b2" onclick="g2Click(2)"></button>
+      <button class="g2-btn" id="g2-b3" onclick="g2Click(3)"></button>
+    </div>
+
+    <p class="g2-instruction" id="g2-instruction"><strong>Espera...</strong></p>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: GAME 3 — LÓGICA
+════════════════════════════ -->
+<div class="screen" id="screen-g3">
+  <div class="game-frame">
+    <div class="game-header">
+      <div class="game-badges" style="display:flex;justify-content:center;gap:8px;margin-bottom:8px;">
+        <div class="game-badge" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:var(--g3);">🔢 Juego 3 de 4 · Lógica</div>
+        <div class="game-badge" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);" id="g3-count-badge">1 / 5</div>
+      </div>
+      <h2 class="game-title">¿Cuál sigue?</h2>
+    </div>
+
+    <div class="timer-wrap">
+      <div class="timer-bar"><div class="timer-fill" id="g3-timer" style="background:var(--g3);"></div></div>
+      <div class="timer-label" id="g3-timer-label">— s</div>
+    </div>
+
+    <div class="score-chip">🔢 <span class="score-num" id="g3-score">0</span> pts</div>
+
+    <div class="g3-question-box">
+      <div class="g3-question-label" id="g3-q-label">Encuentra el patrón</div>
+      <div class="g3-sequence" id="g3-sequence"></div>
+      <div class="g3-context" id="g3-context"></div>
+    </div>
+
+    <div class="g3-options" id="g3-options"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: GAME 4 — EL GLOBO
+════════════════════════════ -->
+<div class="screen" id="screen-g4">
+  <div class="game-frame">
+    <div class="game-header">
+      <div class="game-badge" style="background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.25);color:var(--g4);">🎈 Juego 4 de 4 · El Globo</div>
+      <h2 class="game-title">¿Cuánto arriesgas?</h2>
+      <p class="game-subtitle">Cada clic sube los puntos. Si explota, los pierdes. Cobra cuando quieras.</p>
+    </div>
+
+    <div class="g4-stats">
+      <div class="g4-stat"><strong id="g4-banked">0</strong>pts seguros</div>
+      <div class="g4-stat"><strong id="g4-pending">0</strong>pts en riesgo</div>
+    </div>
+
+    <div class="g4-balloon-count" id="g4-balloon-count"></div>
+
+    <div class="g4-arena">
+      <div class="g4-balloon-wrap" id="g4-balloon-wrap">
+        <div class="g4-balloon" id="g4-balloon">
+          <span class="g4-pump-val" id="g4-pump-val">0</span>
+        </div>
+        <div class="g4-string"></div>
+      </div>
+    </div>
+
+    <div class="g4-risk-meter">
+      <div class="g4-risk-bar-wrap"><div class="g4-risk-fill" id="g4-risk-fill" style="width:0%"></div></div>
+      <div class="g4-risk-labels"><span>Conservador</span><span>Riesgo máximo</span></div>
+    </div>
+
+    <div class="g4-controls">
+      <button class="btn-pump" id="g4-pump-btn" onclick="g4Pump()">🎈 Inflar (+10 pts)</button>
+      <button class="btn-bank" id="g4-bank-btn" onclick="g4Bank()">✅ Cobrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════
+     SCREEN: RESULTS
+════════════════════════════ -->
+<div class="screen" id="screen-results">
+  <div class="results-header">
+    <div class="results-emoji">🏆</div>
+    <h2 class="results-title" id="results-name">Tu perfil cognitivo</h2>
+    <p class="results-sub">Basado en tus 4 juegos · Proyecciones vocacionales 2026–2035</p>
+  </div>
+
+  <div class="radar-wrap">
+    <div class="radar-title">Mapa de aptitudes</div>
+    <canvas id="radar-canvas" width="300" height="300"></canvas>
+  </div>
+
+  <div class="apt-grid" id="apt-grid"></div>
+
+  <div class="ai-analysis-card" id="ai-card">
+    <div class="ai-analysis-label">Análisis de IA</div>
+    <div class="loading-pulse">
+      <span>Analizando perfil</span>
+      <div class="pulse-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="window.print()" style="margin-top:8px;">📄 Guardar resultado</button>
+</div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─────────────────────────────────────
+   STATE
+───────────────────────────────────── */
+const STATE = {
+  playerName: '',
+  currentGame: 0,  // 0=intro, 1=g1, 2=g2, 3=g3, 4=g4
+  scores: { g1: 0, g2: 0, g3: 0, g4: 0 },
+  rawData: {
+    g1: { correct: 0, total: 0, avgTime: 0 },
+    g2: { maxSequence: 0, correct: 0, total: 0 },
+    g3: { correct: 0, total: 5, times: [] },
+    g4: { pumpsPerBalloon: [], bankedCount: 0, poppedCount: 0 }
+  },
+  betweenNextGame: 1
+};
+
+/* ─────────────────────────────────────
+   SCREEN MANAGEMENT
+───────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById(id);
+  if (s) s.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ─────────────────────────────────────
+   BACKGROUND ORBS — change per game
+───────────────────────────────────── */
+const ORB_COLORS = {
+  'screen-g1': { c1: 'rgba(79,195,247,0.6)', c2: 'rgba(33,150,243,0.4)' },
+  'screen-g2': { c1: 'rgba(167,139,250,0.6)', c2: 'rgba(124,58,237,0.4)' },
+  'screen-g3': { c1: 'rgba(52,211,153,0.6)', c2: 'rgba(5,150,105,0.4)' },
+  'screen-g4': { c1: 'rgba(251,146,60,0.6)', c2: 'rgba(239,68,68,0.4)' },
+  'screen-results': { c1: 'rgba(245,200,66,0.4)', c2: 'rgba(160,123,196,0.4)' }
+};
+
+function setOrbs(screenId) {
+  const colors = ORB_COLORS[screenId];
+  const orb1 = document.getElementById('orb1');
+  const orb2 = document.getElementById('orb2');
+  if (!colors) { orb1.classList.remove('active'); orb2.classList.remove('active'); return; }
+  orb1.style.background = colors.c1;
+  orb2.style.background = colors.c2;
+  orb1.classList.add('active');
+  orb2.classList.add('active');
+}
+
+/* ─────────────────────────────────────
+   COUNTDOWN
+───────────────────────────────────── */
+function runCountdown(label, callback) {
+  const overlay = document.getElementById('countdownOverlay');
+  const numEl = document.getElementById('countdownNum');
+  const labEl = document.getElementById('countdownLabel');
+  labEl.textContent = label;
+  overlay.classList.add('visible');
+
+  let count = 3;
+  numEl.textContent = count;
+
+  const tick = () => {
+    if (count <= 0) {
+      overlay.classList.remove('visible');
+      setTimeout(callback, 100);
+      return;
+    }
+    numEl.style.animation = 'none';
+    void numEl.offsetWidth; // reflow
+    numEl.style.animation = 'count-pop 0.8s ease-out';
+    numEl.textContent = count;
+    count--;
+    setTimeout(tick, 900);
+  };
+  setTimeout(tick, 100);
+}
+
+/* ─────────────────────────────────────
+   FEEDBACK FLASH
+───────────────────────────────────── */
+function flashFeedback(emoji) {
+  const el = document.getElementById('feedbackFlash');
+  const icon = document.getElementById('feedbackIcon');
+  icon.textContent = emoji;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 500);
+}
+
+/* ─────────────────────────────────────
+   BETWEEN SCREEN
+───────────────────────────────────── */
+const BETWEEN_DATA = {
+  1: { icon: '🧩', title: '¡Bien jugado!', sub: 'Has completado el juego de Memoria Visual. Tu cerebro ha procesado los patrones espaciales.', label: 'Puntaje — El Tablero', color: 'var(--g1)' },
+  2: { icon: '🎵', title: '¡Ritmo perfecto!', sub: 'Completaste el juego de Secuencia. Tus respuestas revelan cómo procesas patrones musicales y rítmicos.', label: 'Puntaje — Secuencia', color: 'var(--g2)' },
+  3: { icon: '🔢', title: '¡Mente analítica!', sub: 'Terminaste el juego de Lógica. Tus tiempos de respuesta son parte del análisis.', label: 'Puntaje — ¿Cuál sigue?', color: 'var(--g3)' },
+  4: { icon: '🎈', title: '¡Último juego listo!', sub: 'Has completado el juego del Globo. Tu perfil de riesgo es un indicador valioso de tu estilo de toma de decisiones.', label: 'Puntaje — El Globo', color: 'var(--g4)' }
+};
+
+function showBetween(fromGame) {
+  const d = BETWEEN_DATA[fromGame];
+  const score = STATE.scores[`g${fromGame}`];
+  document.getElementById('between-icon').textContent = d.icon;
+  document.getElementById('between-title').textContent = d.title;
+  document.getElementById('between-sub').textContent = d.sub;
+  document.getElementById('between-score-label').textContent = d.label;
+  document.getElementById('between-score-num').textContent = score + ' pts';
+  document.getElementById('between-score-num').style.color = d.color;
+  STATE.betweenNextGame = fromGame + 1;
+  showScreen('screen-between');
+  setOrbs('screen-between');
+}
+
+function proceedFromBetween() {
+  const next = STATE.betweenNextGame;
+  if (next === 2) startGame2();
+  else if (next === 3) startGame3();
+  else if (next === 4) startGame4();
+  else showResults();
+}
+
+/* ─────────────────────────────────────
+   START GAMES
+───────────────────────────────────── */
+function startGames() {
+  const name = document.getElementById('playerName').value.trim() || 'Jugador';
+  STATE.playerName = name;
+  runCountdown('¡Empezamos con el Tablero!', () => {
+    showScreen('screen-g1');
+    setOrbs('screen-g1');
+    startGame1();
+  });
+}
+
+/* ═══════════════════════════════════════
+   GAME 1 — EL TABLERO (Memory Grid)
+═══════════════════════════════════════ */
+const G1 = {
+  round: 0,
+  totalRounds: 4,
+  pattern: [],
+  selected: [],
+  phase: 'show', // 'show' | 'recall' | 'between'
+  baseCount: 3,  // cells to light per round
+  scorePerRound: 0,
+  startTime: 0,
+  timer: null,
+  totalCorrect: 0,
+  totalShown: 0,
+  times: []
+};
+
+function g1BuildGrid() {
+  const grid = document.getElementById('g1-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'g1-cell';
+    cell.dataset.idx = i;
+    cell.addEventListener('click', () => g1CellClick(i));
+    grid.appendChild(cell);
+  }
+}
+
+function g1GetCells() { return document.querySelectorAll('.g1-cell'); }
+
+function g1SetInstruction(html) {
+  document.getElementById('g1-instruction').innerHTML = html;
+}
+
+function g1UpdateScore() {
+  document.getElementById('g1-score').textContent = STATE.scores.g1;
+}
+
+function g1BuildDots() {
+  const container = document.getElementById('g1-dots');
+  container.innerHTML = '';
+  for (let i = 0; i < G1.totalRounds; i++) {
+    const d = document.createElement('div');
+    d.className = 'game-dot' + (i < G1.round ? ' done' : i === G1.round ? ' active' : '');
+    d.style.color = 'var(--g1)';
+    container.appendChild(d);
+  }
+}
+
+function startGame1() {
+  G1.round = 0;
+  G1.totalCorrect = 0;
+  G1.totalShown = 0;
+  G1.times = [];
+  STATE.scores.g1 = 0;
+  g1BuildGrid();
+  g1BuildDots();
+  g1UpdateScore();
+  document.getElementById('g1-timer-wrap').style.display = 'none';
+  setTimeout(() => g1NextRound(), 400);
+}
+
+function g1NextRound() {
+  if (G1.round >= G1.totalRounds) {
+    g1Finish();
+    return;
+  }
+  g1BuildDots();
+  const cellCount = G1.baseCount + Math.floor(G1.round * 0.75); // 3,3,4,4
+  const effectiveCells = Math.min(cellCount, 7); // max 7 of 9
+
+  // Generate random pattern
+  const indices = [0,1,2,3,4,5,6,7,8];
+  // Fisher-Yates shuffle
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  G1.pattern = indices.slice(0, effectiveCells).sort((a,b)=>a-b);
+  G1.selected = [];
+  G1.phase = 'show';
+
+  document.getElementById('g1-timer-wrap').style.display = 'none';
+  document.getElementById('g1-subtitle').textContent = `Ronda ${G1.round + 1} de ${G1.totalRounds} — ${effectiveCells} celdas`;
+  g1SetInstruction(`<strong>¡Memoriza el patrón!</strong> Tienes 2 segundos...`);
+
+  const cells = g1GetCells();
+  cells.forEach(c => c.classList.remove('lit','correct','wrong','selected','clickable'));
+
+  // Show pattern
+  G1.pattern.forEach(idx => cells[idx].classList.add('lit'));
+  G1.totalShown += effectiveCells;
+
+  // Hide after 2s, then allow input
+  setTimeout(() => {
+    cells.forEach(c => c.classList.remove('lit'));
+    G1.phase = 'recall';
+    G1.startTime = performance.now();
+    g1SetInstruction(`<strong>Ahora reprodúcelo.</strong> Toca las ${effectiveCells} celdas que se iluminaron.`);
+    cells.forEach(c => c.classList.add('clickable'));
+
+    // Start recall timer (10 seconds)
+    let timeLeft = 10;
+    document.getElementById('g1-timer-wrap').style.display = 'block';
+    document.getElementById('g1-timer').style.width = '100%';
+
+    clearInterval(G1.timer);
+    G1.timer = setInterval(() => {
+      timeLeft -= 0.1;
+      const pct = Math.max(0, (timeLeft / 10) * 100);
+      document.getElementById('g1-timer').style.width = pct + '%';
+      document.getElementById('g1-timer-label').textContent = Math.ceil(timeLeft) + 's';
+      if (timeLeft <= 0) {
+        clearInterval(G1.timer);
+        if (G1.phase === 'recall') g1EvaluateRound();
+      }
+    }, 100);
+  }, 2000);
+}
+
+function g1CellClick(idx) {
+  if (G1.phase !== 'recall') return;
+  if (G1.selected.includes(idx)) return; // no deselect
+
+  const cells = g1GetCells();
+  G1.selected.push(idx);
+  cells[idx].classList.add('selected');
+
+  // Check if we have enough selections
+  if (G1.selected.length >= G1.pattern.length) {
+    clearInterval(G1.timer);
+    setTimeout(() => g1EvaluateRound(), 150);
+  }
+}
+
+function g1EvaluateRound() {
+  G1.phase = 'between';
+  const cells = g1GetCells();
+  cells.forEach(c => c.classList.remove('clickable'));
+  document.getElementById('g1-timer-wrap').style.display = 'none';
+
+  const elapsed = (performance.now() - G1.startTime) / 1000;
+  G1.times.push(elapsed);
+
+  // Count correct
+  let correct = 0;
+  G1.selected.forEach(idx => {
+    if (G1.pattern.includes(idx)) { correct++; cells[idx].classList.add('correct'); }
+    else { cells[idx].classList.add('wrong'); }
+  });
+  // Show missed ones
+  G1.pattern.forEach(idx => {
+    if (!G1.selected.includes(idx)) cells[idx].classList.add('wrong');
+  });
+
+  G1.totalCorrect += correct;
+  const roundScore = Math.round((correct / G1.pattern.length) * 50 * (1 + Math.max(0, (5 - elapsed) / 5)));
+  STATE.scores.g1 += roundScore;
+  g1UpdateScore();
+
+  if (correct === G1.pattern.length) flashFeedback('⭐');
+  else if (correct >= G1.pattern.length * 0.6) flashFeedback('👍');
+
+  g1SetInstruction(`${correct === G1.pattern.length ? '¡Perfecto!' : correct + ' de ' + G1.pattern.length + ' correctas'}`);
+
+  G1.round++;
+  setTimeout(() => {
+    cells.forEach(c => c.classList.remove('lit','correct','wrong','selected'));
+    if (G1.round < G1.totalRounds) {
+      g1SetInstruction('Siguiente ronda en un momento...');
+      setTimeout(() => g1NextRound(), 600);
+    } else {
+      g1Finish();
+    }
+  }, 1500);
+}
+
+function g1Finish() {
+  clearInterval(G1.timer);
+  const accuracy = G1.totalShown > 0 ? G1.totalCorrect / G1.totalShown : 0;
+  const avgTime = G1.times.length > 0 ? G1.times.reduce((a,b)=>a+b,0) / G1.times.length : 10;
+  STATE.rawData.g1 = { correct: G1.totalCorrect, total: G1.totalShown, avgTime };
+  STATE.scores.g1 = Math.min(100, STATE.scores.g1);
+  setTimeout(() => showBetween(1), 400);
+}
+
+/* ═══════════════════════════════════════
+   GAME 2 — SECUENCIA (Simon-style)
+═══════════════════════════════════════ */
+const G2 = {
+  sequence: [],
+  playerInput: [],
+  round: 0,
+  totalRounds: 4,
+  phase: 'show', // 'show' | 'input' | 'result'
+  maxCorrect: 0,
+  errors: 0,
+  timer: null
+};
+
+const G2_COLORS = ['var(--seq-r)', 'var(--seq-g)', 'var(--seq-b)', 'var(--seq-y)'];
+
+function g2UpdateScore() {
+  document.getElementById('g2-score').textContent = STATE.scores.g2;
+}
+
+function g2SetInstruction(html) {
+  document.getElementById('g2-instruction').innerHTML = html;
+}
+
+function g2BuildDots() {
+  const container = document.getElementById('g2-dots');
+  container.innerHTML = '';
+  for (let i = 0; i < G2.totalRounds; i++) {
+    const d = document.createElement('div');
+    d.className = 'game-dot' + (i < G2.round ? ' done' : i === G2.round ? ' active' : '');
+    d.style.color = 'var(--g2)';
+    container.appendChild(d);
+  }
+}
+
+function startGame2() {
+  showScreen('screen-g2');
+  setOrbs('screen-g2');
+  G2.round = 0;
+  G2.sequence = [];
+  G2.maxCorrect = 0;
+  G2.errors = 0;
+  STATE.scores.g2 = 0;
+  g2BuildDots();
+  g2UpdateScore();
+
+  // Disable buttons initially
+  for (let i = 0; i < 4; i++) document.getElementById(`g2-b${i}`).classList.add('idle');
+
+  setTimeout(() => g2AddAndShow(), 800);
+}
+
+function g2AddAndShow() {
+  // Add one random button to sequence
+  G2.sequence.push(Math.floor(Math.random() * 4));
+  G2.playerInput = [];
+  G2.phase = 'show';
+  g2BuildDots();
+
+  const seqLen = G2.sequence.length;
+  const roundNum = Math.min(seqLen, G2.totalRounds);
+  document.getElementById('g2-subtitle').textContent = `Ronda ${roundNum} de ${G2.totalRounds} — secuencia de ${seqLen}`;
+  g2SetInstruction(`<strong>Observa la secuencia...</strong>`);
+
+  // Disable clicks
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById(`g2-b${i}`);
+    btn.classList.remove('clickable', 'clicked');
+    btn.classList.add('idle');
+  }
+
+  // Play sequence with delays
+  let delay = 600;
+  G2.sequence.forEach((btnIdx, i) => {
+    setTimeout(() => g2FlashButton(btnIdx), delay + i * 700);
+  });
+
+  // After sequence, enable input
+  setTimeout(() => {
+    G2.phase = 'input';
+    g2SetInstruction(`<strong>Tu turno.</strong> Repite la secuencia de ${seqLen} colores.`);
+    for (let i = 0; i < 4; i++) {
+      const btn = document.getElementById(`g2-b${i}`);
+      btn.classList.remove('idle');
+      btn.classList.add('clickable');
+    }
+  }, delay + G2.sequence.length * 700 + 400);
+}
+
+function g2FlashButton(idx) {
+  const btn = document.getElementById(`g2-b${idx}`);
+  btn.classList.add('active-anim');
+  setTimeout(() => btn.classList.remove('active-anim'), 400);
+}
+
+function g2Click(idx) {
+  if (G2.phase !== 'input') return;
+
+  const btn = document.getElementById(`g2-b${idx}`);
+  btn.classList.add('clicked');
+  setTimeout(() => btn.classList.remove('clicked'), 200);
+
+  G2.playerInput.push(idx);
+  const pos = G2.playerInput.length - 1;
+
+  if (G2.playerInput[pos] !== G2.sequence[pos]) {
+    // Wrong
+    G2.errors++;
+    G2.phase = 'result';
+    flashFeedback('❌');
+    g2SetInstruction(`<strong>¡Ops!</strong> Fallo en posición ${pos + 1}. La correcta era el botón ${G2.sequence[pos] + 1}.`);
+    for (let i = 0; i < 4; i++) document.getElementById(`g2-b${i}`).classList.remove('clickable');
+
+    G2.round++;
+    if (G2.round < G2.totalRounds) {
+      setTimeout(() => g2AddAndShow(), 1500);
+    } else {
+      g2Finish();
+    }
+    return;
+  }
+
+  // Correct so far
+  if (G2.playerInput.length === G2.sequence.length) {
+    // Full sequence correct
+    G2.maxCorrect = Math.max(G2.maxCorrect, G2.sequence.length);
+    const roundScore = G2.sequence.length * 15 - G2.errors * 5;
+    STATE.scores.g2 += Math.max(0, roundScore);
+    g2UpdateScore();
+    flashFeedback('✅');
+    g2SetInstruction(`<strong>¡Correcto!</strong> Secuencia de ${G2.sequence.length} completada.`);
+
+    G2.phase = 'result';
+    for (let i = 0; i < 4; i++) document.getElementById(`g2-b${i}`).classList.remove('clickable');
+
+    G2.round++;
+    if (G2.round < G2.totalRounds) {
+      setTimeout(() => g2AddAndShow(), 1200);
+    } else {
+      g2Finish();
+    }
+  }
+}
+
+function g2Finish() {
+  STATE.rawData.g2 = { maxSequence: G2.maxCorrect, correct: G2.maxCorrect, total: G2.sequence.length };
+  STATE.scores.g2 = Math.min(100, STATE.scores.g2);
+  setTimeout(() => showBetween(2), 600);
+}
+
+/* ═══════════════════════════════════════
+   GAME 3 — ¿CUÁL SIGUE? (Logic)
+═══════════════════════════════════════ */
+const G3_QUESTIONS = [
+  {
+    type: 'numeric',
+    sequence: [2, 4, 8, 16, '?'],
+    answer: 32,
+    options: [24, 32, 18, 20],
+    context: 'Serie de números',
+    explanation: 'Se multiplica por 2 cada vez'
+  },
+  {
+    type: 'numeric',
+    sequence: [3, 6, 10, 15, '?'],
+    answer: 21,
+    options: [19, 20, 21, 18],
+    context: 'Serie creciente',
+    explanation: 'Se suma +3, +4, +5, +6...'
+  },
+  {
+    type: 'emoji',
+    sequence: ['🔴', '🔵', '🔴', '🔵', '?'],
+    answer: '🔴',
+    options: ['🟡', '🔴', '🟢', '🔵'],
+    context: 'Patrón de colores',
+    explanation: 'Alternancia rojo-azul'
+  },
+  {
+    type: 'numeric',
+    sequence: [1, 4, 9, 16, '?'],
+    answer: 25,
+    options: [22, 25, 20, 24],
+    context: 'Serie especial',
+    explanation: 'Son los cuadrados perfectos: 1², 2², 3², 4², 5²'
+  },
+  {
+    type: 'numeric',
+    sequence: [100, 50, 25, '?'],
+    answer: 12.5,
+    options: [10, 15, 12.5, 20],
+    context: 'Serie decreciente',
+    explanation: 'Cada número es la mitad del anterior'
+  }
+];
+
+const G3 = {
+  current: 0,
+  correct: 0,
+  times: [],
+  startTime: 0,
+  timer: null,
+  answered: false
+};
+
+function g3RenderQuestion(q, idx) {
+  document.getElementById('g3-count-badge').textContent = `${idx + 1} / ${G3_QUESTIONS.length}`;
+  document.getElementById('g3-q-label').textContent = q.context;
+  document.getElementById('g3-context').textContent = '';
+
+  // Sequence
+  const seqEl = document.getElementById('g3-sequence');
+  seqEl.innerHTML = '';
+  q.sequence.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'g3-item' + (item === '?' ? ' unknown' : '');
+    div.textContent = item;
+    seqEl.appendChild(div);
+    if (i < q.sequence.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.style.cssText = 'color:var(--muted);opacity:0.5;font-size:14px;';
+      arrow.textContent = '→';
+      seqEl.appendChild(arrow);
+    }
+  });
+
+  // Options (shuffle display)
+  const optEl = document.getElementById('g3-options');
+  optEl.innerHTML = '';
+  const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'g3-option';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => g3Answer(opt, q, btn));
+    optEl.appendChild(btn);
+  });
+}
+
+function g3StartTimer() {
+  let timeLeft = 15;
+  G3.startTime = performance.now();
+  document.getElementById('g3-timer').style.width = '100%';
+  clearInterval(G3.timer);
+  G3.timer = setInterval(() => {
+    timeLeft -= 0.1;
+    const pct = Math.max(0, (timeLeft / 15) * 100);
+    document.getElementById('g3-timer').style.width = pct + '%';
+    document.getElementById('g3-timer-label').textContent = Math.ceil(timeLeft) + 's';
+    if (timeLeft <= 0) {
+      clearInterval(G3.timer);
+      if (!G3.answered) g3AutoFail();
+    }
+  }, 100);
+}
+
+function startGame3() {
+  showScreen('screen-g3');
+  setOrbs('screen-g3');
+  G3.current = 0;
+  G3.correct = 0;
+  G3.times = [];
+  G3.answered = false;
+  STATE.scores.g3 = 0;
+  g3RenderQuestion(G3_QUESTIONS[0], 0);
+  g3StartTimer();
+}
+
+function g3Answer(value, q, btn) {
+  if (G3.answered) return;
+  G3.answered = true;
+  clearInterval(G3.timer);
+  document.getElementById('g3-timer').style.width = '0%';
+
+  const elapsed = (performance.now() - G3.startTime) / 1000;
+  G3.times.push(elapsed);
+
+  const isCorrect = String(value) === String(q.answer);
+  document.querySelectorAll('.g3-option').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    G3.correct++;
+    const timeBonus = Math.max(0, Math.round((15 - elapsed) * 1.5));
+    const pts = 15 + timeBonus;
+    STATE.scores.g3 += pts;
+    document.getElementById('g3-score').textContent = STATE.scores.g3;
+    flashFeedback('⭐');
+    document.getElementById('g3-context').textContent = '✓ ' + q.explanation;
+  } else {
+    btn.classList.add('wrong');
+    // Highlight correct answer
+    document.querySelectorAll('.g3-option').forEach(b => {
+      if (String(b.textContent) === String(q.answer)) b.classList.add('correct');
+    });
+    flashFeedback('❌');
+    document.getElementById('g3-context').textContent = 'Correcto: ' + q.explanation;
+  }
+
+  G3.current++;
+  if (G3.current < G3_QUESTIONS.length) {
+    setTimeout(() => {
+      G3.answered = false;
+      g3RenderQuestion(G3_QUESTIONS[G3.current], G3.current);
+      g3StartTimer();
+    }, 1800);
+  } else {
+    setTimeout(() => g3Finish(), 1800);
+  }
+}
+
+function g3AutoFail() {
+  G3.answered = true;
+  G3.times.push(15);
+  document.querySelectorAll('.g3-option').forEach(b => {
+    b.classList.add('disabled');
+    if (String(b.textContent) === String(G3_QUESTIONS[G3.current].answer)) b.classList.add('correct');
+  });
+  G3.current++;
+  if (G3.current < G3_QUESTIONS.length) {
+    setTimeout(() => {
+      G3.answered = false;
+      g3RenderQuestion(G3_QUESTIONS[G3.current], G3.current);
+      g3StartTimer();
+    }, 1200);
+  } else {
+    setTimeout(() => g3Finish(), 1200);
+  }
+}
+
+function g3Finish() {
+  clearInterval(G3.timer);
+  const avgTime = G3.times.length > 0 ? G3.times.reduce((a,b)=>a+b,0) / G3.times.length : 15;
+  STATE.rawData.g3 = { correct: G3.correct, total: G3_QUESTIONS.length, times: G3.times, avgTime };
+  STATE.scores.g3 = Math.min(100, STATE.scores.g3);
+  setTimeout(() => showBetween(3), 400);
+}
+
+/* ═══════════════════════════════════════
+   GAME 4 — EL GLOBO (Risk)
+═══════════════════════════════════════ */
+const G4 = {
+  totalBalloons: 5,
+  currentBalloon: 0,
+  pumps: 0,              // pumps on current balloon
+  maxPumpsBeforePop: 0,  // randomized per balloon
+  bankedScore: 0,
+  pendingScore: 0,
+  pumpsPerBalloon: [],
+  outcomes: [],          // 'banked' | 'popped'
+  active: false
+};
+
+function g4GetPopThreshold() {
+  // Random pop threshold: between 4 and 12 pumps
+  return 4 + Math.floor(Math.random() * 9);
+}
+
+function g4RenderBalloonCount() {
+  const el = document.getElementById('g4-balloon-count');
+  el.innerHTML = '';
+  for (let i = 0; i < G4.totalBalloons; i++) {
+    const d = document.createElement('div');
+    d.className = 'g4-mini-balloon';
+    if (i < G4.currentBalloon) {
+      d.classList.add(G4.outcomes[i] === 'banked' ? 'banked' : 'popped');
+    } else if (i === G4.currentBalloon) {
+      d.classList.add('remaining');
+    } else {
+      d.classList.add('remaining');
+    }
+    el.appendChild(d);
+  }
+}
+
+function g4UpdateDisplay() {
+  document.getElementById('g4-banked').textContent = G4.bankedScore;
+  document.getElementById('g4-pending').textContent = G4.pendingScore;
+  document.getElementById('g4-pump-val').textContent = G4.pendingScore;
+
+  // Balloon size: starts 80px, grows to 200px based on pumps
+  const minSize = 80, maxSize = 200;
+  const sizeRatio = G4.pumps / 12;
+  const size = Math.round(minSize + (maxSize - minSize) * Math.min(1, sizeRatio));
+  const balloon = document.getElementById('g4-balloon');
+  balloon.style.width = size + 'px';
+  balloon.style.height = size + 'px';
+
+  // Color: orange → red as risk increases
+  const rRatio = Math.min(1, G4.pumps / 10);
+  const r = Math.round(251 + (239 - 251) * rRatio);
+  const g = Math.round(146 + (68 - 146) * rRatio);
+  const b = Math.round(60 + (68 - 60) * rRatio);
+  balloon.style.background = `rgb(${r},${g},${b})`;
+  balloon.style.boxShadow = `0 0 ${20 + G4.pumps * 3}px rgba(${r},${g},${b},0.5)`;
+
+  // Risk meter
+  const riskPct = Math.min(100, (G4.pumps / 12) * 100);
+  document.getElementById('g4-risk-fill').style.width = riskPct + '%';
+}
+
+function startGame4() {
+  showScreen('screen-g4');
+  setOrbs('screen-g4');
+  G4.currentBalloon = 0;
+  G4.pumps = 0;
+  G4.bankedScore = 0;
+  G4.pendingScore = 0;
+  G4.pumpsPerBalloon = [];
+  G4.outcomes = [];
+  STATE.scores.g4 = 0;
+
+  g4NewBalloon();
+}
+
+function g4NewBalloon() {
+  G4.pumps = 0;
+  G4.pendingScore = 0;
+  G4.maxPumpsBeforePop = g4GetPopThreshold();
+  G4.active = true;
+
+  document.getElementById('g4-pump-btn').disabled = false;
+  document.getElementById('g4-bank-btn').disabled = false;
+
+  g4UpdateDisplay();
+  g4RenderBalloonCount();
+}
+
+function g4Pump() {
+  if (!G4.active) return;
+  G4.pumps++;
+  G4.pendingScore += 10;
+  g4UpdateDisplay();
+
+  if (G4.pumps >= G4.maxPumpsBeforePop) {
+    g4Pop();
+  }
+}
+
+function g4Pop() {
+  G4.active = false;
+  document.getElementById('g4-pump-btn').disabled = true;
+  document.getElementById('g4-bank-btn').disabled = true;
+
+  G4.pumpsPerBalloon.push(G4.pumps);
+  G4.outcomes.push('popped');
+
+  // Explosion animation
+  const overlay = document.getElementById('explodeOverlay');
+  overlay.classList.add('active');
+  setTimeout(() => overlay.classList.remove('active'), 600);
+
+  // Balloon pops visually
+  const balloon = document.getElementById('g4-balloon');
+  balloon.style.transform = 'scale(1.3)';
+  balloon.style.opacity = '0';
+  setTimeout(() => {
+    balloon.style.transform = 'scale(1)';
+    balloon.style.opacity = '1';
+    balloon.style.width = '80px';
+    balloon.style.height = '80px';
+    balloon.style.background = 'var(--surface2)';
+    balloon.style.boxShadow = 'none';
+    document.getElementById('g4-pump-val').textContent = '0';
+  }, 400);
+
+  G4.pendingScore = 0;
+  g4UpdateDisplay();
+  g4RenderBalloonCount();
+
+  G4.currentBalloon++;
+  if (G4.currentBalloon < G4.totalBalloons) {
+    setTimeout(() => g4NewBalloon(), 1200);
+  } else {
+    setTimeout(() => g4Finish(), 1200);
+  }
+}
+
+function g4Bank() {
+  if (!G4.active || G4.pendingScore === 0) return;
+  G4.active = false;
+  document.getElementById('g4-pump-btn').disabled = true;
+  document.getElementById('g4-bank-btn').disabled = true;
+
+  G4.pumpsPerBalloon.push(G4.pumps);
+  G4.outcomes.push('banked');
+  G4.bankedScore += G4.pendingScore;
+  STATE.scores.g4 += G4.pendingScore;
+  G4.pendingScore = 0;
+  g4UpdateDisplay();
+  g4RenderBalloonCount();
+  flashFeedback('✅');
+
+  G4.currentBalloon++;
+  if (G4.currentBalloon < G4.totalBalloons) {
+    setTimeout(() => g4NewBalloon(), 800);
+  } else {
+    setTimeout(() => g4Finish(), 800);
+  }
+}
+
+function g4Finish() {
+  const avgPumps = G4.pumpsPerBalloon.length > 0
+    ? G4.pumpsPerBalloon.reduce((a,b)=>a+b,0) / G4.pumpsPerBalloon.length : 0;
+  const bankedCount = G4.outcomes.filter(o=>o==='banked').length;
+  const poppedCount = G4.outcomes.filter(o=>o==='popped').length;
+  STATE.rawData.g4 = { pumpsPerBalloon: G4.pumpsPerBalloon, bankedCount, poppedCount, avgPumps };
+  STATE.scores.g4 = G4.bankedScore;
+  setTimeout(() => showBetween(4), 400);
+}
+
+/* ═══════════════════════════════════════
+   RESULTS & ANALYSIS
+═══════════════════════════════════════ */
+function showResults() {
+  showScreen('screen-results');
+  setOrbs('screen-results');
+  document.getElementById('results-name').textContent = STATE.playerName + ' — Tu perfil cognitivo';
+
+  // Compute normalized scores (0–100)
+  const aptScores = computeAptScores();
+
+  drawRadar(aptScores);
+  renderAptBars(aptScores);
+  fetchAIAnalysis(aptScores);
+}
+
+function computeAptScores() {
+  const d = STATE.rawData;
+  const s = STATE.scores;
+
+  // Spatial-Visual: based on G1 accuracy and speed
+  const g1Acc = d.g1.total > 0 ? d.g1.correct / d.g1.total : 0;
+  const g1Speed = Math.max(0, 1 - (d.g1.avgTime / 10));
+  const spatial = Math.round((g1Acc * 0.7 + g1Speed * 0.3) * 100);
+
+  // Musical-Rhythmic: based on G2 max sequence
+  const maxSeq = d.g2.maxSequence;
+  const musical = Math.min(100, Math.round((maxSeq / 6) * 100));
+
+  // Analytical-Logical: based on G3 accuracy and speed
+  const g3Acc = d.g3.total > 0 ? d.g3.correct / d.g3.total : 0;
+  const g3Speed = d.g3.avgTime > 0 ? Math.max(0, 1 - (d.g3.avgTime / 15)) : 0;
+  const logical = Math.round((g3Acc * 0.65 + g3Speed * 0.35) * 100);
+
+  // Risk profile: higher pumps = higher risk tolerance (this is a trait, not a score)
+  // We convert to a vocational indicator
+  const avgPumps = d.g4.avgPumps || 0;
+  const riskTolerance = Math.min(100, Math.round((avgPumps / 10) * 100));
+
+  // Execution (from G4 banked ratio — completion & follow-through)
+  const bankedRatio = (d.g4.bankedCount || 0) / Math.max(1, (d.g4.bankedCount || 0) + (d.g4.poppedCount || 0));
+  const execution = Math.round(bankedRatio * 100);
+
+  return {
+    spatial: Math.max(10, spatial),
+    musical: Math.max(10, musical),
+    logical: Math.max(10, logical),
+    riskTolerance: Math.max(10, riskTolerance),
+    execution: Math.max(10, execution)
+  };
+}
+
+function drawRadar(scores) {
+  const canvas = document.getElementById('radar-canvas');
+  const ctx = canvas.getContext('2d');
+  const cx = 150, cy = 150, r = 110;
+  const labels = ['Espacial-Visual', 'Musical-Rítmico', 'Lógico-Analítico', 'Toma de Riesgo', 'Ejecución'];
+  const values = [scores.spatial, scores.musical, scores.logical, scores.riskTolerance, scores.execution];
+  const colors = ['var(--g1)', 'var(--g2)', 'var(--g3)', 'var(--g4)', '#a78bfa'];
+  const n = labels.length;
+
+  ctx.clearRect(0, 0, 300, 300);
+
+  // Grid circles
+  for (let i = 1; i <= 5; i++) {
+    ctx.beginPath();
+    for (let j = 0; j < n; j++) {
+      const angle = (j / n) * Math.PI * 2 - Math.PI / 2;
+      const ri = (r * i) / 5;
+      const x = cx + Math.cos(angle) * ri;
+      const y = cy + Math.sin(angle) * ri;
+      j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Axis lines
+  for (let j = 0; j < n; j++) {
+    const angle = (j / n) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Data polygon
+  ctx.beginPath();
+  for (let j = 0; j < n; j++) {
+    const angle = (j / n) * Math.PI * 2 - Math.PI / 2;
+    const ri = (r * values[j]) / 100;
+    const x = cx + Math.cos(angle) * ri;
+    const y = cy + Math.sin(angle) * ri;
+    j === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(79,195,247,0.15)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(79,195,247,0.7)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots on vertices
+  for (let j = 0; j < n; j++) {
+    const angle = (j / n) * Math.PI * 2 - Math.PI / 2;
+    const ri = (r * values[j]) / 100;
+    const x = cx + Math.cos(angle) * ri;
+    const y = cy + Math.sin(angle) * ri;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'var(--g1)';
+    ctx.fill();
+  }
+
+  // Labels
+  ctx.font = '10px Sora, sans-serif';
+  ctx.fillStyle = 'rgba(238,234,244,0.6)';
+  ctx.textAlign = 'center';
+  for (let j = 0; j < n; j++) {
+    const angle = (j / n) * Math.PI * 2 - Math.PI / 2;
+    const lx = cx + Math.cos(angle) * (r + 24);
+    const ly = cy + Math.sin(angle) * (r + 20);
+    ctx.fillText(labels[j], lx, ly);
+  }
+}
+
+function renderAptBars(scores) {
+  const aptDefs = [
+    { key: 'spatial', icon: '🧩', name: 'Inteligencia Espacial-Visual', color: 'var(--g1)' },
+    { key: 'musical', icon: '🎵', name: 'Aptitud Musical-Rítmica', color: 'var(--g2)' },
+    { key: 'logical', icon: '🔢', name: 'Razonamiento Lógico-Analítico', color: 'var(--g3)' },
+    { key: 'riskTolerance', icon: '🎈', name: 'Tolerancia al Riesgo / Iniciativa', color: 'var(--g4)' },
+    { key: 'execution', icon: '✅', name: 'Ejecución y Seguimiento', color: 'var(--teal,#56cfad)' }
+  ];
+
+  const grid = document.getElementById('apt-grid');
+  grid.innerHTML = '';
+
+  aptDefs.forEach(def => {
+    const score = scores[def.key];
+    const row = document.createElement('div');
+    row.className = 'apt-row';
+    row.innerHTML = `
+      <span class="apt-icon">${def.icon}</span>
+      <div class="apt-info">
+        <div class="apt-name">${def.name}</div>
+        <div class="apt-track">
+          <div class="apt-fill" data-target="${score}" style="background:${def.color};"></div>
+        </div>
+      </div>
+      <span class="apt-pct" style="color:${def.color};">${score}%</span>`;
+    grid.appendChild(row);
+  });
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.apt-fill[data-target]').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+  }, 300);
+}
+
+async function fetchAIAnalysis(scores) {
+  const name = STATE.playerName;
+  const d = STATE.rawData;
+
+  const prompt = `Eres un orientador vocacional experto con formación en psicología cognitiva y neurociencia. Estamos en abril de 2026.
+
+El adolescente se llama ${name} y acaba de completar 4 mini-juegos de aptitud cognitiva.
+
+RESULTADOS DE LOS JUEGOS:
+- El Tablero (Memoria Visual): ${scores.spatial}% — ${d.g1.correct} de ${d.g1.total} celdas correctas, tiempo promedio ${d.g1.avgTime.toFixed(1)}s
+- Secuencia (Aptitud Musical): ${scores.musical}% — secuencia máxima correcta: ${d.g2.maxSequence} elementos
+- ¿Cuál sigue? (Lógica): ${scores.logical}% — ${d.g3.correct} de ${d.g3.total} preguntas, tiempo promedio ${(d.g3.avgTime||15).toFixed(1)}s  
+- El Globo (Toma de decisiones): avg ${(d.g4.avgPumps||0).toFixed(1)} inflados por globo — cobró ${d.g4.bankedCount || 0}, explotaron ${d.g4.poppedCount || 0}
+
+APTITUDES CALCULADAS: Espacial ${scores.spatial}%, Musical ${scores.musical}%, Lógica ${scores.logical}%, Riesgo ${scores.riskTolerance}%, Ejecución ${scores.execution}%
+
+Genera un análisis vocacional en JSON puro (sin markdown):
+{
+  "perfil_cognitivo": "nombre corto del perfil en 3-4 palabras",
+  "resumen": "2-3 oraciones describiendo el perfil cognitivo de ${name} de forma cálida y específica. Basa el análisis en los datos reales de los juegos.",
+  "fortaleza_principal": "la aptitud más destacada y qué tipo de trabajos la valoran",
+  "carreras_sugeridas": ["carrera 1", "carrera 2", "carrera 3", "carrera 4"],
+  "mensaje": "Una oración de aliento personal para ${name} basada en su perfil específico. Que suene genuino, no genérico."
+}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 600,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const raw = data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim();
+    const result = JSON.parse(raw);
+    renderAICard(result);
+  } catch (err) {
+    // Fallback: generate offline analysis
+    renderAICardFallback(scores);
+  }
+}
+
+function renderAICard(r) {
+  const card = document.getElementById('ai-card');
+  card.innerHTML = `
+    <div class="ai-analysis-label">Análisis de IA · ${r.perfil_cognitivo}</div>
+    <p class="ai-analysis-text">${r.resumen}</p>
+    <p class="ai-analysis-text" style="margin-top:12px;font-style:italic;opacity:0.8;">🎯 ${r.fortaleza_principal}</p>
+    <p class="ai-analysis-text" style="margin-top:10px;font-size:13px;color:var(--muted);">"${r.mensaje}"</p>
+    <div class="ai-careers">
+      ${(r.carreras_sugeridas||[]).map(c => `<span class="ai-career-chip">${c}</span>`).join('')}
+    </div>`;
+}
+
+function renderAICardFallback(scores) {
+  // Determine top aptitude offline
+  const top = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0];
+  const labels = {
+    spatial: { name: 'Inteligencia Espacial-Visual', careers: ['Arquitectura', 'Diseño UX/UI', 'Ingeniería', 'Animación 3D'] },
+    musical: { name: 'Aptitud Musical-Rítmica', careers: ['Producción Musical', 'Artes Escénicas', 'Terapia Musical', 'Lenguajes y Comunicación'] },
+    logical: { name: 'Razonamiento Lógico-Analítico', careers: ['Ingeniería de Software', 'Matemáticas', 'Filosofía', 'Ciencia de Datos'] },
+    riskTolerance: { name: 'Tolerancia al Riesgo e Iniciativa', careers: ['Emprendimiento', 'Finanzas', 'Liderazgo Empresarial', 'Innovación'] },
+    execution: { name: 'Ejecución y Confiabilidad', careers: ['Gestión de Proyectos', 'Medicina', 'Derecho', 'Educación'] }
+  };
+  const info = labels[top[0]] || labels.logical;
+  const card = document.getElementById('ai-card');
+  card.innerHTML = `
+    <div class="ai-analysis-label">Análisis basado en tus resultados</div>
+    <p class="ai-analysis-text">Tu aptitud más destacada es <strong>${info.name}</strong> con un ${top[1]}%. Este perfil cognitivo es muy valorado en carreras que requieren ${top[0] === 'logical' ? 'análisis y pensamiento sistemático' : top[0] === 'spatial' ? 'visión espacial y diseño' : 'creatividad y expresión'}.</p>
+    <div class="ai-careers" style="margin-top:14px;">
+      ${info.careers.map(c => `<span class="ai-career-chip">${c}</span>`).join('')}
+    </div>`;
+}
+
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Allow Enter key in name field
+  document.getElementById('playerName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startGames();
+  });
+});
+</script>
+</body>
+</html>

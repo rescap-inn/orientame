@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame — Descubre tu camino</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════ */
+:root {
+  --bg:       #090c16;
+  --bg2:      #0d1120;
+  --surface:  #121728;
+  --surface2: #181d2e;
+  --surface3: #1f2540;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #eeeaf4;
+  --muted:    rgba(238,234,244,0.52);
+  --muted2:   rgba(238,234,244,0.28);
+
+  /* Phase palette */
+  --p1a: #7c6af7;  --p1b: #e05c8a;   /* Fase 1 — violet→rose */
+  --p2a: #34d399;  --p2b: #38bdf8;   /* Fase 2 — teal→sky */
+  --p3a: #f5c842;  --p3b: #fb923c;   /* Fase 3 — gold→orange */
+
+  /* Module accent colors */
+  --m-fase1:  #7c6af7;
+  --m-fase2:  #e05c8a;
+  --m-fase3:  #a78bfa;
+  --m-juegos: #4fc3f7;
+  --m-leo:    #7c6af7;
+  --m-mapa:   #34d399;
+  --m-gamif:  #f5c842;
+  --m-unis:   #38bdf8;
+  --m-dia:    #f09bb5;
+
+  --gold: #f5c842;
+  --teal: #34d399;
+}
+
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════
+   ANIMATED BACKGROUND
+══════════════════════════════════════ */
+.bg-canvas {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px); animation: orb-drift ease-in-out infinite;
+}
+.orb-1 { width:600px; height:600px; top:-200px; left:-150px;
+  background:rgba(124,106,247,0.07); animation-duration:18s; }
+.orb-2 { width:500px; height:500px; bottom:-150px; right:-100px;
+  background:rgba(52,211,153,0.05); animation-duration:22s; animation-delay:-8s; }
+.orb-3 { width:400px; height:400px; top:40%; left:40%;
+  background:rgba(245,200,66,0.04); animation-duration:26s; animation-delay:-14s; }
+@keyframes orb-drift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(40px,-30px) scale(1.05); }
+  66%     { transform: translate(-30px,25px) scale(0.97); }
+}
+
+/* ══════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════ */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 900px; margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+/* ══════════════════════════════════════
+   WELCOME MODAL (first time)
+══════════════════════════════════════ */
+#welcome-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(9,12,22,0.97); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+#welcome-overlay.gone { display: none; }
+
+.welcome-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 28px;
+  padding: 40px 32px;
+  max-width: 460px; width: 100%;
+  text-align: center;
+  animation: modal-rise 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modal-rise { from{transform:translateY(30px) scale(0.95);opacity:0} to{transform:none;opacity:1} }
+
+.wm-logo { font-size: 56px; margin-bottom: 16px; }
+.wm-title { font-family:'Lora',serif; font-size:28px; font-weight:700; margin-bottom:8px; }
+.wm-title span { background:linear-gradient(135deg,var(--p1a),var(--p3a));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.wm-sub { font-size:14px; color:var(--muted); line-height:1.75; margin-bottom:28px; }
+.wm-field { text-align:left; margin-bottom:16px; }
+.wm-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+  color:var(--muted); display:block; margin-bottom:6px; }
+.wm-input {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px; padding:13px 16px; color:var(--text);
+  font-family:'Sora',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s;
+}
+.wm-input:focus { border-color:rgba(124,106,247,0.5); }
+.wm-input::placeholder { color:var(--muted2); }
+.wm-btn {
+  width:100%; padding:15px; border:none; border-radius:14px;
+  background:linear-gradient(135deg,var(--p1a),var(--p1b));
+  color:white; font-family:'Sora',sans-serif; font-size:15px; font-weight:700;
+  cursor:pointer; transition:all 0.2s; letter-spacing:0.3px; margin-bottom:12px;
+}
+.wm-btn:hover { opacity:0.9; transform:translateY(-2px); box-shadow:0 10px 28px rgba(124,106,247,0.3); }
+.wm-skip { font-size:12px; color:var(--muted2); cursor:pointer; transition:color 0.2s; }
+.wm-skip:hover { color:var(--muted); }
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero {
+  padding: 44px 0 32px;
+  display: flex; align-items: flex-start;
+  gap: 20px; flex-wrap: wrap;
+}
+.hero-left { flex: 1; min-width: 0; }
+.hero-greeting {
+  font-size: 13px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.hero-name {
+  font-family: 'Lora', serif;
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 700; line-height: 1.1; margin-bottom: 10px;
+}
+.hero-name .accent {
+  background: linear-gradient(135deg, var(--p1a), var(--p3a));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-sub {
+  font-size: 14.5px; color: var(--muted); line-height: 1.75;
+  max-width: 500px;
+}
+
+/* Hero stats */
+.hero-right {
+  display: flex; flex-direction: column; gap: 10px;
+  align-items: flex-end; flex-shrink: 0;
+}
+.hero-stat-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 8px 16px;
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+}
+.hsp-icon { font-size: 16px; }
+.hsp-val { font-weight: 700; }
+
+/* Global progress bar */
+.global-progress {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 22px; margin-bottom: 32px;
+}
+.gp-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.gp-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.gp-pct { font-size: 18px; font-weight: 700; color: var(--gold); }
+.gp-track { height: 10px; background: var(--surface2); border-radius: 100px; overflow: hidden; position: relative; }
+.gp-fill {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, var(--p1a), var(--teal), var(--gold));
+  transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.gp-fill::after {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+  width: 12px; background: rgba(255,255,255,0.35); border-radius: 100px;
+  animation: shimmer 2s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,100%{opacity:0.3} 50%{opacity:1} }
+.gp-steps {
+  display: flex; gap: 6px; margin-top: 10px;
+  flex-wrap: wrap;
+}
+.gp-step {
+  flex: 1; min-width: 40px; height: 4px; border-radius: 100px;
+  background: var(--surface2); transition: background 0.5s;
+}
+.gp-step.done { background: var(--teal); }
+.gp-step.active { background: var(--p1a); animation: step-pulse 2s ease-in-out infinite; }
+@keyframes step-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* ══════════════════════════════════════
+   CONTINUE CTA
+══════════════════════════════════════ */
+.continue-card {
+  background: linear-gradient(135deg, rgba(124,106,247,0.12), rgba(52,211,153,0.06));
+  border: 1px solid rgba(124,106,247,0.28);
+  border-radius: 18px; padding: 20px 24px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px; cursor: pointer; transition: all 0.22s;
+  position: relative; overflow: hidden;
+}
+.continue-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--p1a), var(--teal));
+}
+.continue-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(124,106,247,0.15); }
+.continue-card.hidden { display: none; }
+.cc-icon { font-size: 36px; flex-shrink: 0; }
+.cc-info { flex: 1; min-width: 0; }
+.cc-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(124,106,247,0.8); margin-bottom: 4px; }
+.cc-module { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+.cc-desc { font-size: 13px; color: var(--muted); }
+.cc-arrow {
+  font-size: 22px; color: rgba(124,106,247,0.6);
+  flex-shrink: 0; transition: transform 0.2s;
+}
+.continue-card:hover .cc-arrow { transform: translateX(4px); }
+
+/* ══════════════════════════════════════
+   PHASE SECTIONS
+══════════════════════════════════════ */
+.phase-section { margin-bottom: 36px; }
+
+.phase-header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+}
+.phase-icon-wrap {
+  width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.phase-info { flex: 1; }
+.phase-name { font-family: 'Lora', serif; font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+.phase-sub  { font-size: 12px; color: var(--muted); }
+.phase-progress-chip {
+  padding: 5px 13px; border-radius: 100px; font-size: 12px; font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Phase 1 colors */
+.phase-1 .phase-icon-wrap { background: rgba(124,106,247,0.12); }
+.phase-1 .phase-progress-chip { background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.3); color: var(--p1a); }
+/* Phase 2 colors */
+.phase-2 .phase-icon-wrap { background: rgba(52,211,153,0.1); }
+.phase-2 .phase-progress-chip { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: var(--teal); }
+/* Phase 3 colors */
+.phase-3 .phase-icon-wrap { background: rgba(245,200,66,0.1); }
+.phase-3 .phase-progress-chip { background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); color: var(--gold); }
+
+/* Divider */
+.phase-divider {
+  height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
+  margin-bottom: 16px;
+}
+
+/* ══════════════════════════════════════
+   MODULE CARDS
+══════════════════════════════════════ */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.module-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+}
+.module-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); border-color: var(--border2); }
+.module-card.done  { border-color: rgba(52,211,153,0.2); }
+.module-card.locked { opacity: 0.55; cursor: default; }
+.module-card.locked:hover { transform: none; box-shadow: none; }
+
+/* Accent top stripe */
+.mc-stripe { height: 3px; }
+
+.mc-body { padding: 18px 20px 16px; }
+.mc-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+
+.mc-emoji-wrap {
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  border: 1px solid rgba(255,255,255,0.07); transition: all 0.2s;
+}
+.module-card:hover .mc-emoji-wrap { transform: scale(1.08); }
+
+.mc-meta { flex: 1; min-width: 0; }
+.mc-num { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3px; }
+.mc-title { font-family: 'Lora', serif; font-size: 15.5px; font-weight: 600; line-height: 1.2; margin-bottom: 2px; }
+.mc-sub { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+/* Status badge */
+.mc-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 100px;
+  width: fit-content;
+}
+.status-done    { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: var(--teal); }
+.status-next    { background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.3); color: var(--p1a); animation: next-glow 2.5s ease-in-out infinite; }
+.status-pending { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
+.status-locked  { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted2); }
+@keyframes next-glow { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 12px rgba(124,106,247,0.3)} }
+
+.mc-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.mc-time { font-size: 11px; color: var(--muted); }
+.mc-cta {
+  font-size: 12px; font-weight: 600; color: var(--p1a);
+  display: flex; align-items: center; gap: 4px; transition: gap 0.2s;
+}
+.module-card:hover .mc-cta { gap: 8px; }
+.mc-cta-arrow { transition: transform 0.2s; }
+.module-card:hover .mc-cta-arrow { transform: translateX(3px); }
+
+/* Done overlay check */
+.mc-done-check {
+  position: absolute; top: 10px; right: 10px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--teal); display: none;
+  align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(52,211,153,0.3);
+}
+.module-card.done .mc-done-check { display: flex; }
+
+/* ══════════════════════════════════════
+   QUICK ACTIONS
+══════════════════════════════════════ */
+.quick-actions {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px; margin-bottom: 32px;
+}
+.qa-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; display: flex; align-items: center;
+  gap: 12px; cursor: pointer; transition: all 0.2s;
+}
+.qa-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.qa-icon { font-size: 24px; flex-shrink: 0; }
+.qa-label { font-size: 13px; font-weight: 500; line-height: 1.3; }
+.qa-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   FOOTER
+══════════════════════════════════════ */
+.app-footer {
+  text-align: center; padding-top: 20px; border-top: 1px solid var(--border);
+}
+.footer-logo { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.footer-logo span { background: linear-gradient(135deg, var(--p1a), var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.footer-sub { font-size: 11px; color: var(--muted2); line-height: 1.7; }
+
+/* ══════════════════════════════════════
+   RESET BUTTON
+══════════════════════════════════════ */
+.reset-btn {
+  display: block; margin: 24px auto 0; padding: 8px 20px;
+  border-radius: 100px; border: 1px solid rgba(224,92,110,0.25);
+  background: rgba(224,92,110,0.05); color: rgba(224,92,110,0.6);
+  font-family: 'Sora', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s;
+}
+.reset-btn:hover { background: rgba(224,92,110,0.1); color: #e05c6e; }
+
+/* ══════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════ */
+@media (max-width: 500px) {
+  .hero { flex-direction: column; gap: 16px; }
+  .hero-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+  .modules-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-canvas">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+</div>
+
+<!-- ═════════════════════════════════
+     WELCOME MODAL (first visit)
+═════════════════════════════════ -->
+<div id="welcome-overlay">
+  <div class="welcome-modal">
+    <div class="wm-logo">🦉</div>
+    <h1 class="wm-title">Bienvenido/a a<br><span>Oriéntame</span></h1>
+    <p class="wm-sub">Tu guía personal para descubrir qué carrera se alinea con quién eres de verdad — con psicología, IA y datos reales del mercado 2026.</p>
+    <div class="wm-field">
+      <label class="wm-label">¿Cómo te llamas?</label>
+      <input type="text" class="wm-input" id="wm-name" placeholder="Tu nombre..." maxlength="30" autocomplete="off">
+    </div>
+    <div class="wm-field">
+      <label class="wm-label">¿Cuántos años tienes?</label>
+      <input type="number" class="wm-input" id="wm-age" placeholder="Ej: 15" min="10" max="30">
+    </div>
+    <button class="wm-btn" onclick="startApp()">Empezar mi camino →</button>
+    <div class="wm-skip" onclick="startApp(true)">Ya tengo cuenta — entrar sin registrarme</div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════
+     MAIN WRAPPER
+═════════════════════════════════ -->
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-greeting" id="hero-greeting">Hola de nuevo</div>
+      <h1 class="hero-name">
+        <span id="hero-name-display">Tu camino</span><br>
+        <span class="accent">vocacional</span>
+      </h1>
+      <p class="hero-sub" id="hero-sub">Explora los módulos a tu ritmo. Cada uno te acerca más a conocerte y entender qué quieres construir con tu vida.</p>
+    </div>
+    <div class="hero-right">
+      <div class="hero-stat-pill">
+        <span class="hsp-icon">⭐</span>
+        <span class="hsp-val" id="hp-xp">0</span>
+        <span style="color:var(--muted);font-size:12px">XP</span>
+      </div>
+      <div class="hero-stat-pill">
+        <span class="hsp-icon">🏅</span>
+        <span class="hsp-val" id="hp-badges">0</span>
+        <span style="color:var(--muted);font-size:12px">insignias</span>
+      </div>
+      <div class="hero-stat-pill">
+        <span class="hsp-icon">🔥</span>
+        <span class="hsp-val" id="hp-streak">0</span>
+        <span style="color:var(--muted);font-size:12px">días</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL PROGRESS -->
+  <div class="global-progress">
+    <div class="gp-header">
+      <span class="gp-label">Progreso total del programa</span>
+      <span class="gp-pct" id="gp-pct">0%</span>
+    </div>
+    <div class="gp-track">
+      <div class="gp-fill" id="gp-fill" style="width:0%"></div>
+    </div>
+    <div class="gp-steps" id="gp-steps"></div>
+  </div>
+
+  <!-- CONTINUE CTA -->
+  <div class="continue-card" id="continue-card" onclick="goToModule('continue')">
+    <div class="cc-icon" id="cc-icon">🎯</div>
+    <div class="cc-info">
+      <div class="cc-label">Continuar donde quedaste</div>
+      <div class="cc-module" id="cc-module">Cargando...</div>
+      <div class="cc-desc"  id="cc-desc">—</div>
+    </div>
+    <div class="cc-arrow">→</div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-actions">
+    <div class="qa-card" onclick="openModule('orientame-modulo2-leo.html')">
+      <div class="qa-icon">🦉</div>
+      <div><div class="qa-label">Hablar con Leo</div><div class="qa-sub">Tu orientador IA</div></div>
+    </div>
+    <div class="qa-card" onclick="openModule('orientame-modulo4-gamificacion.html')">
+      <div class="qa-icon">🏆</div>
+      <div><div class="qa-label">Ver mis logros</div><div class="qa-sub">XP e insignias</div></div>
+    </div>
+    <div class="qa-card" onclick="openModule('orientame-modulo5-v2.html')">
+      <div class="qa-icon">🎓</div>
+      <div><div class="qa-label">Explorar becas</div><div class="qa-sub">10 países disponibles</div></div>
+    </div>
+    <div class="qa-card" onclick="openModule('orientame-modulo6-diavida.html')">
+      <div class="qa-icon">📱</div>
+      <div><div class="qa-label">Un día en la vida</div><div class="qa-sub">12 perfiles reales</div></div>
+    </div>
+  </div>
+
+  <!-- ════════ PHASE 1 ════════ -->
+  <div class="phase-section phase-1">
+    <div class="phase-header">
+      <div class="phase-icon-wrap">🔍</div>
+      <div class="phase-info">
+        <div class="phase-name">Fase 1 — Conócete a ti mismo</div>
+        <div class="phase-sub">Test vocacional completo · Pasiones, habilidades y perspectiva familiar</div>
+      </div>
+      <div class="phase-progress-chip" id="ph1-chip">0 / 3</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="modules-grid" id="grid-phase1"></div>
+  </div>
+
+  <!-- ════════ PHASE 2 ════════ -->
+  <div class="phase-section phase-2">
+    <div class="phase-header">
+      <div class="phase-icon-wrap">⚡</div>
+      <div class="phase-info">
+        <div class="phase-name">Fase 2 — Descubre tu potencial</div>
+        <div class="phase-sub">Aptitudes cognitivas, orientación con IA y mapa de carrera visual</div>
+      </div>
+      <div class="phase-progress-chip" id="ph2-chip">0 / 3</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="modules-grid" id="grid-phase2"></div>
+  </div>
+
+  <!-- ════════ PHASE 3 ════════ -->
+  <div class="phase-section phase-3">
+    <div class="phase-header">
+      <div class="phase-icon-wrap">🌍</div>
+      <div class="phase-info">
+        <div class="phase-name">Fase 3 — Explora tu futuro</div>
+        <div class="phase-sub">Logros, universidades internacionales y el día a día de tu carrera ideal</div>
+      </div>
+      <div class="phase-progress-chip" id="ph3-chip">0 / 3</div>
+    </div>
+    <div class="phase-divider"></div>
+    <div class="modules-grid" id="grid-phase3"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="app-footer">
+    <div class="footer-logo"><span>Oriéntame</span></div>
+    <p class="footer-sub">
+      Diseñado para adolescentes latinoamericanos que quieren tomar<br>
+      las mejores decisiones sobre su educación y carrera.<br>
+      Todos los módulos funcionan en tu dispositivo — sin crear cuentas.
+    </p>
+    <button class="reset-btn" onclick="confirmReset()">🗑 Borrar mi progreso y empezar de nuevo</button>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- ═════════════════════════════════
+     JAVASCRIPT
+═════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─────────────────────────────────────
+   MODULE DEFINITIONS
+───────────────────────────────────── */
+const MODULES = [
+  /* Phase 1 */
+  {
+    id: 'fase1', phase: 1,
+    emoji: '🔍', color: '#7c6af7', gradient: 'linear-gradient(135deg,#7c6af7,#a78bfa)',
+    num: 'Módulo 1', title: 'Test de Pasiones',
+    sub: 'Descubre qué actividades encajan con tu forma de ser y pensar.',
+    time: '15–20 min', file: 'orientame-fase1-v2.html',
+    storageKey: 'orientame:gamification:progress', storageField: 'modules.fase1'
+  },
+  {
+    id: 'fase2', phase: 1,
+    emoji: '⚡', color: '#e05c8a', gradient: 'linear-gradient(135deg,#e05c8a,#f09bb5)',
+    num: 'Módulo 2', title: 'Test de Habilidades',
+    sub: 'Identifica en qué eres bueno/a — incluyendo talentos artísticos y técnicos.',
+    time: '15–20 min', file: 'orientame-fase2-v2.html',
+    storageKey: 'orientame:gamification:progress', storageField: 'modules.fase2'
+  },
+  {
+    id: 'fase3', phase: 1,
+    emoji: '💜', color: '#a78bfa', gradient: 'linear-gradient(135deg,#a78bfa,#7c6af7)',
+    num: 'Módulo 3', title: 'Perspectiva Familiar',
+    sub: 'Integra la visión de tus padres y construye el perfil completo.',
+    time: '20–25 min', file: 'orientame-fase3.html',
+    storageKey: 'orientame:gamification:progress', storageField: 'modules.fase3'
+  },
+  /* Phase 2 */
+  {
+    id: 'juegos', phase: 2,
+    emoji: '🎮', color: '#4fc3f7', gradient: 'linear-gradient(135deg,#4fc3f7,#38bdf8)',
+    num: 'Módulo 4', title: 'Juegos de Aptitud',
+    sub: '4 mini-juegos que revelan tu inteligencia espacial, musical, lógica y tolerancia al riesgo.',
+    time: '10–15 min', file: 'orientame-modulo1-juegos.html',
+    storageKey: 'orientame:gamification:progress', storageField: 'modules.juegos'
+  },
+  {
+    id: 'leo', phase: 2,
+    emoji: '🦉', color: '#7c6af7', gradient: 'linear-gradient(135deg,#7c6af7,#34d399)',
+    num: 'Módulo 5', title: 'Leo — Tu Orientador IA',
+    sub: 'Chat personalizado que recuerda tu perfil y te guía con preguntas vocacionales.',
+    time: 'Cuando quieras', file: 'orientame-modulo2-leo.html',
+    storageKey: 'orientame:leo:profile', storageField: null
+  },
+  {
+    id: 'mapa', phase: 2,
+    emoji: '🗺️', color: '#34d399', gradient: 'linear-gradient(135deg,#34d399,#4fc3f7)',
+    num: 'Módulo 6', title: 'Mapa de Carrera',
+    sub: 'Mapa visual interactivo con las 4 carreras que mejor encajan con tu perfil.',
+    time: '10 min', file: 'orientame-modulo3-mapa.html',
+    storageKey: 'orientame:gamification:progress', storageField: 'modules.mapa'
+  },
+  /* Phase 3 */
+  {
+    id: 'gamificacion', phase: 3,
+    emoji: '🏆', color: '#f5c842', gradient: 'linear-gradient(135deg,#f5c842,#fb923c)',
+    num: 'Módulo 7', title: 'Mis Logros',
+    sub: 'Insignias, racha diaria, niveles y tarjeta de perfil para compartir en redes.',
+    time: 'Permanente', file: 'orientame-modulo4-gamificacion.html',
+    storageKey: 'orientame:gamification:progress', storageField: null
+  },
+  {
+    id: 'unis', phase: 3,
+    emoji: '🎓', color: '#38bdf8', gradient: 'linear-gradient(135deg,#5b9bd5,#34d399)',
+    num: 'Módulo 8', title: 'Universidades y Becas',
+    sub: '22 universidades en 10 países con requisitos reales y 13 becas de pregrado.',
+    time: 'Exploración libre', file: 'orientame-modulo5-v2.html',
+    storageKey: 'orientame:gamification:progress', storageField: null
+  },
+  {
+    id: 'diavida', phase: 3,
+    emoji: '📱', color: '#f09bb5', gradient: 'linear-gradient(135deg,#e05c8a,#f5c842)',
+    num: 'Módulo 9', title: 'Un Día en la Vida de...',
+    sub: '12 perfiles reales de carrera con timelines, herramientas y generador de narrativa IA.',
+    time: 'Exploración libre', file: 'orientame-modulo6-diavida.html',
+    storageKey: 'orientame:gamification:progress', storageField: null
+  }
+];
+
+/* ─────────────────────────────────────
+   STORAGE HELPERS
+───────────────────────────────────── */
+const SK_PROFILE = 'orientame:dashboard:profile';
+const SK_GAMIF   = 'orientame:gamification:progress';
+const SK_LEO     = 'orientame:leo:profile';
+
+function storageGet(key) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+  catch(e) { return null; }
+}
+function storageSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+/* ─────────────────────────────────────
+   READ PROGRESS FROM ALL MODULES
+───────────────────────────────────── */
+function readProgress() {
+  const gamif  = storageGet(SK_GAMIF);
+  const leoP   = storageGet(SK_LEO);
+  const dash   = storageGet(SK_PROFILE);
+
+  const name   = dash?.name || leoP?.name || gamif?.name || null;
+  const age    = dash?.age  || leoP?.age  || null;
+  const xp     = gamif?.totalXP   || 0;
+  const badges = gamif?.badges?.length || 0;
+  const streak = gamif?.streak    || 0;
+
+  const modulesDone = {
+    fase1:       !!(gamif?.modules?.fase1),
+    fase2:       !!(gamif?.modules?.fase2),
+    fase3:       !!(gamif?.modules?.fase3),
+    juegos:      !!(gamif?.modules?.juegos),
+    leo:         !!(leoP),          // Leo is "done" if profile exists
+    mapa:        !!(gamif?.modules?.mapa),
+    gamificacion:!!(gamif),         // exists = visited
+    unis:        false,             // exploration module — always available
+    diavida:     false              // exploration module — always available
+  };
+
+  return { name, age, xp, badges, streak, modulesDone };
+}
+
+/* ─────────────────────────────────────
+   DETERMINE NEXT MODULE
+───────────────────────────────────── */
+function getNextModule(modulesDone) {
+  // Ordered by recommended path
+  const order = ['fase1','fase2','fase3','juegos','leo','mapa','gamificacion','unis','diavida'];
+  for (const id of order) {
+    if (!modulesDone[id]) return MODULES.find(m => m.id === id);
+  }
+  return null; // all done
+}
+
+/* ─────────────────────────────────────
+   RENDER PAGE
+───────────────────────────────────── */
+function renderPage() {
+  const { name, age, xp, badges, streak, modulesDone } = readProgress();
+
+  /* Hero */
+  const timeHour = new Date().getHours();
+  const greeting = timeHour < 12 ? 'Buenos días' : timeHour < 19 ? 'Buenas tardes' : 'Buenas noches';
+  document.getElementById('hero-greeting').textContent = greeting + ',';
+  document.getElementById('hero-name-display').textContent = name || 'Explorador/a';
+  document.getElementById('hp-xp').textContent      = xp;
+  document.getElementById('hp-badges').textContent  = badges;
+  document.getElementById('hp-streak').textContent  = streak;
+
+  /* Global progress */
+  const totalModules = MODULES.length;
+  const doneCount    = Object.values(modulesDone).filter(Boolean).length;
+  const pct          = Math.round((doneCount / totalModules) * 100);
+  document.getElementById('gp-pct').textContent = pct + '%';
+  setTimeout(() => { document.getElementById('gp-fill').style.width = pct + '%'; }, 200);
+
+  /* Step dots */
+  const stepsEl = document.getElementById('gp-steps');
+  stepsEl.innerHTML = '';
+  MODULES.forEach((m, i) => {
+    const div = document.createElement('div');
+    const isDone = modulesDone[m.id];
+    const isNext = !isDone && (i === 0 || Object.values(modulesDone).slice(0, i).some(Boolean));
+    div.className = 'gp-step' + (isDone ? ' done' : isNext ? ' active' : '');
+    div.title = m.title;
+    stepsEl.appendChild(div);
+  });
+
+  /* Continue CTA */
+  const nextModule = getNextModule(modulesDone);
+  const continuaCard = document.getElementById('continue-card');
+  if (nextModule) {
+    document.getElementById('cc-icon').textContent   = nextModule.emoji;
+    document.getElementById('cc-module').textContent = nextModule.title;
+    document.getElementById('cc-desc').textContent   = nextModule.sub;
+    continuaCard.dataset.file = nextModule.file;
+    continuaCard.classList.remove('hidden');
+  } else {
+    continuaCard.classList.add('hidden');
+  }
+
+  /* Render module grids */
+  renderPhaseGrid('grid-phase1', 'ph1-chip', 1, modulesDone);
+  renderPhaseGrid('grid-phase2', 'ph2-chip', 2, modulesDone);
+  renderPhaseGrid('grid-phase3', 'ph3-chip', 3, modulesDone);
+}
+
+/* ─────────────────────────────────────
+   RENDER PHASE GRID
+───────────────────────────────────── */
+function renderPhaseGrid(gridId, chipId, phase, modulesDone) {
+  const grid = document.getElementById(gridId);
+  const chip = document.getElementById(chipId);
+  grid.innerHTML = '';
+
+  const phaseModules = MODULES.filter(m => m.phase === phase);
+  const donePh = phaseModules.filter(m => modulesDone[m.id]).length;
+  chip.textContent = `${donePh} / ${phaseModules.length}`;
+
+  phaseModules.forEach((m, idx) => {
+    const isDone = modulesDone[m.id];
+    // A module is "next" if it's the first undone one in the phase
+    const isNext = !isDone && phaseModules.slice(0, idx).every(pm => modulesDone[pm.id]);
+
+    const card = document.createElement('div');
+    card.className = 'module-card' + (isDone ? ' done' : '');
+
+    let statusHtml, ctaText;
+    if (isDone) {
+      statusHtml = `<div class="mc-status status-done">✓ Completado</div>`;
+      ctaText = 'Volver a visitar';
+    } else if (isNext) {
+      statusHtml = `<div class="mc-status status-next">▶ Siguiente paso</div>`;
+      ctaText = 'Comenzar';
+    } else {
+      statusHtml = `<div class="mc-status status-pending">○ Pendiente</div>`;
+      ctaText = 'Empezar';
+    }
+
+    card.innerHTML = `
+      <div class="mc-stripe" style="background:${m.gradient}"></div>
+      <div class="mc-done-check">✓</div>
+      <div class="mc-body">
+        <div class="mc-top">
+          <div class="mc-emoji-wrap" style="background:linear-gradient(135deg,${hexToRgba(m.color,0.15)},${hexToRgba(m.color,0.06)})">
+            ${m.emoji}
+          </div>
+          <div class="mc-meta">
+            <div class="mc-num">${m.num}</div>
+            <div class="mc-title">${m.title}</div>
+            <div class="mc-sub">${m.sub}</div>
+          </div>
+        </div>
+        ${statusHtml}
+        <div class="mc-footer">
+          <div class="mc-time">⏱ ${m.time}</div>
+          <div class="mc-cta" style="color:${m.color}">
+            ${ctaText} <span class="mc-cta-arrow">→</span>
+          </div>
+        </div>
+      </div>`;
+
+    card.addEventListener('click', () => openModule(m.file));
+    grid.appendChild(card);
+  });
+}
+
+/* ─────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────── */
+function goToModule(type) {
+  if (type === 'continue') {
+    const file = document.getElementById('continue-card').dataset.file;
+    if (file) openModule(file);
+  }
+}
+
+function openModule(file) {
+  if (!file) return;
+  // Store last visited for next time
+  try {
+    const dash = storageGet(SK_PROFILE) || {};
+    dash.lastModule = file;
+    dash.lastVisit  = new Date().toISOString();
+    storageSet(SK_PROFILE, dash);
+  } catch(e) {}
+  window.location.href = file;
+}
+
+/* ─────────────────────────────────────
+   WELCOME MODAL
+───────────────────────────────────── */
+function startApp(skipSetup = false) {
+  if (!skipSetup) {
+    const name = document.getElementById('wm-name').value.trim();
+    const age  = document.getElementById('wm-age').value.trim();
+    if (!name) {
+      document.getElementById('wm-name').style.borderColor = 'rgba(224,92,110,0.6)';
+      setTimeout(() => document.getElementById('wm-name').style.borderColor = '', 2000);
+      return;
+    }
+    // Save to dashboard profile and Leo profile so modules pick it up
+    const profile = { name, age, created: new Date().toISOString() };
+    storageSet(SK_PROFILE, profile);
+    // Also seed Leo profile if not exists
+    if (!storageGet(SK_LEO)) {
+      storageSet(SK_LEO, { name, age, passions: '', skills: '', country: '', created: new Date().toISOString() });
+    }
+  }
+  document.getElementById('welcome-overlay').classList.add('gone');
+  renderPage();
+}
+
+/* ─────────────────────────────────────
+   RESET
+───────────────────────────────────── */
+function confirmReset() {
+  if (!confirm('¿Seguro que quieres borrar todo tu progreso y empezar de cero?\n\nEsta acción no se puede deshacer.')) return;
+  const keys = [SK_PROFILE, SK_GAMIF, SK_LEO,
+    'orientame:leo:history', 'orientame:leo:stats'];
+  keys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+  location.reload();
+}
+
+/* ─────────────────────────────────────
+   HELPERS
+───────────────────────────────────── */
+function hexToRgba(hex, alpha) {
+  if (!hex || !hex.startsWith('#')) return `rgba(124,106,247,${alpha})`;
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ─────────────────────────────────────
+   INIT
+───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const dash   = storageGet(SK_PROFILE);
+  const leoP   = storageGet(SK_LEO);
+  const gamif  = storageGet(SK_GAMIF);
+  const hasAny = dash || leoP || gamif;
+
+  if (hasAny) {
+    document.getElementById('welcome-overlay').classList.add('gone');
+    renderPage();
+  } else {
+    // Show welcome — allow Enter key on name field
+    document.getElementById('wm-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') startApp();
+    });
+  }
+
+  // Back button from any module → reload progress
+  window.addEventListener('pageshow', e => {
+    if (e.persisted) renderPage();
+  });
+});
+</script>
+</body>
+</html>
