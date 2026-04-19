@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oriéntame · Fase 3 — Perspectiva de Padres + Perfil Final</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117; --surface: #181b24; --surface2: #1f2333;
+  --border: rgba(255,255,255,0.08); --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+  --primary: #a07bc4; --primary-light: #c4a8e0; --primary-glow: rgba(160,123,196,0.13);
+  --teal: #56cfad; --teal-glow: rgba(86,207,173,0.12);
+  --violet: #7c6af7; --violet-glow: rgba(124,106,247,0.12);
+  --rose: #e05c8a; --rose-glow: rgba(224,92,138,0.1);
+  --gold: #f5c842; --gold-glow: rgba(245,200,66,0.1);
+  --warning: #f5a623;
+  --gradient: linear-gradient(135deg, #a07bc4, #56cfad);
+  --gradient-premium: linear-gradient(135deg, #f5c842, #e05c8a);
+  --gradient-full: linear-gradient(135deg, #7c6af7, #a07bc4, #56cfad);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-weight: 300; min-height: 100vh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+.bg-glow { position: fixed; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle,rgba(160,123,196,0.07) 0%,transparent 70%); top: -200px; left: -200px; pointer-events: none; z-index: 0; }
+.bg-glow2 { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle,rgba(86,207,173,0.05) 0%,transparent 70%); bottom: -100px; right: -100px; pointer-events: none; z-index: 0; }
+
+.wrapper { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* HEADER */
+.app-header { padding: 32px 0 36px; text-align: center; }
+.phase-badge { display: inline-flex; align-items: center; gap: 10px; background: var(--primary-glow); border: 1px solid rgba(160,123,196,0.35); border-radius: 100px; padding: 6px 16px; margin-bottom: 20px; }
+.phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gradient); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+.phase-text { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header h1 { font-family: 'Lora', serif; font-size: clamp(24px,5vw,40px); font-weight: 600; line-height: 1.2; margin-bottom: 12px; }
+.app-header h1 em { font-style: italic; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.app-header p { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 520px; margin: 0 auto 24px; }
+
+/* PHASE STEPS */
+.phase-steps { display: flex; justify-content: center; margin-bottom: 28px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0 20px; position: relative; }
+.step:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 65%; width: 70%; height: 1px; background: var(--border); }
+.step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.step.done .step-circle { background: var(--violet); color: white; }
+.step.active .step-circle { background: var(--primary); color: #0f1117; }
+.step-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; white-space: nowrap; }
+.step.active .step-label { color: var(--primary-light); }
+.step.done .step-label { color: #a99df9; }
+
+/* PROGRESS */
+.progress-bar { background: var(--surface2); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 6px; }
+.progress-fill { height: 100%; background: var(--gradient); border-radius: 100px; transition: width .5s ease; width: 0%; }
+.progress-label { font-size: 11px; color: var(--muted); text-align: right; letter-spacing: 1px; }
+
+/* INFO BOX */
+.info-box { border-radius: 16px; padding: 18px 22px; margin-bottom: 24px; display: flex; gap: 14px; align-items: flex-start; }
+.info-box.purple { background: var(--primary-glow); border: 1px solid rgba(160,123,196,0.25); }
+.info-box.teal { background: var(--teal-glow); border: 1px solid rgba(86,207,173,0.2); }
+.info-icon { font-size: 20px; flex-shrink: 0; padding-top: 2px; }
+.info-box h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.info-box.purple h3 { color: var(--primary-light); }
+.info-box.teal h3 { color: #8de8ce; }
+.info-box p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* SECTION CARD */
+.section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; margin-bottom: 22px; transition: border-color 0.3s; }
+.section-card:focus-within { border-color: rgba(160,123,196,0.35); }
+.section-num { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--primary); opacity: 0.75; margin-bottom: 6px; }
+.section-card h2 { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; margin-bottom: 5px; line-height: 1.3; }
+.section-card .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.65; }
+
+/* QUESTION */
+.question { margin-bottom: 26px; }
+.question:last-child { margin-bottom: 0; }
+.question-text { font-size: 14.5px; line-height: 1.6; margin-bottom: 13px; color: var(--text); }
+.q-num { font-size: 10px; font-weight: 600; color: var(--primary); opacity: 0.65; display: block; margin-bottom: 3px; letter-spacing: 1px; }
+
+/* CHOICES */
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; text-align: left; cursor: pointer; transition: all 0.2s; font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; color: var(--muted); line-height: 1.5; width: 100%; }
+.choice-btn:hover { border-color: rgba(160,123,196,0.4); background: rgba(160,123,196,0.06); color: var(--text); transform: translateX(3px); }
+.choice-btn.selected { border-color: var(--primary); background: var(--primary-glow); color: var(--text); font-weight: 400; }
+.choice-btn.selected::before { content: '✓ '; color: var(--primary); font-weight: 700; }
+
+/* TAGS */
+.tags-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 7px 15px; font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 400; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.tag-btn:hover { border-color: rgba(160,123,196,0.4); color: var(--text); }
+.tag-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 500; }
+
+/* MATRIX */
+.matrix { display: flex; flex-direction: column; gap: 14px; }
+.matrix-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; }
+.matrix-label { font-size: 13.5px; color: var(--text); line-height: 1.4; }
+.matrix-scale { display: flex; gap: 6px; }
+.matrix-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+.matrix-btn:hover { border-color: rgba(160,123,196,0.4); color: var(--text); }
+.matrix-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 700; }
+.matrix-hint { font-size: 10px; color: var(--muted); opacity: 0.55; margin-top: 8px; text-align: right; }
+
+/* TEXT INPUT */
+.text-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300; resize: vertical; min-height: 80px; outline: none; transition: border-color 0.2s; }
+.text-input:focus { border-color: rgba(160,123,196,0.5); }
+.text-input::placeholder { color: var(--muted); opacity: 0.45; }
+
+/* NAME INPUTS */
+.name-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 400; outline: none; transition: border-color 0.2s; margin-bottom: 10px; }
+.name-input:focus { border-color: rgba(160,123,196,0.5); }
+.name-input::placeholder { color: var(--muted); opacity: 0.4; }
+
+/* SCALE */
+.scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 8px; opacity: 0.65; }
+.scale-container { display: flex; gap: 8px; flex-wrap: wrap; }
+.scale-btn { width: 46px; height: 46px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.scale-btn:hover { border-color: rgba(160,123,196,0.4); color: var(--text); }
+.scale-btn.selected { background: var(--primary-glow); border-color: var(--primary); color: var(--primary-light); font-weight: 700; }
+
+/* CTA */
+.btn-primary { width: 100%; padding: 17px; background: var(--gradient); border: none; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: white; cursor: pointer; letter-spacing: 0.5px; transition: all 0.3s; margin-top: 28px; }
+.btn-primary:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(160,123,196,0.28); }
+
+/* ─────────────────────────────────────
+   PREMIUM BANNER
+───────────────────────────────────── */
+.premium-banner {
+  background: linear-gradient(135deg, #1a1428, #1c1a10);
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 20px; padding: 28px 30px; margin-bottom: 22px;
+  position: relative; overflow: hidden;
+}
+.premium-banner::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--gradient-premium);
+}
+.premium-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 100px; padding: 5px 14px; margin-bottom: 14px;
+}
+.premium-badge span { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; background: var(--gradient-premium); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.premium-banner h3 { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; margin-bottom: 8px; line-height: 1.3; }
+.premium-banner p { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+.premium-features { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.premium-feature { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.premium-feature-icon { font-size: 15px; flex-shrink: 0; padding-top: 1px; }
+.premium-price-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.premium-price { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: var(--gold); }
+.premium-price span { font-family: 'Sora', sans-serif; font-size: 13px; color: var(--muted); font-weight: 300; }
+.btn-premium { padding: 13px 28px; background: var(--gradient-premium); border: none; border-radius: 12px; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600; color: #0f1117; cursor: pointer; transition: all 0.3s; letter-spacing: 0.3px; }
+.btn-premium:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,200,66,0.25); }
+.premium-note { font-size: 11px; color: var(--muted); opacity: 0.55; margin-top: 10px; }
+
+/* ─────────────────────────────────────
+   PREMIUM MODULE (hidden by default)
+───────────────────────────────────── */
+#premium-module { display: none; }
+.psych-header { text-align: center; padding: 32px 0 24px; }
+.psych-header .psych-emoji { font-size: 48px; margin-bottom: 12px; }
+.psych-header h2 { font-family: 'Lora', serif; font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+.psych-header p { font-size: 13px; color: var(--muted); max-width: 500px; margin: 0 auto; line-height: 1.7; }
+
+/* PSYCHOLOGICAL TEST CARDS */
+.psych-test-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 30px; margin-bottom: 22px; }
+.psych-test-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.psych-test-icon { font-size: 32px; flex-shrink: 0; }
+.psych-test-title h3 { font-family: 'Lora', serif; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.psych-test-title p { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.psych-test-badge { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 100px; margin-top: 6px; display: inline-block; }
+.badge-qpad { background: rgba(124,106,247,0.15); color: #a99df9; border: 1px solid rgba(124,106,247,0.3); }
+.badge-irpa { background: var(--rose-glow); color: #f09bb5; border: 1px solid rgba(224,92,138,0.3); }
+
+/* PSYCH QUESTIONS */
+.psych-scale-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 12px 16px; background: var(--surface2); border-radius: 12px; }
+.psych-scale-label { font-size: 13px; color: var(--text); flex: 1; line-height: 1.5; }
+.psych-scale-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.psych-scale-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.psych-scale-btn:hover { border-color: rgba(160,123,196,0.4); color: var(--text); }
+.psych-scale-btn.sel-1 { background: rgba(86,207,173,0.2); border-color: var(--teal); color: var(--teal); }
+.psych-scale-btn.sel-2 { background: rgba(160,123,196,0.2); border-color: var(--primary); color: var(--primary-light); }
+.psych-scale-btn.sel-3 { background: rgba(245,166,35,0.15); border-color: var(--warning); color: var(--warning); }
+.psych-scale-btn.sel-4 { background: rgba(224,92,138,0.15); border-color: var(--rose); color: #f09bb5; }
+.psych-scale-hint { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); opacity: 0.55; margin-bottom: 6px; padding: 0 16px; }
+
+/* RESULT SCREENS */
+#result-container { display: none; }
+.result-hero { text-align: center; padding: 40px 0 28px; }
+.result-emoji { font-size: 54px; margin-bottom: 14px; }
+.result-hero h2 { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+.result-hero p { font-size: 13px; color: var(--muted); }
+
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; }
+.result-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--primary); opacity: 0.75; margin-bottom: 14px; }
+.result-text { font-size: 14.5px; color: var(--text); line-height: 1.85; }
+
+/* MATCH CARDS */
+.match-grid { display: flex; flex-direction: column; gap: 12px; }
+.match-card { background: var(--surface2); border-radius: 14px; padding: 18px 20px; border-left: 3px solid; }
+.match-card.high { border-color: var(--teal); }
+.match-card.medium { border-color: var(--primary); }
+.match-card.grow { border-color: var(--warning); }
+.match-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+.match-career { font-size: 15px; font-weight: 600; color: var(--text); }
+.match-pct { font-size: 13px; font-weight: 700; }
+.match-card.high .match-pct { color: var(--teal); }
+.match-card.medium .match-pct { color: var(--primary-light); }
+.match-card.grow .match-pct { color: var(--warning); }
+.match-reason { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+/* CHIPS */
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { border-radius: 100px; padding: 5px 13px; font-size: 12px; font-weight: 500; }
+.chip-teal { background: var(--teal-glow); border: 1px solid rgba(86,207,173,0.3); color: var(--teal); }
+.chip-purple { background: var(--primary-glow); border: 1px solid rgba(160,123,196,0.3); color: var(--primary-light); }
+.chip-rose { background: var(--rose-glow); border: 1px solid rgba(224,92,138,0.3); color: #f09bb5; }
+.chip-gold { background: var(--gold-glow); border: 1px solid rgba(245,200,66,0.3); color: var(--gold); }
+.chip-warn { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.25); color: var(--warning); }
+
+/* PREMIUM RESULT */
+.psych-result-card { background: linear-gradient(135deg,#1a1428,#1c1a10); border: 1px solid rgba(245,200,66,0.2); border-radius: 20px; padding: 26px 30px; margin-bottom: 18px; position: relative; overflow: hidden; }
+.psych-result-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-premium); }
+.psych-result-card h3 { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); opacity: 0.8; margin-bottom: 14px; }
+.psych-section { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+.psych-section h4 { font-size: 13px; font-weight: 600; color: var(--primary-light); margin-bottom: 8px; }
+.psych-section p { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+.psych-dimension-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.psych-dim-label { font-size: 12.5px; color: var(--text); min-width: 140px; }
+.psych-dim-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.psych-dim-fill { height: 100%; border-radius: 100px; background: var(--gradient-premium); transition: width 1s ease; }
+.psych-dim-score { font-size: 12px; font-weight: 700; color: var(--gold); min-width: 32px; text-align: right; }
+
+/* LOADING */
+.loading-state { text-align: center; padding: 56px 24px; }
+.loading-spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; color: var(--muted); font-style: italic; line-height: 1.75; }
+
+.watermark { text-align: center; padding: 28px 0 0; font-size: 11px; color: var(--muted); opacity: 0.4; }
+
+@media(max-width:540px){ .section-card,.psych-test-card{ padding:20px } .matrix-row{grid-template-columns:1fr;gap:8px} .premium-banner{padding:20px} .psych-scale-row{flex-direction:column;align-items:flex-start} }
+</style>
+
+<script>
+// Pre-load name from shared profile
+(function(){
+  try {
+    var p = JSON.parse(localStorage.getItem('om:profile') || localStorage.getItem('orientame:dashboard:profile') || localStorage.getItem('orientame:leo:profile') || '{}');
+    if (p.name) {
+      // Pre-fill any name inputs
+      document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('#playerName, #su-name, #setup-name, #wm-name, [placeholder*="nombre"], [placeholder*="llamas"]');
+        inputs.forEach(function(el){ if(!el.value) el.value = p.name; });
+        // Also hide setup screens if name exists
+        var setups = document.querySelectorAll('#setup-screen, #setup-overlay, #welcome-overlay');
+        setups.forEach(function(el){ if(el) el.classList.add('hidden'); });
+      });
+    }
+  } catch(e) {}
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:14px;left:14px;z-index:9999">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.15);background:rgba(9,12,22,0.85);backdrop-filter:blur(8px);color:rgba(238,234,244,0.7);font-family:Sora,sans-serif;font-size:12px;text-decoration:none;cursor:pointer;transition:all 0.2s">← Inicio</a>
+</div>
+
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="phase-badge"><div class="phase-dot"></div><span class="phase-text">Oriéntame · Fase 3 de 3</span></div>
+    <h1>La mirada de<br><em>los padres</em></h1>
+    <p>Ustedes conocen a su hijo como nadie. Esta fase valida, complementa y enriquece lo que él respondió — para construir juntos el perfil vocacional más completo posible.</p>
+    <div class="phase-steps">
+      <div class="step done"><div class="step-circle">✓</div><div class="step-label">Pasiones</div></div>
+      <div class="step done"><div class="step-circle">✓</div><div class="step-label">Habilidades</div></div>
+      <div class="step active"><div class="step-circle">3</div><div class="step-label">Padres</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0% completado</div>
+  </div>
+
+  <!-- FORM -->
+  <div id="form-container">
+
+    <div class="info-box purple">
+      <div class="info-icon">💜</div>
+      <div>
+        <h3>¿Por qué los padres completan esta fase?</h3>
+        <p>La psicología vocacional confirma que los padres observan dimensiones que los adolescentes aún no reconocen en sí mismos — patrones de comportamiento, reacciones emocionales, talentos naturales y motivaciones profundas. Su perspectiva es el tercer ingrediente esencial del perfil.</p>
+      </div>
+    </div>
+
+    <!-- DATOS BÁSICOS -->
+    <div class="section-card">
+      <div class="section-num">Antes de empezar</div>
+      <h2>¿Sobre quién están respondiendo?</h2>
+      <div class="section-sub">Para personalizar el análisis final.</div>
+      <input type="text" class="name-input" id="childName" placeholder="Nombre de su hijo/a...">
+      <input type="text" class="name-input" id="parentName" placeholder="Su nombre (mamá / papá)..." style="margin-bottom:0;">
+    </div>
+
+    <!-- BLOQUE 1: VALIDACIÓN DE LO QUE ÉL DIJO -->
+    <div class="section-card">
+      <div class="section-num">Bloque 1 de 5 · Validación</div>
+      <h2>Lo que su hijo dijo — ¿lo confirman?</h2>
+      <div class="section-sub">Basado en lo que conocen de él/ella en el día a día, no en lo que quisieran que fuera.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P1</span>¿Cuándo su hijo/a está más energizado y "encendido/a"? Seleccionen todo lo que aplique:</div>
+        <div class="tags-grid" id="q1-tags">
+          <button class="tag-btn" data-val="creando_algo">Cuando crea algo — cualquier cosa</button>
+          <button class="tag-btn" data-val="resolviendo_problemas">Cuando resuelve problemas difíciles</button>
+          <button class="tag-btn" data-val="con_tecnologia">Cuando trabaja con tecnología</button>
+          <button class="tag-btn" data-val="haciendo_arte">Cuando dibuja, pinta, hace música o teatro</button>
+          <button class="tag-btn" data-val="ayudando_otros">Cuando ayuda a otros</button>
+          <button class="tag-btn" data-val="aprendiendo_algo_nuevo">Cuando aprende algo completamente nuevo</button>
+          <button class="tag-btn" data-val="siendo_lider">Cuando lidera o organiza un grupo</button>
+          <button class="tag-btn" data-val="construyendo_fisico">Cuando construye o arma algo físico</button>
+          <button class="tag-btn" data-val="compitiendo">Cuando compite y supera un reto</button>
+          <button class="tag-btn" data-val="expresandose">Cuando se expresa: habla, actúa, canta, baila</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P2</span>¿Cuál es la actividad que su hijo/a hace durante horas sin que nadie se lo pida?</div>
+        <textarea class="text-input" id="q2-text" placeholder="Descríbanlo con sus palabras — puede ser algo muy específico o cotidiano..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P3</span>¿Hay alguna habilidad artística, manual o expresiva que su hijo/a tiene pero que no toma en serio o no valora en sí mismo/a?</div>
+        <textarea class="text-input" id="q3-text" placeholder="Por ejemplo: dibuja muy bien pero no lo menciona, tiene mucho ritmo pero no lo considera un talento..."></textarea>
+      </div>
+    </div>
+
+    <!-- BLOQUE 2: LO QUE SOLO USTEDES VEN -->
+    <div class="section-card">
+      <div class="section-num">Bloque 2 de 5 · Lo que solo ustedes ven</div>
+      <h2>El hijo/a que conocen en casa</h2>
+      <div class="section-sub">Estas son las observaciones más valiosas del perfil — lo que ningún test puede capturar sin la perspectiva de los padres.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P4</span>¿Cómo describirían la inteligencia de su hijo/a? (seleccionen las que más se ajusten)</div>
+        <div class="tags-grid" id="q4-tags">
+          <button class="tag-btn" data-val="muy_rapido_aprender">Aprende cosas nuevas muy rápido</button>
+          <button class="tag-btn" data-val="memoria_excepcional">Tiene memoria excepcional</button>
+          <button class="tag-btn" data-val="pensamiento_creativo">Piensa de formas que a otros no se les ocurren</button>
+          <button class="tag-btn" data-val="habilidad_manual_notable">Sus manos hacen cosas increíbles</button>
+          <button class="tag-btn" data-val="empatia_alta">Siente lo que sienten los demás con mucha intensidad</button>
+          <button class="tag-btn" data-val="liderazgo_natural">Naturalmente la gente lo/a sigue</button>
+          <button class="tag-btn" data-val="logica_matematica">Su mente lógica es muy notable</button>
+          <button class="tag-btn" data-val="arte_musica_expresion">Su expresión artística o musical destaca</button>
+          <button class="tag-btn" data-val="capacidad_analisis">Analiza todo antes de actuar</button>
+          <button class="tag-btn" data-val="adaptabilidad">Se adapta muy bien a situaciones nuevas</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P5</span>¿Cuál es el mayor logro de su hijo/a que ustedes han presenciado? (académico, personal, creativo, deportivo — cualquier tipo)</div>
+        <textarea class="text-input" id="q5-text" placeholder="El logro que más los ha sorprendido o emocionado como padres..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P6</span>¿Qué área o actividad quisieran que él/ella explorara más, que sienten que tiene potencial pero no ha desarrollado?</div>
+        <textarea class="text-input" id="q6-text" placeholder="Puede ser algo que han notado pero que él/ella no ha tenido la oportunidad de desarrollar..."></textarea>
+      </div>
+    </div>
+
+    <!-- BLOQUE 3: CARÁCTER Y COMPORTAMIENTO -->
+    <div class="section-card">
+      <div class="section-num">Bloque 3 de 5 · Carácter que ustedes observan</div>
+      <h2>¿Cómo es su hijo/a cuando nadie lo evalúa?</h2>
+      <div class="section-sub">Evalúen cómo se comporta en casa y en situaciones cotidianas. (1 = casi nunca / 5 = siempre)</div>
+
+      <div class="matrix" id="matrix-char">
+        <div class="matrix-row">
+          <span class="matrix-label">Termina lo que empieza, aunque sea difícil</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="perseverancia" data-val="1">1</button><button class="matrix-btn" data-key="perseverancia" data-val="2">2</button><button class="matrix-btn" data-key="perseverancia" data-val="3">3</button><button class="matrix-btn" data-key="perseverancia" data-val="4">4</button><button class="matrix-btn" data-key="perseverancia" data-val="5">5</button></div>
+        </div>
+        <div class="matrix-row">
+          <span class="matrix-label">Se frustra y abandona cuando algo no le sale</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="frustracion" data-val="1">1</button><button class="matrix-btn" data-key="frustracion" data-val="2">2</button><button class="matrix-btn" data-key="frustracion" data-val="3">3</button><button class="matrix-btn" data-key="frustracion" data-val="4">4</button><button class="matrix-btn" data-key="frustracion" data-val="5">5</button></div>
+        </div>
+        <div class="matrix-row">
+          <span class="matrix-label">Muestra empatía genuina con personas en dificultad</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="empatia" data-val="1">1</button><button class="matrix-btn" data-key="empatia" data-val="2">2</button><button class="matrix-btn" data-key="empatia" data-val="3">3</button><button class="matrix-btn" data-key="empatia" data-val="4">4</button><button class="matrix-btn" data-key="empatia" data-val="5">5</button></div>
+        </div>
+        <div class="matrix-row">
+          <span class="matrix-label">Se organiza bien sin que se lo recuerden</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="organizacion" data-val="1">1</button><button class="matrix-btn" data-key="organizacion" data-val="2">2</button><button class="matrix-btn" data-key="organizacion" data-val="3">3</button><button class="matrix-btn" data-key="organizacion" data-val="4">4</button><button class="matrix-btn" data-key="organizacion" data-val="5">5</button></div>
+        </div>
+        <div class="matrix-row">
+          <span class="matrix-label">Muestra curiosidad genuina por aprender</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="curiosidad" data-val="1">1</button><button class="matrix-btn" data-key="curiosidad" data-val="2">2</button><button class="matrix-btn" data-key="curiosidad" data-val="3">3</button><button class="matrix-btn" data-key="curiosidad" data-val="4">4</button><button class="matrix-btn" data-key="curiosidad" data-val="5">5</button></div>
+        </div>
+        <div class="matrix-row">
+          <span class="matrix-label">Disfruta el proceso creativo aunque el resultado no sea perfecto</span>
+          <div class="matrix-scale"><button class="matrix-btn" data-key="gozo_creativo" data-val="1">1</button><button class="matrix-btn" data-key="gozo_creativo" data-val="2">2</button><button class="matrix-btn" data-key="gozo_creativo" data-val="3">3</button><button class="matrix-btn" data-key="gozo_creativo" data-val="4">4</button><button class="matrix-btn" data-key="gozo_creativo" data-val="5">5</button></div>
+        </div>
+      </div>
+      <div class="matrix-hint">1 = Casi nunca · 5 = Siempre</div>
+    </div>
+
+    <!-- BLOQUE 4: PREOCUPACIONES Y SUEÑOS -->
+    <div class="section-card">
+      <div class="section-num">Bloque 4 de 5 · Sus miedos y sus sueños</div>
+      <h2>Lo que sienten como padres</h2>
+      <div class="section-sub">Esta sección es para ustedes — no hay respuestas correctas ni incorrectas.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P7</span>¿Cuál es su mayor preocupación sobre el futuro profesional de su hijo/a?</div>
+        <div class="choices" id="q7-choices">
+          <button class="choice-btn" data-val="no_encontrar_trabajo">Que no encuentre trabajo estable</button>
+          <button class="choice-btn" data-val="elija_carrera_sin_futuro">Que elija una carrera sin futuro real</button>
+          <button class="choice-btn" data-val="no_sabe_que_quiere">Que no sepa qué quiere y pierda tiempo</button>
+          <button class="choice-btn" data-val="presion_economica">La presión económica que puede enfrentar</button>
+          <button class="choice-btn" data-val="ia_reemplaze_trabajo">Que la IA reemplace su trabajo antes de empezar</button>
+          <button class="choice-btn" data-val="no_aproveche_potencial">Que no aproveche todo su potencial</button>
+          <button class="choice-btn" data-val="elija_por_presion">Que elija por presión nuestra y no por vocación</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P8</span>Si su hijo/a pudiera ser cualquier cosa y tuviera garantizado el éxito, ¿qué quisieran ver que sea? (no lo que él/ella quiere — lo que ustedes imaginan)</div>
+        <textarea class="text-input" id="q8-text" placeholder="Sea honesto/a — esto no es una prueba. Solo es información para el análisis..."></textarea>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P9</span>¿Hay algo de su hijo/a que quieran que la IA sepa para dar un mejor análisis — algo que no habría podido responder él/ella mismo/a?</div>
+        <textarea class="text-input" id="q9-text" placeholder="Cualquier observación que crean importante — un evento, una característica, algo que han notado con el tiempo..."></textarea>
+      </div>
+    </div>
+
+    <!-- BLOQUE 5: CONTEXTO -->
+    <div class="section-card">
+      <div class="section-num">Bloque 5 de 5 · Contexto</div>
+      <h2>El contexto de su familia</h2>
+      <div class="section-sub">Esto ayuda a dar recomendaciones realistas y concretas para su situación.</div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P10</span>¿Cuál es su plan de estudios para él/ella?</div>
+        <div class="choices" id="q10-choices">
+          <button class="choice-btn" data-val="universidad_local">Universidad en Ecuador</button>
+          <button class="choice-btn" data-val="universidad_espana">Universidad en España</button>
+          <button class="choice-btn" data-val="universidad_uk">Universidad en Reino Unido</button>
+          <button class="choice-btn" data-val="universidad_otro_pais">Universidad en otro país</button>
+          <button class="choice-btn" data-val="abierto_cualquier_opcion">Abiertos a cualquier opción según la carrera</button>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="question-text"><span class="q-num">P11</span>¿Qué tan abiertos están a carreras artísticas o creativas como primera opción?</div>
+        <div class="scale-labels"><span>Muy cerrados</span><span>Totalmente abiertos</span></div>
+        <div class="scale-container" id="q11-scale">
+          <button class="scale-btn" data-val="1">1</button>
+          <button class="scale-btn" data-val="2">2</button>
+          <button class="scale-btn" data-val="3">3</button>
+          <button class="scale-btn" data-val="4">4</button>
+          <button class="scale-btn" data-val="5">5</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREMIUM BANNER -->
+    <div class="premium-banner" id="premium-section">
+      <div class="premium-badge"><span>✦ Módulo Premium</span></div>
+      <h3>Análisis psicológico profundo<br>del perfil de tu hijo/a</h3>
+      <p>Un análisis clínico complementario basado en patrones de comportamiento observados por los padres. No reemplaza a un psicólogo — es una herramienta de apoyo para entender mejor a tu hijo/a y acompañarlo con más información.</p>
+      <div class="premium-features">
+        <div class="premium-feature"><span class="premium-feature-icon">🧠</span><span>Evaluación de <strong style="color:var(--text)">autoconcepto</strong> — cómo se ve a sí mismo y qué tan alineada está esa imagen con sus capacidades reales</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">💬</span><span>Análisis de <strong style="color:var(--text)">patrones relacionales</strong> — cómo se vincula con pares, figuras de autoridad y grupos</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">🌡️</span><span>Evaluación de <strong style="color:var(--text)">estado emocional y regulación</strong> — cómo gestiona la frustración, la presión y los cambios</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">📈</span><span>Análisis de <strong style="color:var(--text)">patrones de desempeño</strong> — motivación intrínseca vs extrínseca, rendimiento bajo presión</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">📋</span><span>Cuestionario adaptado del <strong style="color:var(--text)">Q-PAD</strong> (Cuestionario de Problemas para Adolescentes) e <strong style="color:var(--text)">IRPA</strong> (Inventario de Respuestas Problemáticas en Adolescentes)</span></div>
+        <div class="premium-feature"><span class="premium-feature-icon">🤝</span><span>Guía personalizada de <strong style="color:var(--text)">cómo acompañar a tu hijo/a</strong> según su perfil psicológico específico</span></div>
+      </div>
+      <div class="premium-price-row">
+        <div>
+          <div class="premium-price">$9.99 <span>pago único por perfil</span></div>
+          <div class="premium-note">Acceso permanente al análisis de este perfil</div>
+        </div>
+        <button class="btn-premium" onclick="unlockPremium()">✦ Desbloquear análisis psicológico</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="analyzePhase3()">
+      🎯 Generar perfil vocacional completo
+    </button>
+
+  </div><!-- /form-container -->
+
+  <!-- PREMIUM MODULE (unlocked) -->
+  <div id="premium-module">
+    <div class="psych-header">
+      <div class="psych-emoji">🧠</div>
+      <h2>Análisis psicológico complementario</h2>
+      <p>Responde con honestidad desde lo que observas en casa. Este análisis es confidencial y de apoyo.</p>
+    </div>
+
+    <!-- Q-PAD ADAPTADO -->
+    <div class="psych-test-card">
+      <div class="psych-test-header">
+        <div class="psych-test-icon">📋</div>
+        <div class="psych-test-title">
+          <h3>Módulo 1 · Autoconcepto y Estado Emocional</h3>
+          <p>Adaptado del Q-PAD (Cuestionario de Problemas para Adolescentes, Hernández et al.) — evalúa cómo se percibe tu hijo/a a sí mismo y su estado emocional general.</p>
+          <span class="psych-test-badge badge-qpad">Basado en Q-PAD</span>
+        </div>
+      </div>
+      <p class="psych-scale-hint" style="padding:0 0 4px;margin:0 0 8px;"><span>1=Nunca</span><span>2=A veces</span><span>3=Frecuente</span><span>4=Siempre</span></p>
+
+      <div id="qpad-items">
+        <div class="psych-scale-row"><span class="psych-scale-label">Mi hijo/a parece sentirse bien consigo mismo/a en general</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="autoestima_general" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="autoestima_general" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="autoestima_general" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="autoestima_general" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Se compara negativamente con sus compañeros o amigos</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="comparacion_negativa" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="comparacion_negativa" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="comparacion_negativa" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="comparacion_negativa" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Muestra signos de ansiedad ante evaluaciones o resultados</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="ansiedad_rendimiento" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="ansiedad_rendimiento" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="ansiedad_rendimiento" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="ansiedad_rendimiento" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Tiene períodos de ánimo bajo o apatía sin razón aparente</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="estado_animo" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="estado_animo" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="estado_animo" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="estado_animo" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Tiene dificultad para confiar en sus propias decisiones</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="autoconfianza" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="autoconfianza" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="autoconfianza" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="autoconfianza" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Expresa abiertamente lo que siente con su familia</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="qpad" data-key="expresion_emocional" data-val="1">1</button><button class="psych-scale-btn" data-group="qpad" data-key="expresion_emocional" data-val="2">2</button><button class="psych-scale-btn" data-group="qpad" data-key="expresion_emocional" data-val="3">3</button><button class="psych-scale-btn" data-group="qpad" data-key="expresion_emocional" data-val="4">4</button></div></div>
+      </div>
+    </div>
+
+    <!-- IRPA ADAPTADO -->
+    <div class="psych-test-card">
+      <div class="psych-test-header">
+        <div class="psych-test-icon">🔍</div>
+        <div class="psych-test-title">
+          <h3>Módulo 2 · Relaciones, Comportamiento y Desempeño</h3>
+          <p>Adaptado del IRPA (Inventario de Respuestas Problemáticas en Adolescentes) — evalúa patrones de comportamiento social, adaptación y motivación académica.</p>
+          <span class="psych-test-badge badge-irpa">Basado en IRPA</span>
+        </div>
+      </div>
+      <p class="psych-scale-hint" style="padding:0 0 4px;margin:0 0 8px;"><span>1=Nunca</span><span>2=A veces</span><span>3=Frecuente</span><span>4=Siempre</span></p>
+
+      <div id="irpa-items">
+        <div class="psych-scale-row"><span class="psych-scale-label">Mantiene amistades cercanas y duraderas</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="vinculos_sociales" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="vinculos_sociales" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="vinculos_sociales" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="vinculos_sociales" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Tiene conflictos frecuentes con figuras de autoridad</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="conflicto_autoridad" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="conflicto_autoridad" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="conflicto_autoridad" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="conflicto_autoridad" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Su motivación académica viene de adentro (no de notas o premios)</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="motivacion_intrinseca" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="motivacion_intrinseca" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="motivacion_intrinseca" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="motivacion_intrinseca" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Rinde mejor bajo presión o en situaciones de reto</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="rendimiento_presion" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="rendimiento_presion" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="rendimiento_presion" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="rendimiento_presion" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Muestra comportamientos impulsivos que luego lamenta</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="impulsividad" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="impulsividad" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="impulsividad" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="impulsividad" data-val="4">4</button></div></div>
+
+        <div class="psych-scale-row"><span class="psych-scale-label">Busca validación externa constante para sentirse bien consigo mismo</span><div class="psych-scale-btns"><button class="psych-scale-btn" data-group="irpa" data-key="validacion_externa" data-val="1">1</button><button class="psych-scale-btn" data-group="irpa" data-key="validacion_externa" data-val="2">2</button><button class="psych-scale-btn" data-group="irpa" data-key="validacion_externa" data-val="3">3</button><button class="psych-scale-btn" data-group="irpa" data-key="validacion_externa" data-val="4">4</button></div></div>
+      </div>
+    </div>
+
+    <div class="info-box teal">
+      <div class="info-icon">🌿</div>
+      <div>
+        <h3>Nota importante</h3>
+        <p>Este módulo es una herramienta de apoyo y orientación — no un diagnóstico clínico. Si los resultados muestran señales de alerta, recomendamos consultar con un psicólogo especializado en adolescentes. El objetivo es acompañar mejor, no etiquetar.</p>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="background:var(--gradient-premium);color:#0f1117;" onclick="analyzePremium()">
+      ✦ Generar análisis psicológico completo
+    </button>
+  </div><!-- /premium-module -->
+
+  <!-- RESULTS -->
+  <div id="result-container">
+    <div class="result-hero">
+      <div class="result-emoji">🌟</div>
+      <h2 id="result-title">Perfil completo</h2>
+      <p>Las tres perspectivas integradas · Orientación vocacional + visión de padres · 2026–2035</p>
+    </div>
+    <div id="result-content"></div>
+    <div id="psych-result-content"></div>
+    <p class="watermark">Oriéntame · Perfil completo de 3 fases · Generado con IA · Abril 2026</p>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+const answers = {};
+const charScores = {};
+const qpadScores = {};
+const irpaScores = {};
+let answered = 0;
+const TOTAL = 11;
+let premiumUnlocked = false;
+
+// TAGS
+function setupTags(id) {
+  const grid = document.getElementById(id);
+  if (!grid) return;
+  grid.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      const sel = [...grid.querySelectorAll('.tag-btn.selected')].map(b=>b.dataset.val);
+      const wasEmpty = !answers[id] || answers[id].length===0;
+      answers[id] = sel;
+      if (wasEmpty && sel.length>0){answered++;recalc();}
+      if (!wasEmpty && sel.length===0){answered=Math.max(0,answered-1);recalc();}
+    });
+  });
+}
+setupTags('q1-tags');
+setupTags('q4-tags');
+
+// CHOICES
+document.querySelectorAll('.choices').forEach(group=>{
+  group.querySelectorAll('.choice-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      group.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+      this.classList.add('selected');
+      const isNew=!answers[group.id];
+      answers[group.id]=this.dataset.val;
+      if(isNew){answered++;recalc();}
+    });
+  });
+});
+
+// MATRIX
+document.querySelectorAll('#matrix-char .matrix-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const key=this.dataset.key;
+    this.closest('.matrix-row').querySelectorAll('.matrix-btn').forEach(b=>b.classList.remove('selected'));
+    this.classList.add('selected');
+    const isNew=!charScores[key];
+    charScores[key]=parseInt(this.dataset.val);
+    if(isNew){answered++;recalc();}
+  });
+});
+
+// SCALE
+document.querySelectorAll('.scale-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const group=this.closest('.scale-container');
+    group.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('selected'));
+    this.classList.add('selected');
+    const isNew=!answers[group.id];
+    answers[group.id]=this.dataset.val;
+    if(isNew){answered++;recalc();}
+  });
+});
+
+// TEXTAREAS
+['q2-text','q3-text','q5-text','q6-text','q8-text','q9-text'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    const wasEmpty=!answers[id];
+    answers[id]=this.value;
+    if(wasEmpty&&this.value.length>3){answered++;recalc();}
+  });
+});
+
+// PSYCH SCALE BUTTONS
+document.querySelectorAll('.psych-scale-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const group=this.dataset.group;
+    const key=this.dataset.key;
+    const val=parseInt(this.dataset.val);
+    const row=this.closest('.psych-scale-row');
+    row.querySelectorAll('.psych-scale-btn').forEach(b=>{
+      b.classList.remove('sel-1','sel-2','sel-3','sel-4');
+    });
+    this.classList.add('sel-'+val);
+    if(group==='qpad') qpadScores[key]=val;
+    else irpaScores[key]=val;
+  });
+});
+
+function recalc(){
+  const pct=Math.min(100,Math.round((answered/TOTAL)*100));
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressLabel').textContent=pct<100?`${pct}% completado`:'¡Listo para el análisis final!';
+}
+
+// PREMIUM UNLOCK
+function unlockPremium() {
+  // In production: payment gate here
+  premiumUnlocked = true;
+  document.getElementById('premium-section').style.display = 'none';
+  document.getElementById('premium-module').style.display = 'block';
+  document.getElementById('premium-module').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ──────────────────────
+// ANALYZE PHASE 3
+// ──────────────────────
+async function analyzePhase3() {
+  const childName = document.getElementById('childName').value.trim() || 'su hijo/a';
+  const parentName = document.getElementById('parentName').value.trim() || 'los padres';
+  const energizado = (answers['q1-tags']||[]).join(', ')||'no indicado';
+  const actividad_horas = answers['q2-text']||'no indicado';
+  const talento_no_valorado = answers['q3-text']||'no indicado';
+  const inteligencia_percibida = (answers['q4-tags']||[]).join(', ')||'no indicado';
+  const mayor_logro = answers['q5-text']||'no indicado';
+  const potencial_sin_desarrollar = answers['q6-text']||'no indicado';
+  const charStr = Object.entries(charScores).map(([k,v])=>`${k}:${v}/5`).join(', ')||'no indicado';
+  const preocupacion = answers['q7-choices']||'no indicado';
+  const sueno_padres = answers['q8-text']||'no indicado';
+  const observacion_extra = answers['q9-text']||'no indicado';
+  const plan_estudios = answers['q10-choices']||'no indicado';
+  const apertura_arte = answers['q11-scale']||'3';
+
+  document.getElementById('form-container').style.display='none';
+  if(premiumUnlocked) document.getElementById('premium-module').style.display='none';
+  document.getElementById('result-container').style.display='block';
+  document.getElementById('result-content').innerHTML=`
+    <div class="loading-state"><div class="loading-spinner"></div>
+    <p>Integrando las tres perspectivas...<br>Generando el perfil vocacional completo de ${childName} ✨</p></div>`;
+
+  const prompt=`Eres orientador vocacional experto. Abril 2026. Adolescente: ${childName}. Padres: ${parentName}.
+
+PERSPECTIVA DE LOS PADRES — FASE 3:
+Cuándo más energizado/a: ${energizado}
+Actividad que hace horas sin que se lo pidan: "${actividad_horas}"
+Talento artístico/manual que no valora: "${talento_no_valorado}"
+Inteligencia percibida por padres: ${inteligencia_percibida}
+Mayor logro presenciado: "${mayor_logro}"
+Potencial sin desarrollar: "${potencial_sin_desarrollar}"
+Carácter observado (1-5): ${charStr}
+Mayor preocupación de los padres: ${preocupacion}
+Sueño de los padres para él/ella: "${sueno_padres}"
+Observación extra de padres: "${observacion_extra}"
+Plan de estudios: ${plan_estudios}
+Apertura a carreras artísticas (1-5): ${apertura_arte}
+
+Genera el PERFIL FINAL INTEGRADO en JSON puro (sin markdown):
+{
+  "nombre_perfil_final": "nombre integrado en 4-6 palabras que capture toda la esencia",
+  "resumen_ejecutivo": "3-4 oraciones poderosas que integren las tres fases. Este es el resumen que los padres y el adolescente guardarán. Tono motivador y específico.",
+  "hallazgos_padres": "2 oraciones sobre qué aportaron los padres que el adolescente no había mencionado o confirmado",
+  "tension_detectada": "Una observación honesta sobre cualquier tensión entre lo que el adolescente quiere y lo que los padres esperan — si existe",
+  "carreras_finales": [
+    {
+      "nombre": "Nombre carrera",
+      "consenso": "alta|media|baja",
+      "nota_consenso": "si adolescente y padres coinciden o divergen",
+      "por_que_final": "razón integrando las 3 fases",
+      "futuro_2035": "perspectiva específica al 2035",
+      "plan_accion": "un paso concreto para el próximo año"
+    }
+  ],
+  "mensaje_para_el_adolescente": "Párrafo personal para ${childName} — en segunda persona. Que sepa que sus padres lo conocen, lo ven y confían. Conectar sus respuestas con las de sus padres. Muy cálido.",
+  "mensaje_para_los_padres": "Párrafo para ${parentName} — en segunda persona. Qué hacer ahora, cómo acompañar. Validar sus miedos pero darles herramientas. Tono de colega que los conoce.",
+  "proximos_pasos_familia": ["paso concreto 1 para hacer juntos","paso concreto 2","paso concreto 3"]
+}
+
+REGLAS: 4-5 carreras finales · Todas con futuro 2026-2035 · consenso='alta' si padres y adolescente apuntan al mismo lugar · Si hay arte con señal fuerte, incluir al menos 1-2 carreras artísticas · Los mensajes deben sentirse personales y específicos, NO genéricos`;
+
+  try {
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1400,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await res.json();
+    const result=JSON.parse(data.content.map(i=>i.text||"").join("").replace(/```json|```/g,"").trim());
+    renderFinalResult(childName, result);
+    if(premiumUnlocked) setTimeout(()=>analyzePremium(),500);
+  } catch(e){
+    document.getElementById('result-content').innerHTML=`<div class="result-card"><h3>Error</h3><div class="result-text">Problema de conexión. Recarga e intenta nuevamente.</div></div>`;
+  }
+}
+
+// ──────────────────────
+// ANALYZE PREMIUM
+// ──────────────────────
+async function analyzePremium() {
+  const childName=document.getElementById('childName').value.trim()||'el/la adolescente';
+  const qpadStr=Object.entries(qpadScores).map(([k,v])=>`${k}:${v}/4`).join(', ')||'no completado';
+  const irpaStr=Object.entries(irpaScores).map(([k,v])=>`${k}:${v}/4`).join(', ')||'no completado';
+
+  document.getElementById('psych-result-content').innerHTML=`
+    <div class="loading-state"><div class="loading-spinner" style="border-top-color:var(--gold)"></div>
+    <p style="color:var(--gold)">Generando análisis psicológico complementario...<br>Procesando patrones de autoconcepto y comportamiento ✦</p></div>`;
+
+  const prompt=`Eres psicólogo clínico especializado en adolescentes con formación en Q-PAD e IRPA. Estás generando un análisis de apoyo para padres (NO un diagnóstico clínico). Adolescente: ${childName}.
+
+RESULTADOS Q-PAD ADAPTADO (autoconcepto/estado emocional, 1-4):
+${qpadStr}
+
+RESULTADOS IRPA ADAPTADO (comportamiento/relaciones, 1-4):
+${irpaStr}
+
+Genera análisis psicológico de apoyo en JSON puro (sin markdown):
+{
+  "perfil_psicologico": "nombre del perfil en 3-4 palabras (ej: 'Sensible Resiliente con Autoduda', 'Exploratorio con Alta Energía Social')",
+  "resumen_psicologico": "2-3 oraciones describiendo el patrón psicológico observado. Tono clínico pero accesible. Sin diagnósticos.",
+  "dimensiones": [
+    {"nombre": "Autoconcepto", "score": 75, "interpretacion": "una oración"},
+    {"nombre": "Regulación emocional", "score": 60, "interpretacion": "una oración"},
+    {"nombre": "Vínculos sociales", "score": 80, "interpretacion": "una oración"},
+    {"nombre": "Motivación intrínseca", "score": 70, "interpretacion": "una oración"},
+    {"nombre": "Manejo de la presión", "score": 65, "interpretacion": "una oración"}
+  ],
+  "fortalezas_psicologicas": ["fortaleza 1","fortaleza 2","fortaleza 3"],
+  "areas_de_atencion": [
+    {"area": "nombre del área", "descripcion": "qué se observa", "sugerencia": "qué pueden hacer los padres concreto"}
+  ],
+  "estilo_de_acompanamiento": "Párrafo con 3-4 recomendaciones específicas de cómo los padres deben acompañar a este adolescente según su perfil psicológico. Muy concreto.",
+  "señales_a_observar": ["señal de alerta 1 si empeora","señal de alerta 2"],
+  "nota_profesional": "Una frase final recordando que este análisis es de apoyo y no reemplaza evaluación clínica profesional si se identifican señales de alerta persistentes."
+}
+
+IMPORTANTE: scores entre 40-90 según respuestas · Tono de apoyo, no alarmista · Si hay señales de alerta reales, mencionarlas con cuidado · No usar lenguaje diagnóstico (no decir 'trastorno', 'patología', etc.)`;
+
+  try {
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await res.json();
+    const result=JSON.parse(data.content.map(i=>i.text||"").join("").replace(/```json|```/g,"").trim());
+    renderPsychResult(result);
+  } catch(e){
+    document.getElementById('psych-result-content').innerHTML='';
+  }
+}
+
+// ──────────────────────
+// RENDER FINAL
+// ──────────────────────
+function renderFinalResult(name, r) {
+  const consensusColor = {alta:'chip-teal', media:'chip-purple', baja:'chip-warn'};
+  const consensusLabel = {alta:'✓ Alto consenso', media:'~ Consenso medio', baja:'↕ Perspectivas distintas'};
+
+  const careersHtml = (r.carreras_finales||[]).map(c=>`
+    <div class="match-card ${c.consenso==='alta'?'high':c.consenso==='media'?'medium':'grow'}">
+      <div class="match-card-header">
+        <span class="match-career">${c.nombre}</span>
+        <span class="chip ${consensusColor[c.consenso]||'chip-purple'}" style="font-size:11px;padding:3px 10px;">${consensusLabel[c.consenso]}</span>
+      </div>
+      <p class="match-reason" style="margin-bottom:6px;">${c.por_que_final}</p>
+      <p style="font-size:12px;color:var(--teal);opacity:0.85;margin-bottom:6px;">📅 2035: ${c.futuro_2035}</p>
+      <p style="font-size:12px;color:var(--muted);">➜ Próximo paso: ${c.plan_accion}</p>
+    </div>`).join('');
+
+  const stepsHtml = (r.proximos_pasos_familia||[]).map((s,i)=>`
+    <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;">
+      <span style="min-width:26px;height:26px;background:var(--primary-glow);border:1px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--primary-light);flex-shrink:0;">${i+1}</span>
+      <span style="font-size:14px;color:var(--text);line-height:1.6;">${s}</span>
+    </div>`).join('');
+
+  document.getElementById('result-title').textContent = `${name}: ${r.nombre_perfil_final}`;
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="result-card" style="border-color:rgba(160,123,196,0.3);background:rgba(160,123,196,0.03);">
+      <h3>Perfil final integrado · 3 fases</h3>
+      <div class="result-text">${r.resumen_ejecutivo}</div>
+    </div>
+
+    <div class="result-card">
+      <h3>Lo que aportaron los padres</h3>
+      <div class="result-text" style="font-size:14px;">${r.hallazgos_padres}</div>
+    </div>
+
+    ${r.tension_detectada ? `
+    <div class="result-card" style="border-color:rgba(245,166,35,0.2);background:rgba(245,166,35,0.02);">
+      <h3 style="color:var(--warning);">Tensión a conversar en familia</h3>
+      <div class="result-text" style="font-size:14px;">${r.tension_detectada}</div>
+    </div>` : ''}
+
+    <div class="result-card">
+      <h3>Carreras finales recomendadas · Consenso de 3 fases</h3>
+      <div class="match-grid">${careersHtml}</div>
+    </div>
+
+    <div class="result-card" style="border-color:rgba(86,207,173,0.2);background:rgba(86,207,173,0.025);">
+      <h3 style="color:var(--teal);">Para ${name}</h3>
+      <div class="result-text" style="font-family:'Lora',serif;font-style:italic;font-size:15.5px;line-height:1.9;">"${r.mensaje_para_el_adolescente}"</div>
+    </div>
+
+    <div class="result-card" style="border-color:rgba(160,123,196,0.2);background:rgba(160,123,196,0.025);">
+      <h3 style="color:var(--primary-light);">Para los padres</h3>
+      <div class="result-text" style="font-family:'Lora',serif;font-style:italic;font-size:15px;line-height:1.9;">"${r.mensaje_para_los_padres}"</div>
+    </div>
+
+    <div class="result-card">
+      <h3>Próximos pasos · Para hacer juntos</h3>
+      ${stepsHtml}
+    </div>`;
+}
+
+// ──────────────────────
+// RENDER PSYCH
+// ──────────────────────
+function renderPsychResult(r) {
+  const dimsHtml = (r.dimensiones||[]).map(d=>`
+    <div class="psych-dimension-row">
+      <span class="psych-dim-label">${d.nombre}</span>
+      <div class="psych-dim-track"><div class="psych-dim-fill" style="width:0%" data-target="${d.score}"></div></div>
+      <span class="psych-dim-score">${d.score}%</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:-4px 0 12px;line-height:1.5;">${d.interpretacion}</p>`).join('');
+
+  const areasHtml = (r.areas_de_atencion||[]).map(a=>`
+    <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:13px 16px;margin-bottom:10px;">
+      <strong style="font-size:13px;color:var(--warning);">${a.area}</strong>
+      <p style="font-size:12.5px;color:var(--muted);margin:5px 0;line-height:1.55;">${a.descripcion}</p>
+      <p style="font-size:12.5px;color:var(--teal);">→ ${a.sugerencia}</p>
+    </div>`).join('');
+
+  document.getElementById('psych-result-content').innerHTML = `
+    <div class="psych-result-card">
+      <h3>✦ Análisis psicológico complementario</h3>
+      <div style="margin-bottom:16px;">
+        <div class="premium-badge" style="margin-bottom:12px;"><span>${r.perfil_psicologico}</span></div>
+        <p style="font-size:14.5px;color:var(--muted);line-height:1.8;">${r.resumen_psicologico}</p>
+      </div>
+
+      <div class="psych-section">
+        <h4>Dimensiones psicológicas</h4>
+        ${dimsHtml}
+      </div>
+
+      <div class="psych-section">
+        <h4>Fortalezas psicológicas</h4>
+        <div class="chip-row">${(r.fortalezas_psicologicas||[]).map(f=>`<span class="chip chip-gold">${f}</span>`).join('')}</div>
+      </div>
+
+      <div class="psych-section">
+        <h4>Áreas de atención</h4>
+        ${areasHtml}
+      </div>
+
+      <div class="psych-section">
+        <h4>Cómo acompañarlo/a — guía para padres</h4>
+        <p style="font-size:13.5px;color:var(--muted);line-height:1.75;">${r.estilo_de_acompanamiento}</p>
+      </div>
+
+      ${r.señales_a_observar&&r.señales_a_observar.length>0?`
+      <div class="psych-section" style="border:1px solid rgba(245,166,35,0.2);">
+        <h4 style="color:var(--warning);">Señales a observar en el tiempo</h4>
+        ${r.señales_a_observar.map(s=>`<p style="font-size:13px;color:var(--muted);margin-bottom:6px;line-height:1.55;">⚠ ${s}</p>`).join('')}
+      </div>`:''}
+
+      <p style="font-size:12px;color:var(--muted);opacity:0.65;margin-top:14px;font-style:italic;line-height:1.6;">🌿 ${r.nota_profesional}</p>
+    </div>`;
+
+  // Animate psych bars
+  setTimeout(()=>{
+    document.querySelectorAll('.psych-dim-fill[data-target]').forEach(bar=>{
+      bar.style.width=bar.dataset.target+'%';
+    });
+  },300);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame · Universidades y Becas de Pregrado</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0c0f1b; --surface:#131828; --surface2:#1a1f34; --surface3:#222840;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#eeeaf4; --muted:rgba(238,234,244,0.5); --muted2:rgba(238,234,244,0.28);
+
+  /* Country colors */
+  --ec:#f5c842; --es:#e05c6e; --uk:#5b9bd5; --de:#34d399;
+  --fr:#a78bfa;  --us:#fb923c; --mx:#60d394; --ar:#38bdf8;
+  --cl:#f87171;  --pt:#fcd34d; --ca:#c084fc; --br:#4ade80;
+
+  /* Area colors */
+  --tech:#7c6af7; --arts:#e05c8a; --health:#34d399;
+  --biz:#fb923c; --sci:#38bdf8; --hum:#a78bfa; --arch:#f59e42; --comm:#4ade80;
+
+  --gold:#f5c842; --teal:#34d399; --violet:#7c6af7;
+  --gradient-main:linear-gradient(135deg,#5b9bd5,#34d399);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 700px 500px at -5% 15%,rgba(91,155,213,0.07) 0%,transparent 60%),radial-gradient(ellipse 500px 400px at 105% 85%,rgba(52,211,153,0.05) 0%,transparent 60%)}
+.page{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:0 20px 80px}
+
+/* ── Header ── */
+.page-header{padding:36px 0 28px}
+.header-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(91,155,213,0.1);border:1px solid rgba(91,155,213,0.28);border-radius:100px;padding:6px 16px;margin-bottom:20px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#8ec5e8}
+.hb-dot{width:7px;height:7px;border-radius:50%;background:var(--gradient-main);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
+.page-title{font-family:'Lora',serif;font-size:clamp(26px,5.5vw,42px);font-weight:600;line-height:1.15;margin-bottom:10px}
+.page-title em{font-style:italic;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:620px;margin-bottom:8px}
+.data-note{font-size:11.5px;color:var(--muted2);font-style:italic;line-height:1.6;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.18);border-radius:10px;padding:10px 14px;max-width:680px}
+
+/* ── Destinos overview ── */
+.destinos-section{margin-bottom:28px}
+.section-title{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);opacity:0.65;margin-bottom:14px}
+.destinos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:8px}
+.destino-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all 0.2s}
+.destino-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+.destino-card.active{border-color:var(--border2);background:var(--surface2)}
+.d-flag{font-size:24px;flex-shrink:0}
+.d-info{min-width:0}
+.d-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.d-tag{font-size:10px;color:var(--muted);line-height:1.4}
+.d-pop{font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;margin-top:5px;display:inline-block}
+.pop-1{background:rgba(245,200,66,0.15);color:var(--gold);border:1px solid rgba(245,200,66,0.3)}
+.pop-2{background:rgba(52,211,153,0.12);color:var(--teal);border:1px solid rgba(52,211,153,0.25)}
+.pop-3{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border)}
+.destinos-note{font-size:11px;color:var(--muted2);font-style:italic;margin-top:6px}
+
+/* ── AI ── */
+.ai-section{background:linear-gradient(135deg,rgba(91,155,213,0.08),rgba(52,211,153,0.05));border:1px solid rgba(91,155,213,0.22);border-radius:20px;padding:24px;margin-bottom:28px;position:relative;overflow:hidden}
+.ai-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-main)}
+.ai-section-title{font-size:13px;font-weight:600;color:#8ec5e8;margin-bottom:4px}
+.ai-section-sub{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px}
+.ai-form{display:flex;gap:10px;flex-wrap:wrap}
+.ai-input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 15px;color:var(--text);font-family:'Sora',sans-serif;font-size:13.5px;outline:none;transition:border-color 0.2s}
+.ai-input:focus{border-color:rgba(91,155,213,0.5)}
+.ai-input::placeholder{color:var(--muted2)}
+.ai-btn{padding:11px 22px;background:var(--gradient-main);border:none;border-radius:11px;color:white;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.ai-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.ai-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.ai-result{margin-top:16px;padding:16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border);display:none;font-size:13.5px;color:var(--text);line-height:1.8}
+.ai-result.visible{display:block;animation:fade-up 0.3s ease}
+@keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ai-loading{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-style:italic}
+.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--muted);margin:0 2px;animation:dot-p 1.2s ease-in-out infinite}
+.ai-dots span:nth-child(2){animation-delay:0.2s}
+.ai-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes dot-p{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+/* ── Country tabs ── */
+.country-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.country-tab{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);font-size:12.5px;cursor:pointer;transition:all 0.2s;font-family:'Sora',sans-serif;font-weight:400;color:var(--muted)}
+.country-tab:hover{border-color:var(--border2);color:var(--text)}
+.country-tab.active{font-weight:600}
+.country-tab.all.active{background:rgba(255,255,255,0.08);border-color:var(--border2);color:var(--text)}
+.tab-count{font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(255,255,255,0.08)}
+
+/* Dynamic active colors */
+.country-tab.ec.active{background:rgba(245,200,66,0.1);border-color:rgba(245,200,66,0.4);color:var(--ec)}
+.country-tab.es.active{background:rgba(224,92,110,0.1);border-color:rgba(224,92,110,0.4);color:var(--es)}
+.country-tab.uk.active{background:rgba(91,155,213,0.12);border-color:rgba(91,155,213,0.4);color:var(--uk)}
+.country-tab.de.active{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.35);color:var(--de)}
+.country-tab.fr.active{background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.35);color:var(--fr)}
+.country-tab.us.active{background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.35);color:var(--us)}
+.country-tab.mx.active{background:rgba(96,211,148,0.1);border-color:rgba(96,211,148,0.35);color:var(--mx)}
+.country-tab.ar.active{background:rgba(56,189,248,0.1);border-color:rgba(56,189,248,0.35);color:var(--ar)}
+.country-tab.cl.active{background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.35);color:var(--cl)}
+.country-tab.pt.active{background:rgba(252,211,77,0.1);border-color:rgba(252,211,77,0.35);color:var(--pt)}
+.country-tab.ca.active{background:rgba(192,132,252,0.1);border-color:rgba(192,132,252,0.35);color:var(--ca)}
+
+/* ── Filters ── */
+.filter-bar{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px}
+.search-row{display:flex;gap:10px;align-items:center}
+.search-wrap{flex:1;position:relative}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:11px 14px 11px 40px;color:var(--text);font-family:'Sora',sans-serif;font-size:13.5px;outline:none;transition:border-color 0.2s}
+.search-input:focus{border-color:rgba(91,155,213,0.5)}
+.search-input::placeholder{color:var(--muted2)}
+.filter-chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.filter-chip{padding:6px 13px;border-radius:100px;border:1px solid var(--border);background:var(--surface2);font-size:12px;cursor:pointer;transition:all 0.18s;color:var(--muted);font-family:'Sora',sans-serif;white-space:nowrap}
+.filter-chip:hover{border-color:var(--border2);color:var(--text)}
+.filter-chip.active{font-weight:600}
+.filter-chip.tc.active{background:rgba(124,106,247,0.12);border-color:rgba(124,106,247,0.4);color:#a99df9}
+.filter-chip.ts.active{background:rgba(245,200,66,0.1);border-color:rgba(245,200,66,0.4);color:var(--gold)}
+.filter-chip.tp.active{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.35);color:var(--teal)}
+.filter-reset{padding:6px 14px;border-radius:100px;border:1px solid rgba(224,92,110,0.3);background:rgba(224,92,110,0.05);color:rgba(224,92,110,0.7);font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.2s;white-space:nowrap}
+.filter-reset:hover{background:rgba(224,92,110,0.1);color:#e05c6e}
+.results-info{font-size:11px;color:var(--muted2);letter-spacing:0.5px;margin-left:auto}
+
+/* ── University Cards ── */
+.unis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;margin-bottom:28px}
+.uni-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:all 0.22s;position:relative}
+.uni-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.25)}
+.uni-stripe{height:3px}
+.ec-s{background:var(--ec)} .es-s{background:var(--es)} .uk-s{background:var(--uk)}
+.de-s{background:var(--de)} .fr-s{background:var(--fr)} .us-s{background:var(--us)}
+.mx-s{background:var(--mx)} .ar-s{background:var(--ar)} .cl-s{background:var(--cl)}
+.pt-s{background:var(--pt)} .ca-s{background:var(--ca)}
+.uni-card-header{padding:17px 20px 12px}
+.uni-header-top{display:flex;align-items:flex-start;gap:12px}
+.uni-flag-wrap{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);background:var(--surface2)}
+.uni-meta{flex:1;min-width:0}
+.uni-name{font-size:14.5px;font-weight:600;line-height:1.3;margin-bottom:2px}
+.uni-location{font-size:11.5px;color:var(--muted)}
+.uni-ranking{font-size:11px;color:var(--gold);font-weight:600;margin-top:2px}
+.uni-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.uni-tag{padding:3px 9px;border-radius:100px;font-size:10.5px;font-weight:500;border:1px solid}
+.tag-tech{background:rgba(124,106,247,0.1);border-color:rgba(124,106,247,0.28);color:#a99df9}
+.tag-arts{background:rgba(224,92,138,0.1);border-color:rgba(224,92,138,0.28);color:#f09bb5}
+.tag-health{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.28);color:var(--teal)}
+.tag-biz{background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.28);color:var(--biz)}
+.tag-sci{background:rgba(56,189,248,0.1);border-color:rgba(56,189,248,0.28);color:var(--sci)}
+.tag-hum{background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.28);color:var(--hum)}
+.tag-arch{background:rgba(245,158,66,0.1);border-color:rgba(245,158,66,0.28);color:var(--arch)}
+.tag-comm{background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.28);color:var(--comm)}
+.uni-card-footer{padding:10px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border)}
+.uni-highlights{display:flex;flex-wrap:wrap;gap:5px}
+.uni-hl{padding:3px 9px;border-radius:100px;font-size:10.5px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--muted)}
+.uni-hl.schol{background:rgba(245,200,66,0.1);border-color:rgba(245,200,66,0.3);color:var(--gold)}
+.uni-hl.free{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);color:var(--teal)}
+.uni-hl.eng{background:rgba(91,155,213,0.1);border-color:rgba(91,155,213,0.3);color:var(--uk)}
+.expand-btn{width:28px;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all 0.2s;flex-shrink:0;color:var(--muted)}
+.expand-btn:hover{border-color:var(--border2);color:var(--text)}
+.expand-btn.open{transform:rotate(180deg)}
+
+/* Expanded detail */
+.uni-detail{display:none;border-top:1px solid var(--border);animation:detail-open 0.25s ease-out}
+@keyframes detail-open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.uni-detail.open{display:block}
+.detail-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
+.detail-tabs::-webkit-scrollbar{display:none}
+.d-tab{padding:11px 16px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Sora',sans-serif}
+.d-tab:hover{color:var(--text)}
+.d-tab.active{color:var(--text);border-bottom-color:var(--uk)}
+.d-pane{display:none;padding:18px 20px}
+.d-pane.active{display:block}
+.prog-list{display:flex;flex-direction:column;gap:8px}
+.prog-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+.prog-icon{font-size:16px;flex-shrink:0;padding-top:1px}
+.prog-info{flex:1}
+.prog-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.prog-detail{font-size:11.5px;color:var(--muted);line-height:1.5}
+.req-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:400px){.req-grid{grid-template-columns:1fr}}
+.req-item{background:var(--surface2);border-radius:10px;border:1px solid var(--border);padding:10px 13px}
+.req-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.req-val{font-size:13px;color:var(--text);line-height:1.4}
+.schol-list{display:flex;flex-direction:column;gap:8px}
+.schol-item{padding:12px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);border-left:3px solid var(--gold)}
+.schol-name{font-size:13px;font-weight:600;color:var(--gold);margin-bottom:4px}
+.schol-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.schol-req{font-size:11.5px;color:var(--teal);margin-top:4px}
+.verify-note{font-size:11px;color:var(--muted2);font-style:italic;margin-top:12px;line-height:1.6}
+
+/* Empty */
+.empty-state{text-align:center;padding:60px 20px;display:none}
+.empty-state.visible{display:block}
+.empty-icon{font-size:48px;margin-bottom:14px}
+.empty-title{font-family:'Lora',serif;font-size:20px;font-weight:600;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.7}
+
+/* Pagination */
+.pagination{display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap}
+.page-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Sora',sans-serif;font-size:13px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center}
+.page-btn:hover{border-color:var(--border2);color:var(--text)}
+.page-btn.active{background:rgba(91,155,213,0.15);border-color:rgba(91,155,213,0.4);color:var(--uk);font-weight:600}
+.page-btn.nav{width:auto;padding:0 14px;font-size:12px}
+
+/* ── Scholarships section ── */
+.schol-section{margin-bottom:28px}
+.schol-section-h2{font-family:'Lora',serif;font-size:22px;font-weight:600;margin-bottom:6px}
+.schol-section-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px;max-width:680px}
+.schol-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.bsc{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all 0.2s}
+.bsc:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,0.2)}
+.bsc-top{padding:18px 20px;border-bottom:1px solid var(--border)}
+.bsc-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.badge-ec{background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.3);color:var(--ec)}
+.badge-es{background:rgba(224,92,110,0.1);border:1px solid rgba(224,92,110,0.3);color:var(--es)}
+.badge-de{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--de)}
+.badge-fr{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);color:var(--fr)}
+.badge-us{background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.3);color:var(--us)}
+.badge-mx{background:rgba(96,211,148,0.1);border:1px solid rgba(96,211,148,0.3);color:var(--mx)}
+.badge-ar{background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:var(--ar)}
+.badge-int{background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.3);color:#a99df9}
+.badge-ca{background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.3);color:var(--ca)}
+.badge-pt{background:rgba(252,211,77,0.1);border:1px solid rgba(252,211,77,0.3);color:var(--pt)}
+.bsc-name{font-family:'Lora',serif;font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.3}
+.bsc-desc{font-size:13px;color:var(--muted);line-height:1.65}
+.bsc-bottom{padding:13px 20px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.sp{padding:4px 11px;border-radius:100px;font-size:11.5px;font-weight:600}
+.sp-type{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--teal)}
+.sp-elig{background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.3);color:var(--gold)}
+.sp-period{background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.3);color:var(--biz)}
+.sp-info{background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted)}
+.schol-note{font-size:11px;color:var(--muted2);margin-top:10px;line-height:1.6;font-style:italic}
+
+/* ── Nota pregrado importante ── */
+.pregrado-note{background:rgba(91,155,213,0.07);border:1px solid rgba(91,155,213,0.22);border-radius:16px;padding:20px 22px;margin-bottom:24px}
+.pregrado-note h3{font-size:14px;font-weight:600;color:#8ec5e8;margin-bottom:8px}
+.pregrado-note p{font-size:13px;color:var(--muted);line-height:1.7}
+.pregrado-note strong{color:var(--text)}
+
+@media(max-width:500px){
+  .uni-card-header{padding:14px 16px 10px}
+  .uni-card-footer{padding:9px 16px 12px}
+  .d-pane{padding:14px 16px}
+  .destinos-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+
+<script>
+// Pre-load name from shared profile
+(function(){
+  try {
+    var p = JSON.parse(localStorage.getItem('om:profile') || localStorage.getItem('orientame:dashboard:profile') || localStorage.getItem('orientame:leo:profile') || '{}');
+    if (p.name) {
+      // Pre-fill any name inputs
+      document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('#playerName, #su-name, #setup-name, #wm-name, [placeholder*="nombre"], [placeholder*="llamas"]');
+        inputs.forEach(function(el){ if(!el.value) el.value = p.name; });
+        // Also hide setup screens if name exists
+        var setups = document.querySelectorAll('#setup-screen, #setup-overlay, #welcome-overlay');
+        setups.forEach(function(el){ if(el) el.classList.add('hidden'); });
+      });
+    }
+  } catch(e) {}
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:14px;left:14px;z-index:9999">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.15);background:rgba(9,12,22,0.85);backdrop-filter:blur(8px);color:rgba(238,234,244,0.7);font-family:Sora,sans-serif;font-size:12px;text-decoration:none;cursor:pointer;transition:all 0.2s">← Inicio</a>
+</div>
+
+<div class="page">
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="header-badge"><div class="hb-dot"></div>Oriéntame · Módulo 5</div>
+  <h1 class="page-title">Universidades y becas<br><em>para tu pregrado</em></h1>
+  <p class="page-sub">Los principales destinos donde estudiantes ecuatorianos y latinoamericanos van a estudiar su carrera universitaria — con requisitos de admisión reales y becas de pregrado disponibles.</p>
+  <div class="data-note">⚠️ Los datos de admisión y becas cambian cada año. Usa esta guía como punto de partida y <strong>siempre verifica en el sitio oficial de cada institución</strong> antes de aplicar. No incluimos costos exactos porque varían: consúltalos directamente.</div>
+</div>
+
+<!-- DESTINOS TOP -->
+<div class="destinos-section">
+  <div class="section-title">¿A dónde van más los latinoamericanos a estudiar? — Datos 2024–2025</div>
+  <div class="destinos-grid">
+    <div class="destino-card" onclick="setCountry('es',document.querySelector('.country-tab.es'))">
+      <div class="d-flag">🇪🇸</div>
+      <div class="d-info"><div class="d-name">España</div><div class="d-tag">Sin barrera de idioma · universidades públicas accesibles</div><div class="d-pop pop-1">⭐ #1 más popular</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('us',document.querySelector('.country-tab.us'))">
+      <div class="d-flag">🇺🇸</div>
+      <div class="d-info"><div class="d-name">Estados Unidos</div><div class="d-tag">Mayor oferta académica del mundo · inglés</div><div class="d-pop pop-1">⭐ #2 más popular</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('ar',document.querySelector('.country-tab.ar'))">
+      <div class="d-flag">🇦🇷</div>
+      <div class="d-info"><div class="d-name">Argentina</div><div class="d-tag">UBA gratuita · Buenos Aires #1 ciudad LatAm</div><div class="d-pop pop-1">⭐ #3 más popular</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('mx',document.querySelector('.country-tab.mx'))">
+      <div class="d-flag">🇲🇽</div>
+      <div class="d-info"><div class="d-name">México</div><div class="d-tag">UNAM top mundial · costo de vida bajo</div><div class="d-pop pop-2">#4 más popular</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('cl',document.querySelector('.country-tab.cl'))">
+      <div class="d-flag">🇨🇱</div>
+      <div class="d-info"><div class="d-name">Chile</div><div class="d-tag">Santiago #2 ciudad LatAm · gratuidad posible</div><div class="d-pop pop-2">#5 más popular</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('de',document.querySelector('.country-tab.de'))">
+      <div class="d-flag">🇩🇪</div>
+      <div class="d-info"><div class="d-name">Alemania</div><div class="d-tag">Universidades públicas gratuitas · en inglés disponible</div><div class="d-pop pop-2">#6 creciendo fuerte</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('uk',document.querySelector('.country-tab.uk'))">
+      <div class="d-flag">🇬🇧</div>
+      <div class="d-info"><div class="d-name">Reino Unido</div><div class="d-tag">Top universidades del mundo · 3 años pregrado</div><div class="d-pop pop-3">#7 prestigio</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('ca',document.querySelector('.country-tab.ca'))">
+      <div class="d-flag">🇨🇦</div>
+      <div class="d-info"><div class="d-name">Canadá</div><div class="d-tag">Bilingüe · políticas favorables a migrantes</div><div class="d-pop pop-3">#8 en crecimiento</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('fr',document.querySelector('.country-tab.fr'))">
+      <div class="d-flag">🇫🇷</div>
+      <div class="d-info"><div class="d-name">Francia</div><div class="d-tag">Universidades casi gratuitas · arte y diseño top</div><div class="d-pop pop-3">#9 para perfil artístico</div></div>
+    </div>
+    <div class="destino-card" onclick="setCountry('pt',document.querySelector('.country-tab.pt'))">
+      <div class="d-flag">🇵🇹</div>
+      <div class="d-info"><div class="d-name">Portugal</div><div class="d-tag">Lisboa en auge · idioma cercano al español</div><div class="d-pop pop-3">#10 emergente Europa</div></div>
+    </div>
+  </div>
+  <div class="destinos-note">Fuente: QS World University Rankings, hotcourses Latinoamérica, datos SENESCYT 2024. Rankings reflejan preferencias de estudiantes hispanohablantes.</div>
+</div>
+
+<!-- AI RECOMMENDER -->
+<div class="ai-section">
+  <div class="ai-section-title">🤖 Recomendador con IA</div>
+  <div class="ai-section-sub">Cuéntame qué quieres estudiar y dónde, y te digo qué universidades encajan mejor con tu perfil y qué becas de pregrado podrías explorar.</div>
+  <div class="ai-form">
+    <input type="text" class="ai-input" id="ai-query" placeholder="Ej: quiero estudiar cine, tengo 17 años, Ecuador, me interesa España o Argentina, inglés B1..." maxlength="300">
+    <button class="ai-btn" id="ai-btn" onclick="getAIReco()">Recomendar →</button>
+  </div>
+  <div class="ai-result" id="ai-result"></div>
+</div>
+
+<!-- PREGRADO NOTE -->
+<div class="pregrado-note">
+  <h3>📌 Importante: becas de pregrado vs. posgrado</h3>
+  <p>La mayoría de las becas internacionales más conocidas (Chevening UK, DAAD completo, Fulbright, MAEC-AECID, Erasmus Mundus) son <strong>exclusivamente para posgrado (maestrías y doctorados)</strong>. Para pregrado, las mejores opciones son las <strong>universidades públicas gratuitas</strong> (Alemania, Francia, Argentina, México) y las <strong>becas institucionales por mérito</strong> de cada universidad. Esta guía se enfoca en ambas. Consulta siempre los sitios oficiales para requisitos actualizados.</p>
+</div>
+
+<!-- COUNTRY TABS -->
+<div class="country-tabs" id="country-tabs">
+  <button class="country-tab all active" onclick="setCountry('all',this)">🌎 Todas <span class="tab-count" id="cnt-all">—</span></button>
+  <button class="country-tab ec" onclick="setCountry('ec',this)">🇪🇨 Ecuador <span class="tab-count" id="cnt-ec">—</span></button>
+  <button class="country-tab es" onclick="setCountry('es',this)">🇪🇸 España <span class="tab-count" id="cnt-es">—</span></button>
+  <button class="country-tab de" onclick="setCountry('de',this)">🇩🇪 Alemania <span class="tab-count" id="cnt-de">—</span></button>
+  <button class="country-tab fr" onclick="setCountry('fr',this)">🇫🇷 Francia <span class="tab-count" id="cnt-fr">—</span></button>
+  <button class="country-tab uk" onclick="setCountry('uk',this)">🇬🇧 UK <span class="tab-count" id="cnt-uk">—</span></button>
+  <button class="country-tab us" onclick="setCountry('us',this)">🇺🇸 EE.UU. <span class="tab-count" id="cnt-us">—</span></button>
+  <button class="country-tab mx" onclick="setCountry('mx',this)">🇲🇽 México <span class="tab-count" id="cnt-mx">—</span></button>
+  <button class="country-tab ar" onclick="setCountry('ar',this)">🇦🇷 Argentina <span class="tab-count" id="cnt-ar">—</span></button>
+  <button class="country-tab cl" onclick="setCountry('cl',this)">🇨🇱 Chile <span class="tab-count" id="cnt-cl">—</span></button>
+  <button class="country-tab ca" onclick="setCountry('ca',this)">🇨🇦 Canadá <span class="tab-count" id="cnt-ca">—</span></button>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="search-row">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="search-input" placeholder="Buscar universidad, ciudad o carrera..." oninput="debouncedSearch(this.value)"></div>
+    <button class="filter-reset" onclick="resetFilters()">✕ Limpiar</button>
+  </div>
+  <div class="filter-chips">
+    <span style="font-size:11px;color:var(--muted);align-self:center;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-right:2px">Área:</span>
+    <span class="filter-chip tc" data-val="tech"   onclick="toggleFilter('career','tech',this)">💻 Tech</span>
+    <span class="filter-chip tc" data-val="arts"   onclick="toggleFilter('career','arts',this)">🎨 Arte y Diseño</span>
+    <span class="filter-chip tc" data-val="health" onclick="toggleFilter('career','health',this)">🏥 Salud</span>
+    <span class="filter-chip tc" data-val="biz"    onclick="toggleFilter('career','biz',this)">💼 Negocios</span>
+    <span class="filter-chip tc" data-val="sci"    onclick="toggleFilter('career','sci',this)">🔬 Ciencias</span>
+    <span class="filter-chip tc" data-val="hum"    onclick="toggleFilter('career','hum',this)">📚 Humanidades</span>
+    <span class="filter-chip tc" data-val="arch"   onclick="toggleFilter('career','arch',this)">🏛️ Arquitectura</span>
+    <span class="filter-chip tc" data-val="comm"   onclick="toggleFilter('career','comm',this)">🎬 Comunicación</span>
+  </div>
+  <div class="filter-chips">
+    <span style="font-size:11px;color:var(--muted);align-self:center;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-right:2px">Filtros:</span>
+    <span class="filter-chip ts" data-val="schol"   onclick="toggleFilter('special','schol',this)">🎓 Con becas específicas</span>
+    <span class="filter-chip tp" data-val="free"    onclick="toggleFilter('special','free',this)">💚 Gratuita / pública</span>
+    <span class="filter-chip tp" data-val="english" onclick="toggleFilter('special','english',this)">🇬🇧 Programas en inglés</span>
+    <span class="filter-chip tp" data-val="spanish" onclick="toggleFilter('special','spanish',this)">🇪🇸 En español</span>
+    <span class="results-info" id="results-info"></span>
+  </div>
+</div>
+
+<!-- GRID -->
+<div class="unis-grid" id="unis-grid"></div>
+<div class="empty-state" id="empty-state">
+  <div class="empty-icon">🔍</div>
+  <div class="empty-title">Sin resultados</div>
+  <div class="empty-sub">No encontramos universidades con esos filtros.<br>Prueba ajustando la búsqueda o limpia los filtros.</div>
+</div>
+<div class="pagination" id="pagination"></div>
+
+<!-- SCHOLARSHIPS -->
+<div class="schol-section" id="schol-section">
+  <h2 class="schol-section-h2">🎓 Becas de pregrado para latinoamericanos</h2>
+  <p class="schol-section-sub">Estas son las principales opciones de financiamiento para estudios de pregrado (licenciatura/grado) disponibles para ecuatorianos y latinoamericanos en 2025–2026. Los requisitos exactos y fechas de convocatoria cambian cada año — consulta siempre el sitio oficial.</p>
+  <div class="schol-cards" id="schol-cards"></div>
+  <p class="schol-note">⚠️ Verifica convocatorias activas directamente en los portales oficiales de cada organización. Las fechas de cierre son estrictas — prepara tus documentos con anticipación.</p>
+</div>
+
+</div>
+<script>
+'use strict';
+
+/* ══════════════════════════════════════
+   DATABASE
+══════════════════════════════════════ */
+const UNIS = [
+  /* ── ECUADOR ── */
+  {id:'espol',country:'ec',flag:'🇪🇨',name:'ESPOL',fullName:'Escuela Superior Politécnica del Litoral',location:'Guayaquil, Ecuador',ranking:'Top 5 Ecuador · QS Latin America',areas:['tech','sci','biz'],free:true,scholarship:true,english:false,spanish:true,tags:[{k:'tech',l:'Tecnología'},{k:'sci',l:'Ciencias'},{k:'biz',l:'Negocios'}],highlights:['free','schol'],
+    programs:[{i:'💻',n:'Ing. Ciencias de la Computación',d:'4–5 años · foco en IA, datos y software'},{i:'📊',n:'Ing. Estadística Informática',d:'4 años · análisis de datos y analítica'},{i:'⚙️',n:'Ing. Civil y Ambiental',d:'5 años · sostenibilidad e infraestructura'},{i:'💼',n:'Administración de Empresas (ESPAE)',d:'4 años · escola de negocios reconocida en LatAm'}],
+    reqs:[{l:'Acceso',v:'Puntaje ENES (SENESCYT) — varía por carrera'},{l:'Gratuidad',v:'Universidad pública gratuita para ecuatorianos'},{l:'Inglés',v:'Recomendado nivel B1 para carreras técnicas'},{l:'Documentos',v:'Cédula, partida de nacimiento, bachillerato, ENES'}],
+    schols:[{n:'Beca de Excelencia ESPOL',d:'Para estudiantes con puntajes sobresalientes en ENES',r:'Puntaje ENES destacado · promedio académico alto'},{n:'SENESCYT — Educación Superior Gratuita',d:'Matrícula y aranceles gratuitos para ecuatorianos',r:'Ser ciudadano ecuatoriano · cumplir puntaje ENES'}]},
+
+  {id:'puce',country:'ec',flag:'🇪🇨',name:'PUCE',fullName:'Pontificia Universidad Católica del Ecuador',location:'Quito, Ecuador',ranking:'Top 3 Ecuador',areas:['arch','arts','health','hum','biz'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'arch',l:'Arquitectura'},{k:'arts',l:'Arte'},{k:'health',l:'Salud'}],highlights:['schol'],
+    programs:[{i:'🏛️',n:'Arquitectura y Diseño',d:'5 años · muy reconocida en Ecuador'},{i:'🎨',n:'Diseño Gráfico y Comunicación Visual',d:'4 años · portafolio en admisión'},{i:'🏥',n:'Medicina',d:'6 años · alta demanda'},{i:'📢',n:'Comunicación Social',d:'4 años · periodismo digital'}],
+    reqs:[{l:'Acceso',v:'Puntaje SENESCYT + entrevista para algunas carreras'},{l:'Portafolio',v:'Requerido para Diseño y Arquitectura'},{l:'Documentos',v:'Cédula, bachillerato, ENES, fotos'},{l:'Entrevista',v:'Algunas carreras requieren entrevista personal'}],
+    schols:[{n:'Beca Socioeconómica PUCE',d:'Para estudiantes con situación económica comprobada',r:'Declaración de ingresos familiares · promedio mínimo'},{n:'Beca Académica PUCE',d:'Para bachilleres con promedio sobresaliente',r:'Promedio de bachillerato mínimo 9/10 · documentar excelencia'}]},
+
+  {id:'usfq',country:'ec',flag:'🇪🇨',name:'USFQ',fullName:'Universidad San Francisco de Quito',location:'Quito, Ecuador',ranking:'#1 Ecuador en rankings internacionales',areas:['tech','arts','arch','comm','biz','sci'],free:false,scholarship:true,english:true,spanish:true,tags:[{k:'tech',l:'Tecnología'},{k:'arts',l:'Arte'},{k:'comm',l:'Comunicación'}],highlights:['schol','eng'],
+    programs:[{i:'💻',n:'Ingeniería en Sistemas y Computación',d:'4 años · énfasis en IA, datos y ciberseguridad'},{i:'🎬',n:'Cine y TV',d:'4 años · campus con estudios de grabación propios'},{i:'🏛️',n:'Arquitectura e Interiores',d:'5 años · enfoque contemporáneo y sostenible'},{i:'🎵',n:'Artes Escénicas y Música',d:'4 años · alta calidad artística'}],
+    reqs:[{l:'Acceso',v:'Puntaje SENESCYT · proceso de admisión propio'},{l:'Inglés',v:'B2 recomendado — algunos programas dictados en inglés'},{l:'Portafolio',v:'Arte, Diseño y Arquitectura requieren portafolio'},{l:'SAT/AP',v:'No obligatorio pero fortalece la candidatura'}],
+    schols:[{n:'Beca Merit USFQ',d:'Para bachilleres con excelencia académica comprobada',r:'Promedio mínimo 9/10 · carta de recomendación · entrevista'},{n:'Beca Ayuda Económica USFQ',d:'Para estudiantes con necesidad económica demostrada',r:'Declaración socioeconómica · promedio mínimo 8/10'}]},
+
+  {id:'udla',country:'ec',flag:'🇪🇨',name:'UDLA',fullName:'Universidad de Las Américas',location:'Quito, Ecuador',ranking:'Reconocida por diseño y comunicación',areas:['arts','comm','tech','biz'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'arts',l:'Arte y Diseño'},{k:'comm',l:'Comunicación'},{k:'tech',l:'Tech'}],highlights:['schol'],
+    programs:[{i:'🎨',n:'Diseño Interactivo y de Experiencias',d:'4 años · UX/UI y producción digital'},{i:'🎬',n:'Producción Audiovisual y Multimedia',d:'4 años · estudios de cine propios'},{i:'📢',n:'Comunicación Digital y Redes',d:'4 años · marketing digital integrado'}],
+    reqs:[{l:'Acceso',v:'Puntaje SENESCYT + proceso propio de admisión'},{l:'Portafolio',v:'Diseño y Audiovisual piden portafolio básico'},{l:'Documentos',v:'Cédula, bachillerato, ENES, fotos recientes'}],
+    schols:[{n:'Beca por Mérito UDLA',d:'Para estudiantes con excelencia académica',r:'Promedio bachillerato · puntaje ENES · entrevista'}]},
+
+  {id:'epn',country:'ec',flag:'🇪🇨',name:'EPN',fullName:'Escuela Politécnica Nacional',location:'Quito, Ecuador',ranking:'Top en ingeniería Ecuador',areas:['tech','sci'],free:true,scholarship:true,english:false,spanish:true,tags:[{k:'tech',l:'Ingeniería'},{k:'sci',l:'Ciencias'}],highlights:['free'],
+    programs:[{i:'⚙️',n:'Ingeniería en Sistemas Informáticos',d:'4.5 años · pública de alta demanda'},{i:'⚡',n:'Ingeniería Eléctrica y Electrónica',d:'5 años · énfasis energías renovables'},{i:'🧪',n:'Ingeniería en Ciencias Matemáticas',d:'4 años · base para ciencia de datos'}],
+    reqs:[{l:'ENES',v:'Puntaje competitivo — alta demanda, puntajes altos'},{l:'Gratuidad',v:'Educación pública gratuita para ecuatorianos'},{l:'Exigencia',v:'Alta carga académica — matemáticas intensivas'}],
+    schols:[{n:'Beca SENESCYT',d:'Complemento económico para estudiantes calificados',r:'Ser ciudadano ecuatoriano · cumplir criterios SENESCYT'}]},
+
+  /* ── ESPAÑA ── */
+  {id:'upm',country:'es',flag:'🇪🇸',name:'UPM – ETSAM',fullName:'Escuela Técnica Superior de Arquitectura de Madrid',location:'Madrid, España',ranking:'Top 50 mundial en Arquitectura (QS 2024)',areas:['arch'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'arch',l:'Arquitectura'}],highlights:['schol'],
+    programs:[{i:'🏛️',n:'Grado en Fundamentos de Arquitectura',d:'5 años + 1 Habilitación Profesional · acreditado Europa'},{i:'🌆',n:'Grado en Urbanismo',d:'4 años · diseño urbano y planificación territorial'}],
+    reqs:[{l:'Acceso extranjeros',v:'Credencial académica reconocida + prueba de nivel (PBAU)'},{l:'Español',v:'C1 mínimo — toda la enseñanza en español'},{l:'Homologación',v:'Título de bachillerato debe homologarse en España'},{l:'Portafolio',v:'No requerido en admisión general'}],
+    schols:[{n:'Beca MAEC-AECID (España)',d:'Para latinoamericanos — principalmente posgrado, algunos grados',r:'Expediente excelente · carta motivación · convocatoria feb–abril'},{n:'Beca Santander Universidades',d:'Estancias y programas para estudiantes iberoamericanos',r:'Matriculado en universidad convenio · promedio alto · verifcar convocatoria'}]},
+
+  {id:'ied_madrid',country:'es',flag:'🇪🇸',name:'IED Madrid',fullName:'Istituto Europeo di Design — Madrid',location:'Madrid, España',ranking:'Top escuela diseño Europa',areas:['arts','comm','tech'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'arts',l:'Arte y Diseño'},{k:'tech',l:'Tech Creativo'},{k:'comm',l:'Comunicación'}],highlights:['schol'],
+    programs:[{i:'🖥️',n:'Grado en Diseño UX/UI',d:'4 años · muy valorado en empresas tech europeas'},{i:'🎨',n:'Grado en Diseño Gráfico',d:'4 años · branding, identidad y comunicación visual'},{i:'📱',n:'Grado en Motion Design y Animación',d:'4 años · postproducción y efectos visuales'}],
+    reqs:[{l:'Portafolio',v:'Obligatorio — muestra de trabajo creativo propio'},{l:'Español',v:'B2 mínimo para todos los programas'},{l:'Homologación',v:'Bachillerato homologado en España'},{l:'Entrevista',v:'Entrevista de admisión presencial o virtual'}],
+    schols:[{n:'Beca IED Excellence',d:'Para talento creativo sobresaliente — reducción de matrícula',r:'Portafolio excepcional · entrevista · carta de motivación'},{n:'Beca AECID España',d:'Para ciudadanos latinoamericanos con méritos académicos',r:'Expediente académico · proyecto personal · convocatoria anual'}]},
+
+  {id:'ucm',country:'es',flag:'🇪🇸',name:'UCM',fullName:'Universidad Complutense de Madrid',location:'Madrid, España',ranking:'Top 200 mundial (QS 2024)',areas:['health','sci','hum','comm','biz'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'health',l:'Salud'},{k:'sci',l:'Ciencias'},{k:'hum',l:'Humanidades'}],highlights:['schol'],
+    programs:[{i:'🏥',n:'Grado en Medicina',d:'6 años · muy selectiva — notas muy altas'},{i:'⚖️',n:'Grado en Derecho',d:'4 años · referente nacional español'},{i:'📢',n:'Grado en Comunicación Audiovisual',d:'4 años · producción, periodismo y digital'},{i:'🧬',n:'Grado en Biología',d:'4 años · fuerte en investigación'}],
+    reqs:[{l:'Acceso extranjeros',v:'Credencial académica + PBAU (prueba de acceso para extranjeros)'},{l:'Español',v:'C1 — prueba DELE para no hispanohablantes nativos'},{l:'Homologación',v:'Título bachillerato reconocido por España'},{l:'Nota de corte',v:'Medicina y Derecho tienen notas de corte muy altas'}],
+    schols:[{n:'Beca UCM para países en desarrollo',d:'Convocatoria específica para latinoamericanos con necesidad económica',r:'Solicitud antes de matrícula · declaración económica · excelencia académica'},{n:'Beca MAEC-AECID',d:'Principal beca gobierno español para Latam',r:'Convocatoria feb–abril cada año · expediente excelente · carta motivación'}]},
+
+  {id:'upf',country:'es',flag:'🇪🇸',name:'UPF',fullName:'Universitat Pompeu Fabra',location:'Barcelona, España',ranking:'Top 200 Europa',areas:['tech','comm','biz','sci'],free:false,scholarship:true,english:true,spanish:true,tags:[{k:'tech',l:'Tecnología'},{k:'comm',l:'Comunicación'},{k:'biz',l:'Negocios'}],highlights:['schol','eng'],
+    programs:[{i:'💻',n:'Grado en Ingeniería Informática',d:'4 años · bilingüe · muy valorada en tech europea'},{i:'📊',n:'Grado en Economía',d:'4 años · algunos programas en inglés'},{i:'🎬',n:'Grado en Comunicación Audiovisual',d:'4 años · producción y medios digitales'}],
+    reqs:[{l:'Acceso',v:'EBAU o credencial extranjera reconocida'},{l:'Idioma',v:'Español B2 + catalán básico · algunos programas en inglés'},{l:'PBAU',v:'Prueba de acceso para estudiantes no españoles'}],
+    schols:[{n:'Becas UPF para internacionales',d:'Reducción parcial para estudiantes con mérito académico',r:'Expediente académico · motivación · postular antes de matrícula'},{n:'Beca AECID España',d:'Para latinoamericanos con excelencia académica',r:'Convocatoria anual · requisitos AECID · verifcar fechas'}]},
+
+  {id:'usal',country:'es',flag:'🇪🇸',name:'USAL',fullName:'Universidad de Salamanca',location:'Salamanca, España',ranking:'Universidad más antigua de España — fundada 1218',areas:['hum','health','sci','biz'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'hum',l:'Humanidades'},{k:'health',l:'Salud'},{k:'sci',l:'Ciencias'}],highlights:['schol'],
+    programs:[{i:'📚',n:'Grado en Filosofía',d:'4 años · referente histórico mundial'},{i:'🧪',n:'Grado en Química',d:'4 años · fuerte en investigación'},{i:'🏥',n:'Grado en Psicología',d:'4 años · acceso a posgrados europeos'}],
+    reqs:[{l:'Acceso',v:'Equivalencia de bachillerato + PBAU para extranjeros'},{l:'Español',v:'C1 — ofrecen cursos de español propios muy recomendados'},{l:'Cuota extra-UE',v:'Los no europeos pagan cuota diferenciada — verificar web'}],
+    schols:[{n:'Becas USAL para Iberoamérica',d:'Convocatoria específica con descuento en matrícula para latinoamericanos',r:'Solicitud previa a matrícula · expediente académico · carta motivación'}]},
+
+  /* ── ALEMANIA ── */
+  {id:'tum',country:'de',flag:'🇩🇪',name:'TUM',fullName:'Technische Universität München',location:'Múnich, Alemania',ranking:'Top 50 mundial (QS 2024)',areas:['tech','sci','biz'],free:true,scholarship:true,english:true,spanish:false,tags:[{k:'tech',l:'Ingeniería'},{k:'sci',l:'Ciencias'},{k:'biz',l:'Negocios'}],highlights:['free','eng','schol'],
+    programs:[{i:'💻',n:'B.Sc. Computer Science',d:'3 años · en inglés · fuerte en IA y sistemas'},{i:'⚙️',n:'B.Sc. Engineering (varios)',d:'3–4 años · ing. mecánica, eléctrica, industrial'},{i:'🧬',n:'B.Sc. Bioinformatics',d:'3 años · biología + computación'}],
+    reqs:[{l:'Idioma',v:'Inglés C1 para programas en inglés · alemán B2/C1 para programas en alemán'},{l:'Bachillerato',v:'Apostillado + traducción · debe ser equivalente a Abitur alemán'},{l:'TestAS',v:'Examen aptitud académica para extranjeros — muy recomendado'},{l:'APS',v:'Certificado académico para algunos países · no Ecuador habitualmente'},{l:'Studienkolleg',v:'Posible año preparatorio si el bachillerato no es equivalente directo'}],
+    schols:[{n:'DAAD — Cursos de Verano/Invierno (pregrado)',d:'Estancias cortas en Alemania para pregrado · no financia grado completo',r:'Ya estar matriculado en universidad en Ecuador · alemán B1 · excelencia'},{n:'DAAD VORsprung (preparación pregrado STEM)',d:'Preparación online gratuita antes de iniciar pregrado en Alemania',r:'Interés en áreas STEM · alemán B1.2 · disponibilidad 6–8 meses'},{n:'Deutschlandstipendium',d:'Beca alemana nacional para estudiantes en universidades alemanas',r:'Matriculado en uni alemana · rendimiento académico alto · solicitar en la uni'}]},
+
+  {id:'lmu',country:'de',flag:'🇩🇪',name:'LMU Munich',fullName:'Ludwig-Maximilians-Universität München',location:'Múnich, Alemania',ranking:'Top 60 mundial (QS 2024)',areas:['hum','sci','health','biz'],free:true,scholarship:true,english:true,spanish:false,tags:[{k:'hum',l:'Humanidades'},{k:'sci',l:'Ciencias'},{k:'health',l:'Medicina'}],highlights:['free','eng'],
+    programs:[{i:'📚',n:'BA Philosophy (en inglés)',d:'3 años · programa internacional muy reconocido'},{i:'🏥',n:'Medicina (Medizin)',d:'6 años · en alemán · sistema de cupos limitado'},{i:'🧪',n:'B.Sc. Biology/Chemistry',d:'3 años · investigación de alta calidad'}],
+    reqs:[{l:'Idioma',v:'Alemán C1 para la mayoría · inglés C1 para programas internacionales'},{l:'Bachillerato',v:'Equivalente al Abitur alemán · apostillado y traducido'},{l:'NC (Numerus Clausus)',v:'Para Medicina y algunas carreras — nota corte muy alta'},{l:'Studienkolleg',v:'Puede requerirse año preparatorio según bachillerato'}],
+    schols:[{n:'Universidades alemanas gratuitas (matrícula)',d:'La educación en universidades públicas alemanas no tiene matrícula para ninguna nacionalidad',r:'Solo se paga Semesterbeitrag (~$300–400 semestral) para transporte y servicios'},{n:'DAAD Cursos de idioma + cultura',d:'Para estudiantes pregrado de Ecuador/LatAm — estancias cortas',r:'Matriculado en universidad ecuatoriana · alemán B1 · excelencia académica'}]},
+
+  {id:'tu_berlin',country:'de',flag:'🇩🇪',name:'TU Berlin',fullName:'Technische Universität Berlin',location:'Berlín, Alemania',ranking:'Top 150 mundial en ingeniería',areas:['tech','sci','arch'],free:true,scholarship:false,english:true,spanish:false,tags:[{k:'tech',l:'Ingeniería'},{k:'arch',l:'Arquitectura'},{k:'sci',l:'Ciencias'}],highlights:['free','eng'],
+    programs:[{i:'💻',n:'B.Sc. Computer Engineering',d:'3 años · en inglés · fuerte en sistemas embebidos e IA'},{i:'🏛️',n:'Arquitectura (en alemán)',d:'4 años · diseño arquitectónico y tecnológico'},{i:'⚡',n:'B.Sc. Electrical Engineering',d:'3 años · energías, electrónica y telecomunicaciones'}],
+    reqs:[{l:'Idioma',v:'Inglés C1 para CS · alemán C1 para arquitectura y otros'},{l:'TestAS',v:'Muy recomendado para estudiantes latinoamericanos'},{l:'Bachillerato',v:'Apostillado · puede requerirse Studienkolleg'},{l:'Portfolio',v:'Arquitectura pide portafolio y prueba de aptitud artística'}],
+    schols:[]},
+
+  /* ── FRANCIA ── */
+  {id:'sorbonne',country:'fr',flag:'🇫🇷',name:'Sorbonne Université',fullName:'Sorbonne Université — Paris',location:'París, Francia',ranking:'Top 100 mundial (QS 2024)',areas:['hum','sci','health'],free:true,scholarship:true,english:false,spanish:false,tags:[{k:'hum',l:'Humanidades'},{k:'sci',l:'Ciencias'},{k:'health',l:'Medicina'}],highlights:['free','schol'],
+    programs:[{i:'📚',n:'Licence en Lettres / Philosophie / Histoire',d:'3 años · en francés · referente mundial en humanidades'},{i:'🧪',n:'Licence en Sciences',d:'3 años · biología, química, física — alto nivel'},{i:'🏥',n:'Médecine (PASS)',d:'6+ años · acceso muy selectivo vía PASS/LAS'}],
+    reqs:[{l:'Idioma',v:'Francés B2 mínimo — muchos programas requieren C1 · muy importante'},{l:'Parcoursup',v:'Plataforma de admisión francesa — proceso competitivo'},{l:'Campus France',v:'Proceso obligatorio para no-europeos — verificar en Campus France Ecuador'},{l:'Bachillerato',v:'Homologado en Francia + traducción oficial al francés'}],
+    schols:[{n:'Beca Eiffel Excellence (Francia)',d:'Para estudiantes internacionales de alto nivel — incluye algunos grados',r:'Expediente excelente · propuesta de estudios sólida · proceso anual'},{n:'Universidades públicas francesas sin matrícula',d:'Los estudiantes internacionales pagan la misma tasa nominal que los franceses (~€170/año)',r:'Inscripción vía Campus France · cumplir requisitos lingüísticos · visa estudiantil'}]},
+
+  {id:'sciences_po',country:'fr',flag:'🇫🇷',name:'Sciences Po Paris',fullName:'Institut d\'Études Politiques de Paris',location:'París, Francia',ranking:'Top mundial en Ciencias Políticas y RRII',areas:['hum','biz'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'hum',l:'RRII / Políticas'},{k:'biz',l:'Economía'}],highlights:['schol','eng'],
+    programs:[{i:'🌐',n:'B.A. International Affairs',d:'3 años · en inglés + francés · campus internacionales disponibles'},{i:'📊',n:'B.A. Economics and Society',d:'3 años · economía con foco social'}],
+    reqs:[{l:'Idioma',v:'Inglés C1 + francés básico (A2) para programas internacionales'},{l:'Entrevista',v:'Entrevista de admisión obligatoria'},{l:'Bachillerato',v:'Notas muy altas — proceso muy selectivo'},{l:'Ensayo',v:'Personal statement y ensayo académico en inglés'}],
+    schols:[{n:'Sciences Po Bourse d\'Excellence Internationale',d:'Para talentos excepcionales de países en desarrollo',r:'Proceso admisión Sciences Po · carta motivación · excelencia académica'},{n:'Beca Eiffel',d:'Gobierno francés para internacionales de alto nivel',r:'Candidatura vía institución francesa · proceso enero–febrero cada año'}]},
+
+  {id:'ied_paris',country:'fr',flag:'🇫🇷',name:'ESAD París',fullName:'École Supérieure des Arts Décoratifs (ENSAD)',location:'París, Francia',ranking:'Top escuela artes aplicadas Europa',areas:['arts'],free:true,scholarship:false,english:false,spanish:false,tags:[{k:'arts',l:'Artes y Diseño'}],highlights:['free'],
+    programs:[{i:'🎨',n:'Grado en Artes Decorativas (Diseño)',d:'5 años · diseño gráfico, moda, producto, espacios'},{i:'🖼️',n:'Grado en Artes Plásticas',d:'5 años · arte contemporáneo'}],
+    reqs:[{l:'Francés',v:'C1 obligatorio — enseñanza 100% en francés'},{l:'Concurso entrada',v:'Prueba artística muy selectiva + portafolio + entrevista'},{l:'Edad',v:'Sin límite pero competencia alta con candidatos jóvenes'},{l:'Campus France',v:'Proceso previo obligatorio para latinoamericanos'}],
+    schols:[]},
+
+  /* ── REINO UNIDO ── */
+  {id:'ual',country:'uk',flag:'🇬🇧',name:'UAL',fullName:'University of the Arts London',location:'Londres, Reino Unido',ranking:'Top 2 mundial Arte y Diseño (QS 2024)',areas:['arts','comm','tech'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'arts',l:'Arte y Diseño'},{k:'comm',l:'Comunicación'},{k:'tech',l:'Creative Tech'}],highlights:['schol','eng'],
+    programs:[{i:'🖥️',n:'BA Creative Computing',d:'3 años · arte + programación + IA — único en mundo'},{i:'🎬',n:'BA Film Practice',d:'3 años · producción y dirección cinematográfica'},{i:'🎨',n:'BA Graphic Communication Design',d:'3 años · diseño visual y comunicación'}],
+    reqs:[{l:'IELTS',v:'6.0–6.5 mínimo según programa'},{l:'Portafolio',v:'Obligatorio y muy importante para admisión'},{l:'UCAS',v:'Aplicación vía UCAS con personal statement'},{l:'Bachillerato',v:'Equivalente a A-Levels · notas altas necesarias'}],
+    schols:[{n:'UAL International Scholarships',d:'Para estudiantes internacionales de pregrado y posgrado',r:'Aplicación separada · expediente académico · portafolio de alto nivel'},{n:'Chevening Scholarship',d:'Para posgrado — no pregrado · pero útil para planificar futuro',r:'Para líderes emergentes de países en desarrollo · proceso agosto–noviembre'}]},
+
+  {id:'ucl_bartlett',country:'uk',flag:'🇬🇧',name:'UCL — Bartlett',fullName:'The Bartlett School of Architecture',location:'Londres, Reino Unido',ranking:'Top 1 mundial en Arquitectura (QS 2024)',areas:['arch','tech'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'arch',l:'Arquitectura'},{k:'tech',l:'Tecnología'}],highlights:['schol','eng'],
+    programs:[{i:'🏛️',n:'B.Arch Architecture (Part 1)',d:'3 años · primer paso hacia acreditación ARB/RIBA'},{i:'🌆',n:'BSc Urban Planning',d:'3 años · planificación urbana y sostenibilidad'}],
+    reqs:[{l:'IELTS',v:'7.0 mínimo'},{l:'Portafolio',v:'Portafolio excelente obligatorio — proceso muy selectivo'},{l:'UCAS',v:'Vía UCAS · ~10% tasa de aceptación'},{l:'A-Levels equiv.',v:'Notas muy altas en bachillerato — matemáticas o arte según programa'}],
+    schols:[{n:'UCL Global Undergraduate Scholarship',d:'Para estudiantes internacionales de alto rendimiento',r:'Admisión UCL · expediente excelente · solicitud separada'},{n:'Estudiantes pueden solicitar préstamos bancarios con garantía familiar',d:'No hay muchas becas completas de pregrado en UK — planifica financiamiento',r:'Verificar en la web de la universidad las convocatorias actuales'}]},
+
+  {id:'goldsmiths',country:'uk',flag:'🇬🇧',name:'Goldsmiths',fullName:'Goldsmiths, University of London',location:'Londres, Reino Unido',ranking:'Referente mundial arte y cultura digital',areas:['arts','tech','comm','hum'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'arts',l:'Arte'},{k:'tech',l:'Digital'},{k:'comm',l:'Comunicación'}],highlights:['schol','eng'],
+    programs:[{i:'🎨',n:'BA Fine Art',d:'3 años · arte contemporáneo de vanguardia'},{i:'🤖',n:'BA Design (Digital Media)',d:'3 años · diseño digital + experiencias interactivas'},{i:'🎵',n:'BA Music',d:'3 años · composición, producción y tecnología musical'}],
+    reqs:[{l:'IELTS',v:'6.0–6.5'},{l:'Portafolio',v:'Para Arte y Diseño — muy importante'},{l:'UCAS',v:'Aplicación vía UCAS con personal statement creativo'}],
+    schols:[{n:'Goldsmiths International Scholarship',d:'Para estudiantes internacionales con mérito académico',r:'Solicitud al momento de aplicar · expediente · portafolio'}]},
+
+  /* ── ESTADOS UNIDOS ── */
+  {id:'mit',country:'us',flag:'🇺🇸',name:'MIT',fullName:'Massachusetts Institute of Technology',location:'Cambridge, Massachusetts, EE.UU.',ranking:'Top 1 mundial (QS 2024)',areas:['tech','sci'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'tech',l:'Ingeniería'},{k:'sci',l:'Ciencias'}],highlights:['schol','eng'],
+    programs:[{i:'💻',n:'B.S. Computer Science & Engineering',d:'4 años · el programa CS más competitivo del mundo'},{i:'⚙️',n:'B.S. Mechanical / Electrical Engineering',d:'4 años · altísimo nivel técnico'},{i:'🧬',n:'B.S. Biology / Brain & Cognitive Sciences',d:'4 años · fuerte en investigación de frontera'}],
+    reqs:[{l:'SAT/ACT',v:'Scores muy altos — SAT ~1500+ o ACT 34+ referencial'},{l:'TOEFL/IELTS',v:'TOEFL 100+ o IELTS 7.5+'},{l:'Actividades',v:'Cartas de recomendación · ensayos · liderazgo comprobado'},{l:'Competitividad',v:'~4% tasa de aceptación — extremadamente selectivo'}],
+    schols:[{n:'MIT Need-Blind Financial Aid',d:'MIT cubre 100% de necesidad financiera para todos — incluyendo internacionales',r:'Aplicar a admisión regular · formulario CSS Profile · documentación económica familiar'},{n:'QuestBridge National College Match',d:'Conecta estudiantes de bajo ingreso con universidades de élite en EE.UU.',r:'Bajo ingreso familiar · excelencia académica · aplicar en el verano antes de último año bachillerato'}]},
+
+  {id:'usc',country:'us',flag:'🇺🇸',name:'USC',fullName:'University of Southern California',location:'Los Ángeles, California, EE.UU.',ranking:'Top 50 EE.UU. · referente en artes y cine',areas:['arts','comm','tech','biz'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'arts',l:'Artes'},{k:'comm',l:'Cine'},{k:'tech',l:'Tech'},{k:'biz',l:'Negocios'}],highlights:['schol','eng'],
+    programs:[{i:'🎬',n:'B.F.A. Cinema & Media Arts',d:'4 años · Escuela de Cine USC — una de las mejores del mundo'},{i:'💻',n:'B.S. Computer Science',d:'4 años · fuerte en industria tech de California'},{i:'🎨',n:'B.F.A. Fine Arts',d:'4 años · artes visuales con énfasis en medios digitales'}],
+    reqs:[{l:'SAT/ACT',v:'SAT 1400+ referencial · ACT 31+ referencial'},{l:'TOEFL/IELTS',v:'TOEFL 90+ o IELTS 6.5+'},{l:'Portafolio',v:'Para programas de arte, cine y diseño — muy importante'},{l:'Common App',v:'Aplicación vía Common Application · ensayos y cartas de recomendación'}],
+    schols:[{n:'USC International Merit Award',d:'Becas parciales por mérito académico para internacionales',r:'GPA sobresaliente equivalente · TOEFL alto · aplicar a tiempo · no garantizado'},{n:'CSS Profile Financial Aid',d:'Ayuda financiera basada en necesidad — abierta a internacionales',r:'Documentación financiera familiar · aplicar junto con admisión'}]},
+
+  {id:'florida_int',country:'us',flag:'🇺🇸',name:'FIU',fullName:'Florida International University',location:'Miami, Florida, EE.UU.',ranking:'Top universidad con mayor población latinoamericana en EE.UU.',areas:['biz','tech','arts','health','comm'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'biz',l:'Negocios'},{k:'tech',l:'Tech'},{k:'arts',l:'Arte'},{k:'health',l:'Salud'}],highlights:['schol','eng'],
+    programs:[{i:'💼',n:'B.B.A. International Business',d:'4 años · foco en Latinoamérica y mercados globales'},{i:'🎨',n:'B.F.A. Art + Technology',d:'4 años · diseño digital e interactive media'},{i:'📢',n:'B.S. Communication Arts',d:'4 años · periodismo, PR y medios digitales'}],
+    reqs:[{l:'TOEFL/IELTS',v:'TOEFL 80+ o IELTS 6.5+ · más accesible que universidades privadas'},{l:'SAT',v:'No siempre requerido — admisión más flexible'},{l:'Bachillerato',v:'Promedio mínimo 3.0/4.0 (equivalente) · notas del último año'},{l:'Ventaja LatAm',v:'Comunidad muy latina · campus bilingüe en la práctica'}],
+    schols:[{n:'FIU Panther Merit Scholarship',d:'Para estudiantes internacionales con excelencia académica',r:'GPA alto · TOEFL/IELTS · aplicación de beca separada'},{n:'OEA — Fondo Rowe (Préstamo sin intereses)',d:'Préstamos sin intereses para latinoamericanos en universidades EE.UU.',r:'Visa F/J · matriculado tiempo completo · últimos 2 años de grado'}]},
+
+  /* ── MÉXICO ── */
+  {id:'unam',country:'mx',flag:'🇲🇽',name:'UNAM',fullName:'Universidad Nacional Autónoma de México',location:'Ciudad de México, México',ranking:'Top 100 mundial · #1 Latinoamérica (varios rankings)',areas:['hum','sci','health','tech','arts','biz'],free:true,scholarship:true,english:false,spanish:true,tags:[{k:'hum',l:'Humanidades'},{k:'sci',l:'Ciencias'},{k:'arts',l:'Arte'},{k:'health',l:'Medicina'}],highlights:['free','schol'],
+    programs:[{i:'⚖️',n:'Licenciatura en Derecho',d:'4 años · referente latinoamericano'},{i:'🎨',n:'Licenciatura en Diseño y Comunicación Visual',d:'4 años · una de las mejores en LatAm'},{i:'🏥',n:'Licenciatura en Medicina',d:'6 años · acceso muy competitivo vía examen'},{i:'📚',n:'Licenciatura en Filosofía',d:'4 años · campus central histórico'}],
+    reqs:[{l:'Examen de admisión',v:'UNAM tiene examen propio muy competitivo — solo para cupo disponible'},{l:'Para extranjeros',v:'Proceso de admisión internacional diferente — verificar DGRI UNAM'},{l:'Bachillerato',v:'Cualquier país con equivalencia reconocida · apostillado'},{l:'Gratuidad',v:'Pública gratuita · extranjeros pueden pagar cuota diferenciada — verificar'}],
+    schols:[{n:'Beca AMEXCID — Gobierno de México',d:'El gobierno mexicano ofrece becas para extranjeros que quieran estudiar en México',r:'Bachillerato terminado · promedio mínimo 8/10 · carta motivación · proceso anual'},{n:'Beca UNAM para extranjeros',d:'Convenios bilaterales entre UNAM y universidades de otros países',r:'Verificar convenio con tu institución · proceso vía relaciones internacionales'}]},
+
+  {id:'tec_monterrey',country:'mx',flag:'🇲🇽',name:'Tec de Monterrey',fullName:'Instituto Tecnológico y de Estudios Superiores de Monterrey',location:'Monterrey / varios campus, México',ranking:'Top 200 mundial (QS 2024) · #3 LatAm',areas:['tech','biz','sci','comm','arts'],free:false,scholarship:true,english:true,spanish:true,tags:[{k:'tech',l:'Tech'},{k:'biz',l:'Negocios'},{k:'comm',l:'Comunicación'}],highlights:['schol','eng'],
+    programs:[{i:'💻',n:'Ingeniería en Tecnologías Computacionales',d:'4 años · IA, ciberseguridad y software'},{i:'💼',n:'Licenciatura en Negocios Internacionales',d:'4 años · algunos programas bilingües'},{i:'🎬',n:'Comunicación y Medios Digitales',d:'4 años · producción, narrativa digital y marketing'}],
+    reqs:[{l:'Examen TEC',v:'Examen de admisión propio del Tec + promedio bachillerato'},{l:'Idioma',v:'Español fluido · inglés B1 recomendado · algunos programas en inglés'},{l:'Para extranjeros',v:'Proceso diferente — contacting admisiones internacionales'},{l:'Actividades',v:'Extracurriculares y carta motivación valoradas'}],
+    schols:[{n:'Beca de Excelencia Tec',d:'Para estudiantes extranjeros con desempeño académico sobresaliente',r:'Promedio bachillerato 9.5+/10 · examen TEC alto · carta de motivación'},{n:'Beca AMEXCID para estudiar en México',d:'Gobierno mexicano para latinoamericanos que estudian en México',r:'Convocatoria anual · proceso AMEXCID · bachillerato completo'}]},
+
+  /* ── ARGENTINA ── */
+  {id:'uba',country:'ar',flag:'🇦🇷',name:'UBA',fullName:'Universidad de Buenos Aires',location:'Buenos Aires, Argentina',ranking:'#1 América Latina (varios rankings 2024)',areas:['hum','sci','health','biz','arts','tech'],free:true,scholarship:true,english:false,spanish:true,tags:[{k:'hum',l:'Humanidades'},{k:'sci',l:'Ciencias'},{k:'health',l:'Medicina'},{k:'arts',l:'Arte'}],highlights:['free','schol'],
+    programs:[{i:'🏥',n:'Medicina',d:'6 años · gratuita · muy competitiva pero abierta'},{i:'📚',n:'Filosofía y Letras',d:'5 años · referente histórico latinoamericano'},{i:'💼',n:'Ciencias Económicas',d:'5 años · contaduría, administración, economía'},{i:'⚙️',n:'Ingeniería (FIUBA)',d:'5 años · carrera pública de alto nivel técnico'}],
+    reqs:[{l:'CBC',v:'Ciclo Básico Común de 1 año obligatorio antes de cualquier carrera'},{l:'Para extranjeros',v:'Abierta a todos los países sin discriminación de origen'},{l:'Documentos',v:'Bachillerato apostillado + traducción certificada si no es en español'},{l:'Gratuidad',v:'Completamente gratuita para argentinos y extranjeros por igual — solo pagar apostillas'}],
+    schols:[{n:'UBA — Gratuita sin condiciones',d:'Argentina garantiza educación pública gratuita para todos en su Constitución',r:'Solo cumplir con el CBC y requisitos académicos de cada facultad'},{n:'Beca CONICET / becas de investigación',d:'Para estudiantes de excelencia en investigación y ciencias',r:'Rendimiento académico sobresaliente en años avanzados'}]},
+
+  {id:'udesa',country:'ar',flag:'🇦🇷',name:'UDESA',fullName:'Universidad de San Andrés',location:'Buenos Aires, Argentina',ranking:'Top privada Argentina · foco en negocios e inglés',areas:['biz','hum','comm'],free:false,scholarship:true,english:true,spanish:true,tags:[{k:'biz',l:'Negocios'},{k:'hum',l:'Humanidades'},{k:'comm',l:'Comunicación'}],highlights:['schol','eng'],
+    programs:[{i:'💼',n:'Licenciatura en Administración de Empresas',d:'4 años · bilingüe · muy valorada en empresa privada'},{i:'📢',n:'Licenciatura en Comunicación',d:'4 años · medios, periodismo y relaciones públicas'},{i:'📊',n:'Licenciatura en Economía',d:'4 años · análisis cuantitativo y política económica'}],
+    reqs:[{l:'Examen ingreso',v:'Proceso de admisión propio con examen y entrevista'},{l:'Inglés',v:'B2 mínimo · programas parcialmente en inglés'},{l:'Para extranjeros',v:'Proceso abierto · bachillerato apostillado y traducido'}],
+    schols:[{n:'Beca por Mérito UDESA',d:'Para estudiantes con excelencia académica — reducción de arancel',r:'Promedio bachillerato + resultado examen admisión + carta motivación'}]},
+
+  /* ── CHILE ── */
+  {id:'uchile',country:'cl',flag:'🇨🇱',name:'UCH',fullName:'Universidad de Chile',location:'Santiago, Chile',ranking:'Top 200 mundial (QS 2024) · Top 3 LatAm',areas:['sci','health','hum','tech','arts','biz'],free:false,scholarship:true,english:false,spanish:true,tags:[{k:'sci',l:'Ciencias'},{k:'health',l:'Salud'},{k:'arts',l:'Arte'},{k:'tech',l:'Tech'}],highlights:['schol'],
+    programs:[{i:'🏥',n:'Medicina',d:'7 años · una de las mejores en LatAm'},{i:'🎨',n:'Licenciatura en Artes Visuales',d:'4 años · escuela histórica de arte chileno'},{i:'💻',n:'Ingeniería Civil Informática',d:'5.5 años · muy demandada en tech'},{i:'⚖️',n:'Derecho',d:'5 años · referente jurídico latinoamericano'}],
+    reqs:[{l:'PSU/PAES',v:'Prueba de Admisión a la Educación Superior · para extranjeros existe proceso equivalente'},{l:'Para latinoamericanos',v:'Proceso especial para extranjeros — verificar en DAE UCH'},{l:'Bachillerato',v:'Apostillado y traducido · debe ser equivalente'},{l:'Documentos',v:'Pasaporte vigente · antecedentes penales · certificado médico'}],
+    schols:[{n:'Beca de Excelencia Académica Chile (BEA)',d:'Para estudiantes extranjeros con alto rendimiento en su país',r:'Promedio bachillerato sobresaliente · rendimiento PAES equivalente · proceso Chile'},{n:'Gratuidad ANID para carreras científicas',d:'Apoyo económico para carreras de investigación y ciencias en Chile',r:'Admitido en carrera científica · requisitos socioeconómicos · verificar ANID'}]},
+
+  {id:'puc_chile',country:'cl',flag:'🇨🇱',name:'PUC Chile',fullName:'Pontificia Universidad Católica de Chile',location:'Santiago, Chile',ranking:'Top 130 mundial (QS 2024)',areas:['arch','tech','biz','health','arts','hum'],free:false,scholarship:true,english:true,spanish:true,tags:[{k:'arch',l:'Arquitectura'},{k:'tech',l:'Tech'},{k:'biz',l:'Negocios'}],highlights:['schol','eng'],
+    programs:[{i:'🏛️',n:'Arquitectura',d:'5 años · una de las más reconocidas de LatAm'},{i:'💻',n:'Ingeniería Civil Computación e IA',d:'5.5 años · foco en IA y data'},{i:'💼',n:'Ingeniería Comercial (MBA acceso)',d:'5 años · referente empresarial Chile'}],
+    reqs:[{l:'PSU/PAES',v:'Prueba chilena de admisión · extranjeros tienen proceso alternativo'},{l:'Para extranjeros',v:'Vía programa de admisión internacional VRI — verificar PUC'},{l:'Idioma',v:'Español fluido · algunos programas con cursos en inglés'},{l:'Portafolio',v:'Arquitectura requiere prueba aptitud artística'}],
+    schols:[{n:'Beca Juan Pablo II (PUC)',d:'Para extranjeros de excelencia que estudian en la PUC Chile',r:'Rendimiento académico sobresaliente · carta motivación · proceso anual PUC'},{n:'Becas de Excelencia del Gobierno Chile',d:'Gobierno chileno tiene programas para atraer talentos extranjeros',r:'Verificar Becas Chile y ANID para estudiantes extranjeros de pregrado'}]},
+
+  /* ── CANADÁ ── */
+  {id:'ubc',country:'ca',flag:'🇨🇦',name:'UBC',fullName:'University of British Columbia',location:'Vancouver, Canadá',ranking:'Top 50 mundial (QS 2024)',areas:['tech','sci','biz','arts','health'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'tech',l:'Tech'},{k:'sci',l:'Ciencias'},{k:'arts',l:'Arte'},{k:'biz',l:'Negocios'}],highlights:['schol','eng'],
+    programs:[{i:'💻',n:'B.Sc. Computer Science',d:'4 años · fuerte en IA, gaming y software'},{i:'🎨',n:'B.F.A. Fine Arts',d:'4 años · artes visuales y medios digitales'},{i:'💼',n:'B.Com. Sauder Business',d:'4 años · escuela de negocios de alta reputación'}],
+    reqs:[{l:'IELTS/TOEFL',v:'IELTS 6.5 · TOEFL 90+ según programa'},{l:'Bachillerato',v:'Notas altas en últimos 2 años · promedio equivalente a A/B+ en Canadá'},{l:'UCAS equivalente',v:'Aplicación directa a UBC · proceso por programa'},{l:'Cálculo',v:'Para CS y ciencias — matemáticas avanzadas en bachillerato'}],
+    schols:[{n:'UBC International Major Entrance Scholarship',d:'Para estudiantes internacionales de excelencia',r:'Admisión UBC · GPA muy alto equivalente · automático en algunos casos'},{n:'ELAP — Emerging Leaders Americas (Gobierno Canadá)',d:'Gobierno canadiense para latinoamericanos',r:'Matriculado en universidad de Latam · año de intercambio en Canadá · verificar ELAP'}]},
+
+  {id:'mcgill',country:'ca',flag:'🇨🇦',name:'McGill',fullName:'McGill University',location:'Montréal, Canadá',ranking:'Top 40 mundial (QS 2024)',areas:['health','sci','tech','biz','arts','hum'],free:false,scholarship:true,english:true,spanish:false,tags:[{k:'health',l:'Medicina'},{k:'sci',l:'Ciencias'},{k:'tech',l:'Tech'},{k:'biz',l:'Negocios'}],highlights:['schol','eng'],
+    programs:[{i:'🏥',n:'B.Sc. Health Sciences + Medicina',d:'4+4 años · camino a medicina muy competitivo'},{i:'💻',n:'B.Sc. Computer Science',d:'3 años · foco en IA, datos y seguridad'},{i:'💼',n:'B.Com. Desautels Faculty of Management',d:'3 años · business muy valorado en Norteamérica'}],
+    reqs:[{l:'IELTS',v:'6.5–7.0 · TOEFL 100+ para algunos programas'},{l:'Bachillerato',v:'Notas muy altas en materias relevantes · equivalencia canadiense'},{l:'Competitividad',v:'Muy alta para ciencias y medicina · planificar con tiempo'},{l:'Ventaja bilingüe',v:'Montréal ciudad bilingüe inglés-francés — gran oportunidad'}],
+    schols:[{n:'McGill International Student Scholarship',d:'Para estudiantes internacionales de alto rendimiento',r:'Admisión McGill · GPA equivalente alto · solicitud separada'},{n:'ELAP Gobierno Canadá',d:'Intercambio de 1 semestre a 1 año para latinoamericanos',r:'Estudiante activo en universidad latinoamericana · verificar convocatoria anual'}]}
+];
+
+/* ══════════════════════════════════════
+   SCHOLARSHIPS DATABASE
+══════════════════════════════════════ */
+const SCHOLARSHIPS = [
+  {badge:'badge-ec',bl:'🇪🇨 Ecuador',name:'SENESCYT — Educación Superior Gratuita en Ecuador',desc:'Las universidades públicas del Ecuador (ESPOL, EPN, UCuenca, UNL, UCE, etc.) son gratuitas para ciudadanos ecuatorianos. Solo requieres el puntaje ENES suficiente. Es la beca más accesible para ecuatorianos.',pills:[{c:'sp sp-type',l:'Pregrado completo'},{c:'sp sp-elig',l:'Ciudadanos ecuatorianos'},{c:'sp sp-info',l:'Requiere puntaje ENES'}]},
+
+  {badge:'badge-ar',bl:'🇦🇷 Argentina',name:'UBA y universidades públicas argentinas — Gratuidad universal',desc:'La Constitución argentina garantiza educación universitaria gratuita para todos, incluyendo extranjeros. Solo pagas apostillado de documentos. Buenos Aires es la ciudad #1 de América Latina para estudiantes. Es una de las mejores opciones de pregrado gratuito del mundo.',pills:[{c:'sp sp-type',l:'Pregrado completo'},{c:'sp sp-elig',l:'Cualquier nacionalidad'},{c:'sp sp-period',l:'Verificar CBC previo'},{c:'sp sp-info',l:'Solo apostillar documentos'}]},
+
+  {badge:'badge-de',bl:'🇩🇪 Alemania',name:'Universidades Públicas Alemanas — Sin matrícula para internacionales',desc:'Las universidades públicas de Alemania no cobran matrícula a ningún estudiante, incluyendo extranjeros. Solo se paga un Semesterbeitrag semestral (~200–400 EUR) para transporte y servicios. Requieres alemán C1 o inglés C1 según el programa. Es la mejor opción de pregrado gratuito en Europa.',pills:[{c:'sp sp-type',l:'Pregrado sin matrícula'},{c:'sp sp-elig',l:'Cualquier nacionalidad'},{c:'sp sp-period',l:'Semesterbeitrag ~300 EUR/sem'},{c:'sp sp-info',l:'Alemán o inglés C1'}]},
+
+  {badge:'badge-fr',bl:'🇫🇷 Francia',name:'Universidades Públicas Francesas — Tasa mínima de inscripción',desc:'Las universidades públicas de Francia cobran una tasa anual muy baja (~170 EUR/año para grado). Cualquier estudiante internacional paga lo mismo que los franceses. Requieres francés B2–C1 y proceso Campus France. Para perfil artístico, France es destino top mundial.',pills:[{c:'sp sp-type',l:'Pregrado ~€170/año'},{c:'sp sp-elig',l:'Cualquier nacionalidad'},{c:'sp sp-period',l:'Proceso Campus France previo'},{c:'sp sp-info',l:'Francés B2 mínimo'}]},
+
+  {badge:'badge-mx',bl:'🇲🇽 México',name:'AMEXCID — Becas Gobierno de México para Extranjeros',desc:'El Gobierno Mexicano ofrece becas para que extranjeros estudien pregrado, posgrado o cursos en México. Incluye matrícula en universidades mexicanas como UNAM. Convocatoria anual con proceso en AMEXCID.',pills:[{c:'sp sp-type',l:'Pregrado y posgrado'},{c:'sp sp-elig',l:'Latinoamericanos y mundo'},{c:'sp sp-period',l:'Convocatoria anual'},{c:'sp sp-info',l:'Promedio mínimo 8/10 · carta motivación'}]},
+
+  {badge:'badge-int',bl:'🌎 OEA — Internacional',name:'OEA-PAEC — Alianzas para Educación y Capacitación',desc:'La Organización de Estados Americanos tiene el programa PAEC que ofrece becas con instituciones aliadas para pregrado y posgrado. Incluye algunas universidades en EE.UU., España, Chile, Argentina y otros. Las opciones específicas cambian cada año.',pills:[{c:'sp sp-type',l:'Pregrado y posgrado'},{c:'sp sp-elig',l:'Ciudadanos de países OEA'},{c:'sp sp-period',l:'Convocatorias variables'},{c:'sp sp-info',l:'Promedio sobre la media · revisar web OEA anualmente'}]},
+
+  {badge:'badge-es',bl:'🇪🇸 España',name:'Beca MAEC-AECID — Gobierno de España',desc:'La principal beca del gobierno español para latinoamericanos. Está orientada principalmente a posgrado, pero incluye algunos programas de grado en áreas específicas. Muy competitiva — requiere expediente excelente y un plan de estudios claro.',pills:[{c:'sp sp-type',l:'Principalmente posgrado'},{c:'sp sp-elig',l:'Latinoamericanos'},{c:'sp sp-period',l:'Convocatoria feb–abril'},{c:'sp sp-info',l:'Expediente excelente · carta motivación · algunos grados incluidos'}]},
+
+  {badge:'badge-es',bl:'🇪🇸 España',name:'Becas Santander Universidades',desc:'El Banco Santander financia movilidad, grados y posgrados para estudiantes latinoamericanos en España y otros países. Varias modalidades durante el año — verificar convocatorias activas en el portal Santander Scholarships.',pills:[{c:'sp sp-type',l:'Grado y posgrado'},{c:'sp sp-elig',l:'Latinoamericanos'},{c:'sp sp-period',l:'Varias convocatorias/año'},{c:'sp sp-info',l:'Inscripción online · promedio alto · verificar portal oficial'}]},
+
+  {badge:'badge-de',bl:'🇩🇪 Alemania',name:'DAAD — Cursos Cortos y Preparación para Pregrado (Ecuador)',desc:'El DAAD no financia pregrados completos en Alemania para latinoamericanos, pero sí ofrece cursos de verano/invierno para estudiantes de pregrado en Ecuador, Colombia y Perú, y el programa VORsprung de preparación para estudiar STEM en Alemania. Alemania sí es una opción de pregrado gratuito sin beca DAAD.',pills:[{c:'sp sp-type',l:'Estancias cortas · preparación'},{c:'sp sp-elig',l:'Ecuador · Colombia · Perú'},{c:'sp sp-period',l:'Convocatoria julio cada año'},{c:'sp sp-info',l:'Alemán B1 mínimo · matriculado en universidad ecuatoriana'}]},
+
+  {badge:'badge-fr',bl:'🇫🇷 Francia',name:'Beca Eiffel Excellence — Gobierno de Francia',desc:'Para estudiantes internacionales de excelencia. Tiene componente de grado (licence) pero principalmente es para master y doctorado. La tasa de aceptación es muy baja y los requisitos son muy altos. Si tu perfil es excepcional, vale la pena explorarla.',pills:[{c:'sp sp-type',l:'Grado + posgrado'},{c:'sp sp-elig',l:'Latinoamericanos y mundo'},{c:'sp sp-period',l:'Convocatoria enero–febrero'},{c:'sp sp-info',l:'Perfil académico excepcional · proceso con institución francesa'}]},
+
+  {badge:'badge-int',bl:'🌎 Internacional',name:'QuestBridge National College Match (EE.UU.)',desc:'Conecta a estudiantes de bajo ingreso de todo el mundo con las mejores universidades de EE.UU. que ofrecen becas completas (full ride). Incluye MIT, Yale, Princeton, Caltech y más. Una de las mejores oportunidades para acceder a universidades de élite con cobertura total.',pills:[{c:'sp sp-type',l:'Pregrado completo — full ride'},{c:'sp sp-elig',l:'Bajo ingreso · cualquier país'},{c:'sp sp-period',l:'Aplicar julio–octubre último año bachillerato'},{c:'sp sp-info',l:'Excelencia académica · bajo ingreso familiar · necesita inglés muy alto'}]},
+
+  {badge:'badge-us',bl:'🇺🇸 EE.UU.',name:'Need-Blind Financial Aid en universidades Ivy League',desc:'Universidades como MIT, Harvard, Princeton, Yale y otras cubren el 100% de la necesidad financiera de estudiantes internacionales. No discriminan por capacidad de pago en admisión. Requiere SAT/ACT muy alto, inglés C1+ y perfil excepcional.',pills:[{c:'sp sp-type',l:'Pregrado completo según necesidad'},{c:'sp sp-elig',l:'Cualquier país · según necesidad'},{c:'sp sp-period',l:'Aplicación nov–enero antes de ingreso'},{c:'sp sp-info',l:'SAT/ACT muy alto · TOEFL/IELTS · perfil extraordinario'}]},
+
+  {badge:'badge-ca',bl:'🇨🇦 Canadá',name:'ELAP — Emerging Leaders in the Americas Program',desc:'Programa del gobierno canadiense para estudiantes de Latinoamérica y el Caribe. Financia estadías de 1 semestre a 1 año en universidades canadienses. Ideal como experiencia internacional mientras cursas tu carrera en Ecuador.',pills:[{c:'sp sp-type',l:'Intercambio semestral/anual'},{c:'sp sp-elig',l:'Estudiantes de LatAm y Caribe'},{c:'sp sp-period',l:'Convocatoria anual'},{c:'sp sp-info',l:'Matriculado en universidad LatAm · inglés o francés · verificar ELAP'}]},
+
+  {badge:'badge-int',bl:'🌎 OEA — Fondo Rowe',name:'OEA — Leo S. Rowe Fund (Préstamo sin intereses EE.UU.)',desc:'Para latinoamericanos estudiando en EE.UU. — préstamos hasta USD $15,000 sin intereses para últimos 2 años de pregrado o posgrado. No es beca sino préstamo, pero sin intereses. Útil para complementar financiamiento.',pills:[{c:'sp sp-type',l:'Préstamo sin intereses'},{c:'sp sp-elig',l:'Latinoamericanos en EE.UU.'},{c:'sp sp-period',l:'Durante el año académico'},{c:'sp sp-info',l:'Visa F o J · matriculado en uni EE.UU. · últimos 2 años de grado'}]}
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+const FILTERS = { country:'all', search:'', career:new Set(), special:new Set() };
+const PAGE_SIZE = 9;
+let currentPage = 1;
+let filteredData = [];
+let expandedId = null;
+let searchTimer = null;
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  updateCountBadges();
+  applyAndRender();
+  renderScholarships();
+});
+
+function updateCountBadges() {
+  const all = UNIS.length;
+  document.getElementById('cnt-all').textContent = all;
+  ['ec','es','de','fr','uk','us','mx','ar','cl','ca'].forEach(c => {
+    const el = document.getElementById('cnt-'+c);
+    if (el) el.textContent = UNIS.filter(u=>u.country===c).length;
+  });
+}
+
+/* ══════════════════════════════════════
+   FILTER LOGIC
+══════════════════════════════════════ */
+function setCountry(c, btn) {
+  FILTERS.country = c;
+  currentPage = 1;
+  document.querySelectorAll('.country-tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applyAndRender();
+}
+
+function toggleFilter(type, val, el) {
+  if (type === 'career') {
+    const s = FILTERS.career;
+    if (s.has(val)) { s.delete(val); el.classList.remove('active'); }
+    else            { s.add(val);    el.classList.add('active'); }
+  } else {
+    const s = FILTERS.special;
+    if (s.has(val)) { s.delete(val); el.classList.remove('active'); }
+    else            { s.add(val);    el.classList.add('active'); }
+  }
+  currentPage = 1;
+  applyAndRender();
+}
+
+function resetFilters() {
+  FILTERS.country = 'all'; FILTERS.search = '';
+  FILTERS.career = new Set(); FILTERS.special = new Set();
+  currentPage = 1;
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.country-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.country-tab.all').classList.add('active');
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  applyAndRender();
+}
+
+function debouncedSearch(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    FILTERS.search = val.toLowerCase();
+    currentPage = 1;
+    applyAndRender();
+  }, 220);
+}
+
+function applyAndRender() {
+  const q = FILTERS.search;
+  filteredData = UNIS.filter(u => {
+    if (FILTERS.country !== 'all' && u.country !== FILTERS.country) return false;
+    if (q) {
+      const hay = (u.name+u.fullName+u.location+u.areas.join(' ')+u.programs.map(p=>p.n).join(' ')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (FILTERS.career.size > 0 && !u.areas.some(a=>FILTERS.career.has(a))) return false;
+    if (FILTERS.special.has('schol')   && !u.scholarship) return false;
+    if (FILTERS.special.has('free')    && !u.free)        return false;
+    if (FILTERS.special.has('english') && !u.english)     return false;
+    if (FILTERS.special.has('spanish') && !u.spanish)     return false;
+    return true;
+  });
+  renderGrid();
+  renderPagination();
+  const el = document.getElementById('results-info');
+  el.textContent = filteredData.length === 0 ? '' : `${filteredData.length} universidad${filteredData.length!==1?'es':''}`;
+}
+
+/* ══════════════════════════════════════
+   RENDER GRID
+══════════════════════════════════════ */
+const TAG_CLASSES = { tech:'tag-tech',arts:'tag-arts',health:'tag-health',biz:'tag-biz',sci:'tag-sci',hum:'tag-hum',arch:'tag-arch',comm:'tag-comm' };
+const HL_LABELS = { schol:'🎓 Becas',free:'💚 Gratuita',eng:'🇬🇧 Inglés' };
+
+function renderGrid() {
+  const grid = document.getElementById('unis-grid');
+  const empty = document.getElementById('empty-state');
+  if (filteredData.length === 0) { grid.innerHTML=''; empty.classList.add('visible'); return; }
+  empty.classList.remove('visible');
+  const start = (currentPage-1)*PAGE_SIZE;
+  const page = filteredData.slice(start, start+PAGE_SIZE);
+  grid.innerHTML = '';
+  page.forEach(u => grid.appendChild(buildCard(u)));
+  if (expandedId && page.find(u=>u.id===expandedId)) {
+    const d = document.getElementById('detail-'+expandedId);
+    const b = document.getElementById('expand-btn-'+expandedId);
+    if (d) d.classList.add('open');
+    if (b) b.classList.add('open');
+  }
+}
+
+function buildCard(u) {
+  const card = document.createElement('div');
+  card.className = 'uni-card'; card.id = 'card-'+u.id;
+  const tagsHtml = u.tags.slice(0,3).map(t=>`<span class="uni-tag ${TAG_CLASSES[t.k]||''}">${t.l}</span>`).join('');
+  const hlHtml = (u.highlights||[]).map(h=>`<span class="uni-hl ${h}">${HL_LABELS[h]||h}</span>`).join('');
+  card.innerHTML = `
+    <div class="uni-stripe ${u.country}-s"></div>
+    <div class="uni-card-header">
+      <div class="uni-header-top">
+        <div class="uni-flag-wrap">${u.flag}</div>
+        <div class="uni-meta">
+          <div class="uni-name">${u.name}</div>
+          <div class="uni-location">${u.location}</div>
+          ${u.ranking?`<div class="uni-ranking">★ ${u.ranking}</div>`:''}
+        </div>
+      </div>
+      <div class="uni-tags">${tagsHtml}</div>
+    </div>
+    <div class="uni-card-footer">
+      <div class="uni-highlights">${hlHtml}</div>
+      <button class="expand-btn" id="expand-btn-${u.id}" onclick="toggleExpand('${u.id}',this)" title="Ver detalles">▼</button>
+    </div>
+    <div class="uni-detail" id="detail-${u.id}">${buildDetail(u)}</div>`;
+  return card;
+}
+
+function buildDetail(u) {
+  const progsHtml = u.programs.map(p=>`
+    <div class="prog-item"><div class="prog-icon">${p.i}</div><div class="prog-info"><div class="prog-name">${p.n}</div><div class="prog-detail">${p.d}</div></div></div>`).join('');
+  const reqsHtml = (u.reqs||[]).map(r=>`<div class="req-item"><div class="req-label">${r.l}</div><div class="req-val">${r.v}</div></div>`).join('');
+  const scholsHtml = (u.schols||[]).length>0
+    ? u.schols.map(s=>`<div class="schol-item"><div class="schol-name">${s.n}</div><div class="schol-desc">${s.d}</div><div class="schol-req">✅ Requisitos: ${s.r}</div></div>`).join('')
+    : `<p style="font-size:13px;color:var(--muted2);font-style:italic;">Esta institución no tiene becas específicas publicadas. Consulta la sección de becas generales y el sitio oficial de la universidad.</p>`;
+  return `
+    <div class="detail-tabs">
+      <button class="d-tab active" onclick="switchDTab('${u.id}',0,this)">Programas</button>
+      <button class="d-tab" onclick="switchDTab('${u.id}',1,this)">Requisitos de admisión</button>
+      <button class="d-tab" onclick="switchDTab('${u.id}',2,this)">Becas</button>
+    </div>
+    <div class="d-pane active" id="dp-0-${u.id}"><div class="prog-list">${progsHtml}</div></div>
+    <div class="d-pane" id="dp-1-${u.id}">
+      <div class="req-grid">${reqsHtml}</div>
+      <p class="verify-note">⚠️ Los requisitos exactos cambian cada año. Siempre verifica en el sitio oficial de la universidad antes de aplicar. Los documentos en otro idioma deben apostillarse y traducirse.</p>
+    </div>
+    <div class="d-pane" id="dp-2-${u.id}"><div class="schol-list">${scholsHtml}</div></div>`;
+}
+
+function toggleExpand(id, btn) {
+  const detail = document.getElementById('detail-'+id);
+  if (!detail) return;
+  const isOpen = detail.classList.contains('open');
+  if (expandedId && expandedId !== id) {
+    document.getElementById('detail-'+expandedId)?.classList.remove('open');
+    document.getElementById('expand-btn-'+expandedId)?.classList.remove('open');
+  }
+  if (isOpen) { detail.classList.remove('open'); btn.classList.remove('open'); expandedId=null; }
+  else { detail.classList.add('open'); btn.classList.add('open'); expandedId=id;
+    setTimeout(()=>document.getElementById('card-'+id)?.scrollIntoView({behavior:'smooth',block:'nearest'}),100); }
+}
+
+function switchDTab(uId, idx, btn) {
+  btn.closest('.uni-detail').querySelectorAll('.d-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('.uni-detail').querySelectorAll('.d-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`dp-${idx}-${uId}`)?.classList.add('active');
+}
+
+/* ══════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════ */
+function renderPagination() {
+  const el = document.getElementById('pagination');
+  const total = Math.ceil(filteredData.length/PAGE_SIZE);
+  el.innerHTML = '';
+  if (total<=1) return;
+  const prev = document.createElement('button');
+  prev.className='page-btn nav'; prev.textContent='← Ant'; prev.disabled=currentPage===1;
+  prev.onclick=()=>{if(currentPage>1){currentPage--;renderGrid();renderPagination();scrollToGrid();}};
+  el.appendChild(prev);
+  for(let i=1;i<=total;i++){const b=document.createElement('button');b.className='page-btn'+(i===currentPage?' active':'');b.textContent=i;b.onclick=()=>{currentPage=i;renderGrid();renderPagination();scrollToGrid();};el.appendChild(b);}
+  const next=document.createElement('button');next.className='page-btn nav';next.textContent='Sig →';next.disabled=currentPage===total;
+  next.onclick=()=>{if(currentPage<total){currentPage++;renderGrid();renderPagination();scrollToGrid();}};
+  el.appendChild(next);
+}
+function scrollToGrid(){document.getElementById('unis-grid')?.scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ══════════════════════════════════════
+   SCHOLARSHIPS
+══════════════════════════════════════ */
+function renderScholarships() {
+  const el = document.getElementById('schol-cards');
+  el.innerHTML = '';
+  SCHOLARSHIPS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'bsc';
+    const pillsHtml = (s.pills||[]).map(p=>`<span class="${p.c}">${p.l}</span>`).join('');
+    card.innerHTML = `
+      <div class="bsc-top">
+        <span class="bsc-badge ${s.badge}">${s.bl}</span>
+        <div class="bsc-name">${s.name}</div>
+        <div class="bsc-desc">${s.desc}</div>
+      </div>
+      <div class="bsc-bottom">${pillsHtml}</div>`;
+    el.appendChild(card);
+  });
+}
+
+/* ══════════════════════════════════════
+   AI RECOMMENDER
+══════════════════════════════════════ */
+async function getAIReco() {
+  const query = document.getElementById('ai-query').value.trim();
+  if (!query) { document.getElementById('ai-query').focus(); return; }
+  const btn=document.getElementById('ai-btn'); const result=document.getElementById('ai-result');
+  btn.disabled=true; result.classList.add('visible');
+  result.innerHTML=`<div class="ai-loading"><span>Analizando tu consulta</span><div class="ai-dots"><span></span><span></span><span></span></div></div>`;
+  const uniSummaries=UNIS.map(u=>`${u.name} (${u.country.toUpperCase()}, ${u.location}): ${u.areas.join('/')}${u.free?' · GRATUITA':''}${u.scholarship?' · CON BECAS':''}`).join('\n');
+  const prompt=`Eres orientador vocacional experto en universidades de Ecuador, España, Alemania, Francia, UK, EE.UU., México, Argentina, Chile y Canadá. Abril 2026.
+
+CONSULTA: "${query}"
+
+UNIVERSIDADES EN BASE DE DATOS:
+${uniSummaries}
+
+En español, recomienda las 3 universidades más adecuadas de la lista. Por cada una: nombre exacto, por qué encaja, y qué beca o ruta de acceso gratuita podría aplicar. Sé específico, cálido y honesto. Máximo 250 palabras. Si el perfil apunta a gratuidad, priorizarla.`;
+  try {
+    const res=await fetchWT('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:450,messages:[{role:'user',content:prompt}]})},28000);
+    if(!res.ok) throw new Error('API '+res.status);
+    const data=await res.json();
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    let html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n\n+/g,'<br><br>').replace(/\n/g,'<br>');
+    UNIS.forEach(u=>{const esc=u.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');html=html.replace(new RegExp(esc,'g'),`<strong style="color:var(--teal)">${u.name}</strong>`);});
+    result.innerHTML=html;
+  } catch(e){
+    const q=query.toLowerCase();
+    const recs=UNIS.filter(u=>{
+      if(q.includes('diseño')||q.includes('arte')||q.includes('ux')) return u.areas.includes('arts');
+      if(q.includes('ingeniería')||q.includes('software')||q.includes('tech')||q.includes('programar')) return u.areas.includes('tech');
+      if(q.includes('arquitectura')) return u.areas.includes('arch');
+      if(q.includes('medicina')||q.includes('salud')) return u.areas.includes('health');
+      if(q.includes('gratis')||q.includes('gratuita')||q.includes('sin pagar')) return u.free;
+      if(q.includes('cine')||q.includes('comunicación')||q.includes('video')) return u.areas.includes('comm');
+      return true;
+    }).slice(0,3);
+    result.innerHTML=recs.length===0?`<em>No encontré coincidencias claras. Especifica carrera y país preferido.</em>`
+      :`<strong>Basado en tu consulta, te sugiero:</strong><br><br>`+recs.map((u,i)=>`<strong style="color:var(--teal)">${i+1}. ${u.name}</strong> — ${u.fullName}<br>${u.location}${u.free?' · 💚 Gratuita':''}`).join('<br><br>')+`<br><br><em style="font-size:12px;opacity:0.65;">Para análisis detallado con IA, verifica tu conexión e intenta de nuevo.</em>`;
+  } finally { btn.disabled=false; }
+}
+
+function fetchWT(url,opts,ms){const c=new AbortController();const id=setTimeout(()=>c.abort(),ms);return fetch(url,{...opts,signal:c.signal}).finally(()=>clearTimeout(id));}
+</script>
+</body>
+</html>

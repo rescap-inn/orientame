@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Oriéntame · Mapa de Carrera</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   ROOT & RESET
+══════════════════════════════════════ */
+:root {
+  --bg: #0c0f1a;
+  --surface: #141728;
+  --surface2: #1b1f35;
+  --surface3: #232843;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #eeeaf4;
+  --muted: rgba(238,234,244,0.5);
+  --muted2: rgba(238,234,244,0.28);
+
+  /* Career palette — 4 distinct colors */
+  --c0: #7c6af7; /* violet */
+  --c1: #34d399; /* emerald */
+  --c2: #fb923c; /* orange */
+  --c3: #38bdf8; /* sky */
+
+  /* Risk colors */
+  --risk-safe:    #34d399;
+  --risk-growing: #7c6af7;
+  --risk-watch:   #fb923c;
+
+  --gold: #f5c842;
+  --gradient-main: linear-gradient(135deg, #7c6af7, #34d399);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Sora', sans-serif; font-weight: 300;
+  min-height: 100vh; overflow-x: hidden;
+}
+
+/* ── Grain texture ── */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════
+   LAYOUT WRAPPER
+══════════════════════════════════════ */
+.wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ══════════════════════════════════════
+   PROFILE FORM SCREEN
+══════════════════════════════════════ */
+#form-screen { padding: 40px 0; }
+
+.form-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.25);
+  border-radius: 100px; padding: 6px 16px; margin-bottom: 22px;
+  font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: #a99df9;
+}
+.form-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gradient-main); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.75)} }
+
+.form-title { font-family: 'Lora', serif; font-size: clamp(26px,5.5vw,42px); font-weight: 600; line-height: 1.15; margin-bottom: 10px; }
+.form-title em { font-style: italic; background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.form-sub { font-size: 14px; color: var(--muted); line-height: 1.75; max-width: 520px; margin-bottom: 36px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+@media(max-width:560px){ .form-grid { grid-template-columns: 1fr; } }
+
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group.full { grid-column: 1/-1; }
+.field-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+.field-input, .field-select, .field-textarea {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 16px; color: var(--text);
+  font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 300;
+  outline: none; transition: border-color 0.2s; width: 100%;
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus { border-color: rgba(124,106,247,0.5); }
+.field-input::placeholder, .field-textarea::placeholder { color: var(--muted2); }
+.field-select { cursor: pointer; appearance: none; -webkit-appearance: none; }
+.field-textarea { resize: vertical; min-height: 80px; }
+.field-select option { background: var(--surface2); }
+
+/* ── Interest tags ── */
+.interest-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.int-tag {
+  padding: 7px 14px; border-radius: 100px; border: 1px solid var(--border);
+  background: var(--surface2); font-size: 12.5px; color: var(--muted);
+  cursor: pointer; transition: all 0.18s; font-family: 'Sora', sans-serif;
+  user-select: none;
+}
+.int-tag:hover { border-color: rgba(124,106,247,0.4); color: var(--text); }
+.int-tag.selected { background: rgba(124,106,247,0.12); border-color: var(--c0); color: #a99df9; font-weight: 500; }
+
+.btn-generate {
+  width: 100%; padding: 16px; background: var(--gradient-main); border: none;
+  border-radius: 13px; font-family: 'Sora', sans-serif; font-size: 15px;
+  font-weight: 600; color: white; cursor: pointer; letter-spacing: 0.3px;
+  transition: all 0.2s;
+}
+.btn-generate:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,106,247,0.28); }
+.btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ══════════════════════════════════════
+   LOADING SKELETON
+══════════════════════════════════════ */
+#loading-screen { display: none; padding: 80px 0; text-align: center; }
+.loading-icon { font-size: 52px; margin-bottom: 16px; animation: float 2.5s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.loading-title { font-family: 'Lora', serif; font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.loading-sub { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 32px; }
+.loading-steps { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; }
+.loading-step {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 13px; color: var(--muted); transition: all 0.4s;
+}
+.loading-step.done { color: var(--text); border-color: rgba(52,211,153,0.3); }
+.loading-step.active { color: var(--text); border-color: rgba(124,106,247,0.3); background: rgba(124,106,247,0.05); }
+.step-icon { font-size: 16px; }
+
+/* ══════════════════════════════════════
+   MAP SCREEN
+══════════════════════════════════════ */
+#map-screen { display: none; padding: 32px 0 0; }
+
+/* Profile header */
+.profile-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+  padding: 20px 24px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 18px;
+}
+.profile-avatar {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--gradient-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+}
+.profile-info { flex: 1; min-width: 0; }
+.profile-name { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; }
+.profile-type { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.profile-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.profile-tag {
+  padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500;
+  background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.25); color: #a99df9;
+}
+.btn-restart {
+  padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted); font-family: 'Sora', sans-serif;
+  font-size: 12px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.btn-restart:hover { color: var(--text); border-color: var(--border2); }
+
+/* Section title */
+.section-label { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); opacity: 0.6; margin-bottom: 16px; }
+
+/* ─── SVG MAP ─── */
+.map-container {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 24px; margin-bottom: 24px;
+  overflow: hidden;
+}
+.map-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.map-scroll::-webkit-scrollbar { height: 4px; }
+.map-scroll::-webkit-scrollbar-track { background: transparent; }
+.map-scroll::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 100px; }
+
+#career-svg { display: block; }
+
+/* SVG node styles — defined here for SVG elements */
+.svg-center-circle { fill: var(--surface2); stroke: var(--gradient-main); stroke-width: 2; }
+.svg-node { cursor: pointer; transition: opacity 0.2s; }
+.svg-node:hover { opacity: 0.85; }
+.svg-node.selected-node circle { stroke-width: 3; filter: drop-shadow(0 0 12px currentColor); }
+.svg-line { stroke-width: 1.5; fill: none; opacity: 0.35; stroke-dasharray: 4 3; }
+.svg-spec-line { stroke-width: 1; fill: none; opacity: 0.2; }
+.svg-center-text { font-family: Sora, sans-serif; font-size: 11px; fill: rgba(238,234,244,0.6); text-anchor: middle; }
+.svg-node-text { font-family: Sora, sans-serif; font-size: 12px; fill: #eeeaf4; text-anchor: middle; font-weight: 500; pointer-events: none; }
+.svg-spec-text { font-family: Sora, sans-serif; font-size: 9.5px; fill: rgba(238,234,244,0.55); text-anchor: start; pointer-events: none; }
+.svg-emoji { font-size: 18px; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+
+/* Map legend */
+.map-legend {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.map-hint { font-size: 11px; color: var(--muted2); text-align: center; margin-top: 10px; }
+
+/* ─── CAREER CARDS ─── */
+.careers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.career-thumb {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px; cursor: pointer;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.career-thumb::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
+.career-thumb.c0::before { background: var(--c0); }
+.career-thumb.c1::before { background: var(--c1); }
+.career-thumb.c2::before { background: var(--c2); }
+.career-thumb.c3::before { background: var(--c3); }
+.career-thumb:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.career-thumb.active { border-width: 1.5px; }
+.career-thumb.c0.active { border-color: var(--c0); box-shadow: 0 0 20px rgba(124,106,247,0.15); }
+.career-thumb.c1.active { border-color: var(--c1); box-shadow: 0 0 20px rgba(52,211,153,0.15); }
+.career-thumb.c2.active { border-color: var(--c2); box-shadow: 0 0 20px rgba(251,146,60,0.15); }
+.career-thumb.c3.active { border-color: var(--c3); box-shadow: 0 0 20px rgba(56,189,248,0.15); }
+.thumb-emoji { font-size: 24px; margin-bottom: 8px; }
+.thumb-name { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+.thumb-match { font-size: 11px; font-weight: 700; }
+.thumb-risk { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; margin-top: 6px; }
+.risk-safe    { background: rgba(52,211,153,0.1);  color: var(--risk-safe);    border: 1px solid rgba(52,211,153,0.25); }
+.risk-growing { background: rgba(124,106,247,0.1); color: var(--risk-growing); border: 1px solid rgba(124,106,247,0.25); }
+.risk-watch   { background: rgba(251,146,60,0.1);  color: var(--risk-watch);   border: 1px solid rgba(251,146,60,0.25); }
+
+/* ─── DETAIL PANEL ─── */
+#detail-panel { display: none; animation: slide-up 0.28s ease-out; }
+@keyframes slide-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+.detail-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden; margin-bottom: 24px;
+}
+.detail-hero {
+  padding: 24px 28px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+}
+.detail-emoji-wrap {
+  width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+}
+.detail-meta { flex: 1; min-width: 0; }
+.detail-name { font-family: 'Lora', serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.detail-desc { font-size: 14px; color: var(--muted); line-height: 1.75; }
+.detail-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.detail-badge {
+  padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.detail-salary { background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.25); color: var(--gold); }
+.detail-match { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: var(--risk-safe); }
+
+.detail-body { padding: 0; }
+.detail-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.detail-tabs::-webkit-scrollbar { display: none; }
+.detail-tab {
+  padding: 14px 20px; font-size: 13px; font-weight: 500; cursor: pointer;
+  color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap;
+  transition: all 0.2s; background: transparent; border-top: none; border-left: none; border-right: none;
+  font-family: 'Sora', sans-serif;
+}
+.detail-tab:hover { color: var(--text); }
+.detail-tab.active { color: var(--text); border-bottom-color: currentColor; }
+.detail-tab-content { padding: 22px 28px; min-height: 160px; }
+.detail-tab-pane { display: none; animation: fade-in 0.2s ease; }
+.detail-tab-pane.active { display: block; }
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+
+/* Specializations */
+.spec-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.spec-chip {
+  padding: 7px 14px; border-radius: 100px; border: 1px solid var(--border);
+  background: var(--surface2); font-size: 12.5px; color: var(--text); font-weight: 400;
+}
+
+/* Universities */
+.uni-country-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.uni-country-tab {
+  padding: 7px 16px; border-radius: 100px; border: 1px solid var(--border);
+  background: var(--surface2); font-size: 12px; cursor: pointer; transition: all 0.2s;
+  color: var(--muted); font-family: 'Sora', sans-serif; font-weight: 400;
+}
+.uni-country-tab.active { border-color: var(--c0); color: #a99df9; background: rgba(124,106,247,0.1); font-weight: 500; }
+.uni-list { display: flex; flex-direction: column; gap: 10px; }
+.uni-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px;
+}
+.uni-flag { font-size: 22px; flex-shrink: 0; }
+.uni-info { flex: 1; min-width: 0; }
+.uni-name { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+.uni-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* Skills needed */
+.skills-list { display: flex; flex-direction: column; gap: 8px; }
+.skill-row { display: flex; align-items: center; gap: 12px; }
+.skill-name { font-size: 13px; color: var(--text); min-width: 160px; }
+.skill-track { flex: 1; height: 6px; background: var(--surface3); border-radius: 100px; overflow: hidden; }
+.skill-fill { height: 100%; border-radius: 100px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+.skill-level { font-size: 11px; color: var(--muted); min-width: 48px; text-align: right; }
+
+/* ─── TIMELINE ─── */
+.timeline-section { margin-bottom: 28px; }
+.timeline-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+.timeline-wrap::-webkit-scrollbar { height: 4px; }
+.timeline-wrap::-webkit-scrollbar-track { background: transparent; }
+.timeline-wrap::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 100px; }
+
+.timeline-inner { display: flex; gap: 0; min-width: max-content; padding: 8px 4px; }
+.timeline-year {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: 200px; flex-shrink: 0; position: relative;
+}
+.timeline-year:not(:last-child)::after {
+  content: ''; position: absolute; top: 20px; left: 50%;
+  width: 100%; height: 2px; background: var(--border2);
+  z-index: 0;
+}
+.year-dot {
+  width: 40px; height: 40px; border-radius: 50%; border: 2px solid;
+  background: var(--surface); display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 700;
+  position: relative; z-index: 1;
+}
+.year-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.year-actions { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 0 10px; }
+.year-action {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-size: 12px;
+  color: var(--muted); line-height: 1.5; text-align: center;
+}
+.year-action strong { display: block; font-weight: 600; color: var(--text); margin-bottom: 3px; font-size: 12px; }
+
+/* ── Error card ── */
+.error-card {
+  background: rgba(224,92,110,0.06); border: 1px solid rgba(224,92,110,0.2);
+  border-radius: 16px; padding: 20px 24px; text-align: center; margin: 20px 0;
+}
+.error-card h3 { font-size: 15px; font-weight: 600; color: #e05c6e; margin-bottom: 6px; }
+.error-card p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.btn-retry {
+  margin-top: 14px; padding: 10px 24px; border-radius: 10px;
+  background: rgba(224,92,110,0.12); border: 1px solid rgba(224,92,110,0.3);
+  color: #e05c6e; font-family: 'Sora', sans-serif; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-retry:hover { background: rgba(224,92,110,0.2); }
+
+@media(max-width:500px){
+  .detail-hero { padding: 18px 20px; }
+  .detail-tab { padding: 12px 14px; font-size: 12px; }
+  .detail-tab-content { padding: 18px 20px; }
+  .profile-header { padding: 16px 18px; flex-wrap: wrap; }
+}
+</style>
+
+<script>
+// Pre-load name from shared profile
+(function(){
+  try {
+    var p = JSON.parse(localStorage.getItem('om:profile') || localStorage.getItem('orientame:dashboard:profile') || localStorage.getItem('orientame:leo:profile') || '{}');
+    if (p.name) {
+      // Pre-fill any name inputs
+      document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('#playerName, #su-name, #setup-name, #wm-name, [placeholder*="nombre"], [placeholder*="llamas"]');
+        inputs.forEach(function(el){ if(!el.value) el.value = p.name; });
+        // Also hide setup screens if name exists
+        var setups = document.querySelectorAll('#setup-screen, #setup-overlay, #welcome-overlay');
+        setups.forEach(function(el){ if(el) el.classList.add('hidden'); });
+      });
+    }
+  } catch(e) {}
+})();
+</script>
+</head>
+<body>
+<div style="position:fixed;top:14px;left:14px;z-index:9999">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.15);background:rgba(9,12,22,0.85);backdrop-filter:blur(8px);color:rgba(238,234,244,0.7);font-family:Sora,sans-serif;font-size:12px;text-decoration:none;cursor:pointer;transition:all 0.2s">← Inicio</a>
+</div>
+
+<div class="wrapper">
+
+<!-- ════════════════════════════════════
+     SCREEN 1: PROFILE FORM
+════════════════════════════════════ -->
+<div id="form-screen">
+  <div class="form-badge"><div class="form-dot"></div>Oriéntame · Módulo 3</div>
+  <h1 class="form-title">Tu <em>mapa de carrera</em><br>personalizado</h1>
+  <p class="form-sub">Dinos un poco sobre ti y la IA generará un mapa visual de las carreras que mejor se alinean con tu perfil — con especializaciones, universidades y un plan año a año.</p>
+
+  <div class="form-grid">
+    <div class="field-group">
+      <div class="field-label">Tu nombre</div>
+      <input type="text" class="field-input" id="f-name" placeholder="Ej: Ariel" maxlength="40" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Tu edad</div>
+      <input type="number" class="field-input" id="f-age" placeholder="Ej: 15" min="10" max="25">
+    </div>
+    <div class="field-group full">
+      <div class="field-label">¿Qué te apasiona hacer? (sé específico)</div>
+      <textarea class="field-textarea" id="f-passions" placeholder="Ej: crear videos, fotografía, música, programar, dibujar, matemáticas, ayudar personas, jugar Minecraft y construir cosas..."></textarea>
+    </div>
+    <div class="field-group full">
+      <div class="field-label">¿Para qué eres bueno/a aunque no siempre te guste?</div>
+      <textarea class="field-textarea" id="f-skills" placeholder="Ej: matemáticas, explicar cosas, organizar, trabajar con mis manos, idiomas, tecnología..."></textarea>
+    </div>
+    <div class="field-group">
+      <div class="field-label">¿Dónde quieres estudiar?</div>
+      <select class="field-select" id="f-country">
+        <option value="latam_europa">Latinoamérica + Europa</option>
+        <option value="ecuador">Solo Ecuador</option>
+        <option value="espana">Solo España</option>
+        <option value="uk">Solo Reino Unido</option>
+        <option value="cualquier">Abierto a cualquier país</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Nivel de inglés</div>
+      <select class="field-select" id="f-english">
+        <option value="basico">Básico (A1–A2)</option>
+        <option value="intermedio">Intermedio (B1–B2)</option>
+        <option value="avanzado">Avanzado (C1–C2)</option>
+        <option value="nativo">Bilingüe / Nativo</option>
+      </select>
+    </div>
+    <div class="field-group full">
+      <div class="field-label">Selecciona tus áreas de interés (elige todas las que apliquen)</div>
+      <div class="interest-tags" id="interest-tags">
+        <span class="int-tag" data-val="tecnologia">💻 Tecnología</span>
+        <span class="int-tag" data-val="arte_visual">🎨 Arte visual</span>
+        <span class="int-tag" data-val="musica">🎵 Música</span>
+        <span class="int-tag" data-val="teatro_actuacion">🎭 Teatro / Actuación</span>
+        <span class="int-tag" data-val="ciencias">🔬 Ciencias</span>
+        <span class="int-tag" data-val="matematicas">📐 Matemáticas</span>
+        <span class="int-tag" data-val="negocios">💼 Negocios</span>
+        <span class="int-tag" data-val="medicina_salud">🏥 Salud / Medicina</span>
+        <span class="int-tag" data-val="comunicacion">📢 Comunicación</span>
+        <span class="int-tag" data-val="diseno">✏️ Diseño</span>
+        <span class="int-tag" data-val="deportes">⚽ Deportes</span>
+        <span class="int-tag" data-val="gastronomia">🍳 Gastronomía</span>
+        <span class="int-tag" data-val="arquitectura">🏛️ Arquitectura</span>
+        <span class="int-tag" data-val="educacion">📚 Educación</span>
+        <span class="int-tag" data-val="medio_ambiente">🌿 Medio ambiente</span>
+        <span class="int-tag" data-val="moda">👗 Moda / Textil</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-generate" id="btn-generate" onclick="generateMap()">
+    🗺️ Generar mi mapa de carrera
+  </button>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN 2: LOADING
+════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loading-icon">🗺️</div>
+  <h2 class="loading-title">Construyendo tu mapa...</h2>
+  <p class="loading-sub">La IA está analizando tu perfil y cruzando con datos del mercado laboral 2026–2035. Toma unos segundos.</p>
+  <div class="loading-steps">
+    <div class="loading-step" id="ls-1"><span class="step-icon">🔍</span>Analizando tu perfil...</div>
+    <div class="loading-step" id="ls-2"><span class="step-icon">📊</span>Cruzando con mercado laboral...</div>
+    <div class="loading-step" id="ls-3"><span class="step-icon">🏛️</span>Buscando universidades...</div>
+    <div class="loading-step" id="ls-4"><span class="step-icon">🗺️</span>Dibujando el mapa...</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN 3: MAP
+════════════════════════════════════ -->
+<div id="map-screen">
+
+  <!-- Profile header -->
+  <div class="profile-header">
+    <div class="profile-avatar" id="map-avatar">🌟</div>
+    <div class="profile-info">
+      <div class="profile-name" id="map-name">—</div>
+      <div class="profile-type" id="map-type">—</div>
+      <div class="profile-tags" id="map-tags"></div>
+    </div>
+    <button class="btn-restart" onclick="restartForm()">← Editar perfil</button>
+  </div>
+
+  <!-- SVG MAP -->
+  <div class="map-container">
+    <div class="section-label">Mapa visual de carreras</div>
+    <div class="map-scroll">
+      <svg id="career-svg" width="860" height="420" viewBox="0 0 860 420"></svg>
+    </div>
+    <div class="map-legend" id="map-legend"></div>
+    <div class="map-hint">Toca cualquier carrera para ver detalles ↓</div>
+  </div>
+
+  <!-- CAREER THUMBS -->
+  <div class="section-label">Carreras recomendadas</div>
+  <div class="careers-grid" id="careers-grid"></div>
+
+  <!-- DETAIL PANEL -->
+  <div id="detail-panel">
+    <div class="detail-card" id="detail-card">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-section" id="timeline-section" style="display:none;">
+    <div class="section-label" id="timeline-label">Plan de acción</div>
+    <div class="timeline-wrap">
+      <div class="timeline-inner" id="timeline-inner"></div>
+    </div>
+  </div>
+
+</div><!-- /map-screen -->
+
+</div><!-- /wrapper -->
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─────────────────────────────────────
+   STATE
+───────────────────────────────────── */
+let MAP_DATA     = null;   // parsed AI response
+let SELECTED_IDX = -1;     // currently selected career index
+let SELECTED_UNI = 0;      // selected university country tab (0=Ecuador,1=España,2=UK)
+let USER_PROFILE = {};
+
+/* ─────────────────────────────────────
+   INTEREST TAGS
+───────────────────────────────────── */
+document.querySelectorAll('.int-tag').forEach(tag => {
+  tag.addEventListener('click', () => tag.classList.toggle('selected'));
+});
+
+function getSelectedInterests() {
+  return Array.from(document.querySelectorAll('.int-tag.selected')).map(t => t.dataset.val);
+}
+
+/* ─────────────────────────────────────
+   LOADING STEPS ANIMATION
+───────────────────────────────────── */
+async function animateLoadingSteps() {
+  const steps = ['ls-1', 'ls-2', 'ls-3', 'ls-4'];
+  for (let i = 0; i < steps.length; i++) {
+    await delay(700);
+    document.getElementById(steps[i]).classList.add('active');
+    if (i > 0) document.getElementById(steps[i-1]).classList.remove('active');
+    document.getElementById(steps[i-1 < 0 ? 0 : i-1]).classList.add('done');
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ─────────────────────────────────────
+   BUILD PROMPT
+───────────────────────────────────── */
+function buildPrompt(profile) {
+  return `Eres un orientador vocacional experto con datos del mercado laboral 2026-2035. Estamos en abril de 2026.
+
+PERFIL DEL ADOLESCENTE:
+- Nombre: ${profile.name}
+- Edad: ${profile.age || 'no indicada'}
+- Pasiones: ${profile.passions || 'no indicadas'}
+- Habilidades: ${profile.skills || 'no indicadas'}
+- Intereses seleccionados: ${profile.interests.join(', ') || 'no indicados'}
+- Destino de estudios preferido: ${profile.country}
+- Nivel de inglés: ${profile.english}
+
+Genera un mapa de carrera personalizado en JSON puro (sin markdown, sin texto extra, solo el JSON válido):
+
+{
+  "profile_type": "Nombre del tipo de perfil en 4-6 palabras (ej: Creador Visual Tecnológico, Analítico Artístico, Constructor Digital)",
+  "profile_emoji": "un emoji que represente el perfil",
+  "profile_tags": ["etiqueta1", "etiqueta2", "etiqueta3"],
+  "careers": [
+    {
+      "id": "carrera_id_sin_espacios",
+      "name": "Nombre de la carrera",
+      "emoji": "emoji representativo",
+      "color_index": 0,
+      "match_pct": 92,
+      "ai_risk": "safe|growing|watch",
+      "salary_range": "rango salarial mensual realista en USD",
+      "description": "2-3 oraciones descripción de la carrera y por qué encaja con este perfil específico",
+      "specializations": ["especialización 1", "especialización 2", "especialización 3", "especialización 4"],
+      "universities": {
+        "ecuador": [
+          { "name": "Nombre Universidad", "detail": "Carrera específica · costo aproximado por semestre" },
+          { "name": "Segunda opción", "detail": "Carrera específica · costo aproximado" }
+        ],
+        "espana": [
+          { "name": "Nombre Universidad", "detail": "Ciudad · requisitos básicos para ecuatorianos" },
+          { "name": "Segunda opción", "detail": "Ciudad · característica clave" }
+        ],
+        "uk": [
+          { "name": "Nombre Universidad", "detail": "Ciudad · programa específico" },
+          { "name": "Segunda opción", "detail": "Ciudad · característica clave" }
+        ]
+      },
+      "skills_needed": [
+        { "name": "Habilidad 1", "level": 85 },
+        { "name": "Habilidad 2", "level": 70 },
+        { "name": "Habilidad 3", "level": 60 }
+      ],
+      "timeline": [
+        { "year": 1, "label": "Año 1", "title": "Exploración", "actions": ["Acción concreta 1", "Acción concreta 2"] },
+        { "year": 2, "label": "Año 2", "title": "Fundamentos", "actions": ["Acción concreta 1", "Acción concreta 2"] },
+        { "year": 3, "label": "Año 3", "title": "Decisión", "actions": ["Acción concreta 1", "Aplicar a universidades"] },
+        { "year": 4, "label": "Año 4", "title": "Universidad", "actions": ["1er año universitario", "Primer proyecto"] },
+        { "year": 5, "label": "Año 5", "title": "Crecimiento", "actions": ["Pasantía o proyecto real", "Portafolio profesional"] }
+      ]
+    }
+  ]
+}
+
+REGLAS CRÍTICAS:
+- Exactamente 4 carreras
+- color_index: 0, 1, 2, 3 (uno diferente por carrera)
+- ai_risk: "safe"=muy resistente a IA, "growing"=crece con IA, "watch"=requiere adaptación
+- Todas las carreras deben tener futuro en 2026-2035
+- NO incluyas: data entry, contabilidad básica, diseño gráfico genérico sin estrategia, periodismo impreso
+- SÍ incluye al menos 1 carrera artística si el perfil lo sugiere
+- universities: exactamente 2 opciones por país
+- El JSON debe ser válido y parseable
+- NO añadas texto antes ni después del JSON`;
+}
+
+/* ─────────────────────────────────────
+   GENERATE MAP
+───────────────────────────────────── */
+async function generateMap() {
+  const name    = document.getElementById('f-name').value.trim();
+  const age     = document.getElementById('f-age').value.trim();
+  const passions = document.getElementById('f-passions').value.trim();
+  const skills  = document.getElementById('f-skills').value.trim();
+  const country = document.getElementById('f-country').value;
+  const english = document.getElementById('f-english').value;
+  const interests = getSelectedInterests();
+
+  // Basic validation
+  if (!name) {
+    document.getElementById('f-name').focus();
+    document.getElementById('f-name').style.borderColor = 'rgba(224,92,110,0.6)';
+    setTimeout(() => document.getElementById('f-name').style.borderColor = '', 2500);
+    return;
+  }
+
+  USER_PROFILE = { name, age, passions, skills, country, english, interests };
+
+  // Switch to loading
+  document.getElementById('form-screen').style.display = 'none';
+  document.getElementById('loading-screen').style.display = 'block';
+
+  // Start loading animation (don't await — runs in parallel)
+  animateLoadingSteps();
+
+  try {
+    const response = await fetchWithTimeout(
+      'https://api.anthropic.com/v1/messages',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: buildPrompt(USER_PROFILE) }]
+        })
+      },
+      40000
+    );
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(`API ${response.status}: ${err?.error?.message || 'error'}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('')
+      .trim();
+
+    // Parse and validate JSON
+    MAP_DATA = parseAndValidate(rawText);
+
+    // Brief pause to let loading animation feel real
+    await delay(600);
+
+    renderMap(MAP_DATA);
+
+  } catch (err) {
+    console.error('Map generation error:', err);
+    // Use smart fallback
+    MAP_DATA = buildFallback(USER_PROFILE);
+    await delay(400);
+    renderMap(MAP_DATA);
+  }
+}
+
+/* ─────────────────────────────────────
+   JSON PARSE & VALIDATE
+───────────────────────────────────── */
+function parseAndValidate(raw) {
+  // Remove any markdown code fences
+  let clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+  // Try to extract JSON object if there's surrounding text
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if (jsonMatch) clean = jsonMatch[0];
+
+  const parsed = JSON.parse(clean); // throws if invalid
+
+  // Validate required fields
+  if (!parsed.careers || !Array.isArray(parsed.careers) || parsed.careers.length === 0) {
+    throw new Error('No careers in response');
+  }
+
+  // Normalize each career
+  parsed.careers = parsed.careers.slice(0, 4).map((c, i) => ({
+    id:              c.id              || `career_${i}`,
+    name:            c.name            || `Carrera ${i+1}`,
+    emoji:           c.emoji           || '🎯',
+    color_index:     [0,1,2,3][i],     // always use index order, ignore AI color
+    match_pct:       Math.min(99, Math.max(60, Number(c.match_pct) || 80)),
+    ai_risk:         ['safe','growing','watch'].includes(c.ai_risk) ? c.ai_risk : 'growing',
+    salary_range:    c.salary_range    || 'Varía según especialización',
+    description:     c.description     || '',
+    specializations: Array.isArray(c.specializations) ? c.specializations.slice(0,6) : [],
+    universities:    normalizeUniversities(c.universities),
+    skills_needed:   Array.isArray(c.skills_needed) ? c.skills_needed.slice(0,5) : [],
+    timeline:        Array.isArray(c.timeline) ? c.timeline.slice(0,5) : []
+  }));
+
+  // Ensure 4 careers (pad if needed)
+  while (parsed.careers.length < 4) {
+    const fb = FALLBACK_CAREERS[parsed.careers.length];
+    parsed.careers.push({ ...fb, color_index: parsed.careers.length });
+  }
+
+  return parsed;
+}
+
+function normalizeUniversities(unis) {
+  const empty = [{ name: 'Por confirmar', detail: 'Verificar oferta académica directamente' }];
+  if (!unis || typeof unis !== 'object') return { ecuador: empty, espana: empty, uk: empty };
+  return {
+    ecuador: Array.isArray(unis.ecuador) && unis.ecuador.length > 0 ? unis.ecuador : empty,
+    espana:  Array.isArray(unis.espana)  && unis.espana.length  > 0 ? unis.espana  : empty,
+    uk:      Array.isArray(unis.uk)      && unis.uk.length      > 0 ? unis.uk      : empty
+  };
+}
+
+/* ─────────────────────────────────────
+   FALLBACK DATA
+───────────────────────────────────── */
+const FALLBACK_CAREERS = [
+  {
+    id:'diseno_ux', name:'Diseño UX/UI', emoji:'💻', color_index:0,
+    match_pct:88, ai_risk:'growing', salary_range:'$1,800 – $6,000/mes',
+    description:'Diseña cómo se ven y sienten las aplicaciones y sitios web. Une creatividad visual con psicología del usuario.',
+    specializations:['Product Design','Motion Design','Design Systems','UX Research'],
+    universities:{
+      ecuador:[{name:'UDLA',detail:'Diseño Interactivo · ~$800/semestre'},{name:'PUCE',detail:'Diseño Gráfico + Digital · ~$600/semestre'}],
+      espana:[{name:'IED Madrid',detail:'Madrid · Grado en Diseño Digital'},{name:'Elisava Barcelona',detail:'Barcelona · Muy reconocida en Europa'}],
+      uk:[{name:'UAL London',detail:'Londres · Creative Computing Institute'},{name:'Goldsmiths',detail:'Londres · Design program'}]
+    },
+    skills_needed:[{name:'Figma / Sketch',level:90},{name:'Psicología del usuario',level:75},{name:'Pensamiento visual',level:85},{name:'Datos y métricas',level:60}],
+    timeline:[
+      {year:1,label:'Año 1',title:'Exploración',actions:['Aprende Figma (gratis online)','Estudia principios de diseño visual']},
+      {year:2,label:'Año 2',title:'Portafolio',actions:['Crea 3 proyectos de diseño','Aprende HTML/CSS básico']},
+      {year:3,label:'Año 3',title:'Decisión',actions:['Define universidad objetivo','IELTS si es para UK o EEUU']},
+      {year:4,label:'Año 4',title:'Universidad',actions:['Primer año universitario','Pasantía en empresa pequeña']},
+      {year:5,label:'Año 5',title:'Profesional',actions:['Portafolio sólido','Primeros clientes freelance']}
+    ]
+  },
+  {
+    id:'produccion_audiovisual', name:'Producción Audiovisual', emoji:'🎬', color_index:1,
+    match_pct:84, ai_risk:'growing', salary_range:'$1,200 – $5,000/mes',
+    description:'Crea documentales, cortometrajes, contenido digital y experiencias visuales. Combina narrativa con tecnología.',
+    specializations:['Dirección de cine','Fotografía profesional','Post-producción','Contenido digital'],
+    universities:{
+      ecuador:[{name:'USFQ',detail:'Comunicación Audiovisual · ~$1,200/semestre'},{name:'UDLA',detail:'Comunicación y RRPP · ~$800/semestre'}],
+      espana:[{name:'ESCAC Barcelona',detail:'Barcelona · Escuela Cinema y Audiovisual de Cataluña'},{name:'TAI Madrid',detail:'Madrid · Artes y Espectáculo'}],
+      uk:[{name:'London Film School',detail:'Londres · Programa MA Filmmaking'},{name:'University of Arts London',detail:'Londres · BA Film'}]
+    },
+    skills_needed:[{name:'Edición de video',level:85},{name:'Narrativa visual',level:90},{name:'Fotografía',level:75},{name:'IA creativa',level:65}],
+    timeline:[
+      {year:1,label:'Año 1',title:'Exploración',actions:['Aprende DaVinci Resolve (gratis)','Crea 5 videos cortos']},
+      {year:2,label:'Año 2',title:'Canal',actions:['Canal de YouTube propio','Cortometraje de 5 minutos']},
+      {year:3,label:'Año 3',title:'Decisión',actions:['Portafolio audiovisual listo','Investiga escuelas de cine']},
+      {year:4,label:'Año 4',title:'Universidad',actions:['Escuela de cine o comunicación','Proyectos colaborativos']},
+      {year:5,label:'Año 5',title:'Profesional',actions:['Primer trabajo remunerado','Red de colaboradores']}
+    ]
+  },
+  {
+    id:'ingenieria_software', name:'Ingeniería de Software', emoji:'⚙️', color_index:2,
+    match_pct:80, ai_risk:'safe', salary_range:'$2,500 – $10,000/mes',
+    description:'Diseña y construye sistemas, aplicaciones y soluciones tecnológicas. Alta demanda global con trabajo remoto.',
+    specializations:['Desarrollo web','IA y Machine Learning','Ciberseguridad','Apps móviles'],
+    universities:{
+      ecuador:[{name:'ESPOL',detail:'Ing. en Ciencias de la Computación · ~$400/semestre'},{name:'EPN',detail:'Ing. Sistemas · pública'}],
+      espana:[{name:'UPM Madrid',detail:'Madrid · Ing. Informática muy reconocida'},{name:'UPF Barcelona',detail:'Barcelona · Ing. Informática + bilingüe'}],
+      uk:[{name:'Imperial College London',detail:'Londres · top 10 mundial en CS'},{name:'University of Edinburgh',detail:'Edimburgo · Excellent CS program'}]
+    },
+    skills_needed:[{name:'Programación (Python/JS)',level:90},{name:'Matemáticas',level:80},{name:'Resolución de problemas',level:85},{name:'Inglés técnico',level:75}],
+    timeline:[
+      {year:1,label:'Año 1',title:'Fundamentos',actions:['Python en plataformas gratuitas','Primer proyecto pequeño']},
+      {year:2,label:'Año 2',title:'Proyectos',actions:['App o web funcional propia','Contribuir a open source']},
+      {year:3,label:'Año 3',title:'Decisión',actions:['SAT/IELTS si aplica al exterior','Portafolio en GitHub']},
+      {year:4,label:'Año 4',title:'Universidad',actions:['Ing. Software / CS','Primer hackathon']},
+      {year:5,label:'Año 5',title:'Profesional',actions:['Internship en tech company','Red profesional en LinkedIn']}
+    ]
+  },
+  {
+    id:'arquitectura', name:'Arquitectura', emoji:'🏛️', color_index:3,
+    match_pct:76, ai_risk:'safe', salary_range:'$1,500 – $7,000/mes',
+    description:'Diseña espacios que las personas habitan. Combina arte, matemáticas, física y visión social del entorno construido.',
+    specializations:['Arquitectura sostenible','Diseño paramétrico','Urbanismo','Interiorismo'],
+    universities:{
+      ecuador:[{name:'PUCE',detail:'Facultad de Arquitectura · ~$700/semestre'},{name:'USFQ',detail:'Arquitectura + Diseño Interior'}],
+      espana:[{name:'ETSAM Madrid',detail:'Madrid · Una de las mejores de Europa'},{name:'ETSAB Barcelona',detail:'Barcelona · Escuela de Arquitectura UPC'}],
+      uk:[{name:'Bartlett UCL',detail:'Londres · Top mundial en arquitectura'},{name:'AA School London',detail:'Londres · Vanguardia arquitectónica'}]
+    },
+    skills_needed:[{name:'Dibujo técnico y artístico',level:80},{name:'AutoCAD / Revit',level:75},{name:'Matemáticas y física',level:85},{name:'Pensamiento espacial',level:90}],
+    timeline:[
+      {year:1,label:'Año 1',title:'Visual',actions:['Dibuja 1 boceto por día','Aprende SketchUp (gratis)']},
+      {year:2,label:'Año 2',title:'Técnico',actions:['AutoCAD básico','Visita edificios icónicos']},
+      {year:3,label:'Año 3',title:'Decisión',actions:['Portafolio de dibujos y modelos','Aplica a facultades']},
+      {year:4,label:'Año 4',title:'Universidad',actions:['1er año arq. — talleres de diseño','Primer modelo de maqueta']},
+      {year:5,label:'Año 5',title:'Crecimiento',actions:['Pasantía en estudio de arquitectura','Primer anteproyecto propio']}
+    ]
+  }
+];
+
+function buildFallback(profile) {
+  // Pick careers based on keywords in profile
+  const text = ((profile.passions || '') + ' ' + (profile.skills || '') + ' ' + profile.interests.join(' ')).toLowerCase();
+
+  const scoring = {
+    diseno_ux:           (text.match(/diseño|arte|visual|color|ui|ux|digital|photoshop|figma|creativ/g)||[]).length,
+    produccion_audiovisual: (text.match(/video|film|cine|foto|música|audio|creativo|youtube|editar/g)||[]).length,
+    ingenieria_software: (text.match(/program|código|tech|computad|app|web|software|hack|minecraft|juego/g)||[]).length,
+    arquitectura:        (text.match(/construir|diseñ|espacio|edificio|minecraft|ciudad|arte|math|física/g)||[]).length
+  };
+
+  // Sort by score and assign color indices
+  const sorted = Object.entries(scoring).sort((a,b)=>b[1]-a[1]);
+  const careers = sorted.map(([id], idx) => {
+    const base = FALLBACK_CAREERS.find(c=>c.id===id) || FALLBACK_CAREERS[idx];
+    // Adjust match percentages based on score
+    return { ...base, color_index: idx, match_pct: Math.min(96, 75 + sorted[0][1] * 2 - idx * 4) };
+  });
+
+  return {
+    profile_type: 'Perfil Multidimensional',
+    profile_emoji: '🌟',
+    profile_tags: profile.interests.slice(0,3).map(i => i.replace('_',' ')),
+    careers
+  };
+}
+
+/* ─────────────────────────────────────
+   RENDER MAP
+───────────────────────────────────── */
+const PALETTE = [
+  { hex: '#7c6af7', rgb: '124,106,247' },  // c0 violet
+  { hex: '#34d399', rgb: '52,211,153'  },  // c1 emerald
+  { hex: '#fb923c', rgb: '251,146,60'  },  // c2 orange
+  { hex: '#38bdf8', rgb: '56,189,248'  }   // c3 sky
+];
+
+function renderMap(data) {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('map-screen').style.display = 'block';
+
+  // Profile header
+  document.getElementById('map-avatar').textContent = data.profile_emoji || '🌟';
+  document.getElementById('map-name').textContent = USER_PROFILE.name;
+  document.getElementById('map-type').textContent = data.profile_type || '';
+
+  const tagsEl = document.getElementById('map-tags');
+  tagsEl.innerHTML = '';
+  (data.profile_tags || []).forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'profile-tag';
+    chip.textContent = t;
+    tagsEl.appendChild(chip);
+  });
+
+  // SVG map
+  renderSVG(data.careers);
+
+  // Career thumbs
+  renderCareerThumbs(data.careers);
+
+  // Legend
+  renderLegend();
+
+  // Select first career by default
+  selectCareer(0, data.careers[0]);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ─────────────────────────────────────
+   SVG MAP
+───────────────────────────────────── */
+function renderSVG(careers) {
+  const svg = document.getElementById('career-svg');
+  svg.innerHTML = '';
+
+  const W = 860, H = 420;
+  const CX = 120, CY = H / 2;    // center profile node
+  const CAREER_X = 310;           // career node X
+  const SPEC_X = 540;             // specialization X
+  const SPEC_DOT_X = 720;         // spec dot X
+
+  // Y positions for 4 careers
+  const careerYs = [70, 185, 300, 390];
+
+  // ─ Defs (gradients, filters) ─
+  const defs = svgEl('defs');
+
+  // Center gradient
+  const grad0 = svgEl('radialGradient', { id: 'grad-center', cx: '50%', cy: '50%', r: '50%' });
+  grad0.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#7c6af7', 'stop-opacity': '0.4' }));
+  grad0.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#34d399', 'stop-opacity': '0.15' }));
+  defs.appendChild(grad0);
+
+  // Glow filter
+  const filter = svgEl('filter', { id: 'glow', x: '-30%', y: '-30%', width: '160%', height: '160%' });
+  const feGauss = svgEl('feGaussianBlur', { stdDeviation: '4', result: 'coloredBlur' });
+  const feMerge = svgEl('feMerge');
+  feMerge.appendChild(svgEl('feMergeNode', { in: 'coloredBlur' }));
+  feMerge.appendChild(svgEl('feMergeNode', { in: 'SourceGraphic' }));
+  filter.appendChild(feGauss);
+  filter.appendChild(feMerge);
+  defs.appendChild(filter);
+
+  svg.appendChild(defs);
+
+  // ─ Background subtle grid lines ─
+  for (let x = 0; x <= W; x += 80) {
+    svg.appendChild(svgEl('line', { x1:x, y1:0, x2:x, y2:H,
+      stroke:'rgba(255,255,255,0.025)', 'stroke-width':1 }));
+  }
+
+  // ─ Center node ─
+  const centerG = svgEl('g');
+  centerG.appendChild(svgEl('circle', { cx:CX, cy:CY, r:48, fill:'url(#grad-center)', stroke:'rgba(255,255,255,0.15)', 'stroke-width':1.5 }));
+  centerG.appendChild(svgEl('text', { x:CX, y:CY-8, class:'svg-center-text', 'font-size':22, 'text-anchor':'middle', fill:'rgba(238,234,244,0.9)' })).textContent = MAP_DATA.profile_emoji || '🌟';
+  centerG.appendChild(svgEl('text', { x:CX, y:CY+14, class:'svg-center-text', 'text-anchor':'middle' })).textContent = truncate(USER_PROFILE.name, 10);
+  svg.appendChild(centerG);
+
+  // ─ Career nodes ─
+  careers.forEach((career, i) => {
+    const cy = careerYs[i];
+    const palette = PALETTE[career.color_index];
+    const col = palette.hex;
+
+    // Line from center to career
+    const line = svgEl('path', {
+      d: `M ${CX+44} ${CY} C ${(CX+CAREER_X)/2} ${CY}, ${(CX+CAREER_X)/2} ${cy}, ${CAREER_X-38} ${cy}`,
+      stroke: col, 'stroke-width': 1.5, fill: 'none', opacity: 0.35,
+      'stroke-dasharray': '5 4'
+    });
+    svg.insertBefore(line, svg.firstChild); // behind nodes
+
+    // Career circle
+    const g = svgEl('g', { class: 'svg-node', id: `svg-node-${i}`, style: 'cursor:pointer' });
+    g.addEventListener('click', () => selectCareer(i, career));
+    g.addEventListener('pointerdown', e => e.stopPropagation());
+
+    // Glow bg
+    g.appendChild(svgEl('circle', { cx: CAREER_X, cy, r: 42, fill: `rgba(${palette.rgb},0.1)`, 'stroke-width':0 }));
+    // Main circle
+    g.appendChild(svgEl('circle', { cx: CAREER_X, cy, r: 36, fill: `rgba(${palette.rgb},0.15)`, stroke: col, 'stroke-width': 1.8, id: `svg-circle-${i}` }));
+    // Emoji
+    const emojiText = svgEl('text', { x: CAREER_X, y: cy - 6, class: 'svg-emoji', 'dominant-baseline':'middle' });
+    emojiText.textContent = career.emoji;
+    g.appendChild(emojiText);
+    // Name (split at space if needed)
+    const nameLines = wrapSVGText(career.name, 11);
+    nameLines.forEach((line, li) => {
+      const t = svgEl('text', { x: CAREER_X, y: cy + 14 + li * 13, class: 'svg-node-text', 'font-size': 10 });
+      t.textContent = line;
+      g.appendChild(t);
+    });
+    // Match %
+    const matchT = svgEl('text', { x: CAREER_X, y: cy + 40 + (nameLines.length-1)*13, class: 'svg-node-text', 'font-size': 9, fill: col });
+    matchT.textContent = career.match_pct + '%';
+    g.appendChild(matchT);
+
+    svg.appendChild(g);
+
+    // ─ Specializations ─
+    const specs = (career.specializations || []).slice(0, 3);
+    const specSpacing = 36;
+    const specStartY = cy - (specs.length - 1) * specSpacing / 2;
+
+    // Line career → specs hub
+    svg.appendChild(svgEl('line', {
+      x1: CAREER_X + 38, y1: cy, x2: SPEC_X - 10, y2: cy,
+      stroke: col, 'stroke-width': 1, opacity: 0.2, 'stroke-dasharray': '3 3'
+    }));
+
+    specs.forEach((spec, si) => {
+      const sy = specStartY + si * specSpacing;
+      // Dot line
+      svg.appendChild(svgEl('line', {
+        x1: SPEC_X, y1: cy, x2: SPEC_X, y2: sy,
+        stroke: col, 'stroke-width': 1, opacity: 0.15
+      }));
+      svg.appendChild(svgEl('line', {
+        x1: SPEC_X, y1: sy, x2: SPEC_DOT_X - 6, y2: sy,
+        stroke: col, 'stroke-width': 1, opacity: 0.15
+      }));
+      // Small dot
+      svg.appendChild(svgEl('circle', { cx: SPEC_DOT_X - 6, cy: sy, r: 3, fill: col, opacity: 0.4 }));
+      // Spec text
+      const st = svgEl('text', { x: SPEC_DOT_X + 2, y: sy + 4, class: 'svg-spec-text' });
+      st.textContent = truncate(spec, 18);
+      svg.appendChild(st);
+    });
+  });
+}
+
+// SVG element creator helper
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+  return el;
+}
+
+function truncate(str, maxLen) {
+  if (!str) return '';
+  return str.length > maxLen ? str.slice(0, maxLen - 1) + '…' : str;
+}
+
+function wrapSVGText(text, maxLen) {
+  if (text.length <= maxLen) return [text];
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    if ((cur + ' ' + w).trim().length <= maxLen) {
+      cur = (cur + ' ' + w).trim();
+    } else {
+      if (cur) lines.push(cur);
+      cur = w;
+    }
+  });
+  if (cur) lines.push(cur);
+  return lines.slice(0, 2); // max 2 lines in SVG
+}
+
+/* ─────────────────────────────────────
+   CAREER THUMBS
+───────────────────────────────────── */
+const RISK_LABELS = { safe:'🛡️ Resistente', growing:'🚀 Crece con IA', watch:'⚡ Adaptarse' };
+const COLOR_NAMES = ['c0','c1','c2','c3'];
+
+function renderCareerThumbs(careers) {
+  const grid = document.getElementById('careers-grid');
+  grid.innerHTML = '';
+  careers.forEach((career, i) => {
+    const div = document.createElement('div');
+    div.className = `career-thumb ${COLOR_NAMES[career.color_index]}`;
+    div.id = `thumb-${i}`;
+    div.innerHTML = `
+      <div class="thumb-emoji">${career.emoji}</div>
+      <div class="thumb-name">${career.name}</div>
+      <div class="thumb-match" style="color:${PALETTE[career.color_index].hex}">${career.match_pct}% compatible</div>
+      <div class="thumb-risk ${career.ai_risk}">${RISK_LABELS[career.ai_risk]}</div>`;
+    div.addEventListener('click', () => selectCareer(i, career));
+    grid.appendChild(div);
+  });
+}
+
+/* ─────────────────────────────────────
+   SELECT CAREER
+───────────────────────────────────── */
+function selectCareer(idx, career) {
+  // Deselect previous
+  if (SELECTED_IDX >= 0) {
+    document.getElementById(`thumb-${SELECTED_IDX}`)?.classList.remove('active');
+    document.getElementById(`svg-node-${SELECTED_IDX}`)?.classList.remove('selected-node');
+  }
+
+  SELECTED_IDX = idx;
+  SELECTED_UNI = 0;
+
+  document.getElementById(`thumb-${idx}`)?.classList.add('active');
+  document.getElementById(`svg-node-${idx}`)?.classList.add('selected-node');
+
+  renderDetailPanel(career);
+  renderTimeline(career, idx);
+
+  // Smooth scroll to detail panel
+  setTimeout(() => {
+    const dp = document.getElementById('detail-panel');
+    if (dp) dp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+/* ─────────────────────────────────────
+   DETAIL PANEL
+───────────────────────────────────── */
+function renderDetailPanel(career) {
+  const panel = document.getElementById('detail-panel');
+  const card  = document.getElementById('detail-card');
+  const palette = PALETTE[career.color_index];
+
+  // Tab active color stored as CSS var on card
+  card.style.setProperty('--tab-color', palette.hex);
+
+  card.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-emoji-wrap" style="background:rgba(${palette.rgb},0.15);border:1px solid rgba(${palette.rgb},0.3);">
+        ${career.emoji}
+      </div>
+      <div class="detail-meta">
+        <div class="detail-name">${career.name}</div>
+        <div class="detail-desc">${career.description}</div>
+        <div class="detail-badges">
+          <span class="detail-badge detail-match">${career.match_pct}% compatible contigo</span>
+          <span class="detail-badge detail-salary">💰 ${career.salary_range}</span>
+          <span class="thumb-risk ${career.ai_risk}" style="font-size:11px;padding:4px 10px;">${RISK_LABELS[career.ai_risk]}</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-tabs">
+        <button class="detail-tab active" style="border-bottom-color:${palette.hex}" onclick="switchTab(0,this,'${career.id}')">Especializaciones</button>
+        <button class="detail-tab" onclick="switchTab(1,this,'${career.id}')">Universidades</button>
+        <button class="detail-tab" onclick="switchTab(2,this,'${career.id}')">Habilidades</button>
+      </div>
+      <div class="detail-tab-content">
+        <!-- Tab 0: Specializations -->
+        <div class="detail-tab-pane active" id="tab-0-${career.id}">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.65;">Áreas de especialización dentro de ${career.name}:</p>
+          <div class="spec-chips">
+            ${(career.specializations || []).map(s => `<span class="spec-chip">${s}</span>`).join('')}
+          </div>
+        </div>
+        <!-- Tab 1: Universities -->
+        <div class="detail-tab-pane" id="tab-1-${career.id}">
+          <div class="uni-country-tabs" id="uni-tabs-${career.id}">
+            <button class="uni-country-tab active" onclick="switchUniTab(0,'${career.id}')">🇪🇨 Ecuador</button>
+            <button class="uni-country-tab" onclick="switchUniTab(1,'${career.id}')">🇪🇸 España</button>
+            <button class="uni-country-tab" onclick="switchUniTab(2,'${career.id}')">🇬🇧 UK</button>
+          </div>
+          ${renderUniList(career.universities.ecuador, 'ecuador', career.id)}
+          ${renderUniList(career.universities.espana,  'espana',  career.id, true)}
+          ${renderUniList(career.universities.uk,      'uk',      career.id, true)}
+          <p style="font-size:11px;color:var(--muted2);margin-top:12px;line-height:1.6;">⚠️ Verifica directamente con cada institución — costos y requisitos pueden cambiar.</p>
+        </div>
+        <!-- Tab 2: Skills -->
+        <div class="detail-tab-pane" id="tab-2-${career.id}">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.65;">Habilidades clave para destacar en ${career.name}:</p>
+          <div class="skills-list" id="skills-list-${career.id}">
+            ${(career.skills_needed || []).map(s => `
+              <div class="skill-row">
+                <span class="skill-name">${s.name}</span>
+                <div class="skill-track"><div class="skill-fill" data-target="${s.level}" style="background:${palette.hex};width:0%"></div></div>
+                <span class="skill-level">${s.level}%</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  panel.style.display = 'block';
+
+  // Animate skill bars after render
+  setTimeout(() => {
+    document.querySelectorAll('.skill-fill[data-target]').forEach(bar => {
+      bar.style.width = bar.dataset.target + '%';
+    });
+  }, 250);
+}
+
+function renderUniList(unis, country, careerId, hidden = false) {
+  const flags = { ecuador: '🇪🇨', espana: '🇪🇸', uk: '🇬🇧' };
+  return `
+    <div class="uni-list" id="uni-list-${country}-${careerId}" style="${hidden ? 'display:none' : ''}">
+      ${(unis || []).map(u => `
+        <div class="uni-item">
+          <div class="uni-flag">${flags[country]}</div>
+          <div class="uni-info">
+            <div class="uni-name">${u.name}</div>
+            <div class="uni-detail">${u.detail}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function switchTab(idx, btn, careerId) {
+  // Deactivate all tabs
+  btn.closest('.detail-tabs').querySelectorAll('.detail-tab').forEach((t,i) => {
+    t.classList.remove('active');
+    t.style.borderBottomColor = 'transparent';
+  });
+  btn.classList.add('active');
+  btn.style.borderBottomColor = PALETTE[SELECTED_IDX]?.hex || 'var(--c0)';
+
+  // Hide all panes
+  btn.closest('.detail-card').querySelectorAll('.detail-tab-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById(`tab-${idx}-${careerId}`);
+  if (pane) pane.classList.add('active');
+
+  // Re-animate skill bars if switching to tab 2
+  if (idx === 2) {
+    setTimeout(() => {
+      document.querySelectorAll('.skill-fill[data-target]').forEach(bar => {
+        bar.style.width = bar.dataset.target + '%';
+      });
+    }, 100);
+  }
+}
+
+function switchUniTab(idx, careerId) {
+  const countries = ['ecuador','espana','uk'];
+  document.getElementById(`uni-tabs-${careerId}`).querySelectorAll('.uni-country-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+  countries.forEach((c, i) => {
+    const el = document.getElementById(`uni-list-${c}-${careerId}`);
+    if (el) el.style.display = i === idx ? '' : 'none';
+  });
+}
+
+/* ─────────────────────────────────────
+   TIMELINE
+───────────────────────────────────── */
+function renderTimeline(career, idx) {
+  const section = document.getElementById('timeline-section');
+  const inner   = document.getElementById('timeline-inner');
+  const label   = document.getElementById('timeline-label');
+  const palette = PALETTE[career.color_index];
+
+  label.textContent = `Plan de acción — ${career.name}`;
+  inner.innerHTML = '';
+  section.style.display = 'block';
+
+  (career.timeline || []).forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'timeline-year';
+    div.style.animationDelay = (i * 0.08) + 's';
+
+    const dotColor = i < 3 ? palette.hex : 'rgba(255,255,255,0.15)';
+    const borderColor = i < 3 ? palette.hex : 'rgba(255,255,255,0.12)';
+
+    div.innerHTML = `
+      <div class="year-dot" style="color:${dotColor};border-color:${borderColor}">
+        ${step.label || `Y${step.year}`}
+      </div>
+      <div class="year-label">${step.title || ''}</div>
+      <div class="year-actions">
+        ${(step.actions || []).map(a => `
+          <div class="year-action"><strong>${a}</strong></div>`).join('')}
+      </div>`;
+    inner.appendChild(div);
+  });
+}
+
+/* ─────────────────────────────────────
+   LEGEND
+───────────────────────────────────── */
+function renderLegend() {
+  const el = document.getElementById('map-legend');
+  el.innerHTML = '';
+  const items = [
+    { color: '#7c6af7', label: 'Carrera seleccionada' },
+    { color: 'rgba(255,255,255,0.2)', label: 'Especialización' },
+    { color: 'var(--risk-safe)',    label: '🛡️ Resistente a IA' },
+    { color: 'var(--risk-growing)', label: '🚀 Crece con IA' }
+  ];
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'legend-item';
+    div.innerHTML = `<div class="legend-dot" style="background:${item.color}"></div><span>${item.label}</span>`;
+    el.appendChild(div);
+  });
+}
+
+/* ─────────────────────────────────────
+   RESTART
+───────────────────────────────────── */
+function restartForm() {
+  SELECTED_IDX = -1;
+  MAP_DATA = null;
+  document.getElementById('map-screen').style.display = 'none';
+  document.getElementById('form-screen').style.display = 'block';
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('timeline-section').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ─────────────────────────────────────
+   FETCH WITH TIMEOUT
+───────────────────────────────────── */
+function fetchWithTimeout(url, opts, ms) {
+  const ctrl = new AbortController();
+  const id   = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(id));
+}
+</script>
+</body>
+</html>
