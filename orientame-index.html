@@ -777,19 +777,25 @@ function renderPhaseGrid(gridId, chipId, phase, modulesDone) {
 
   phaseModules.forEach((m, idx) => {
     const isDone = modulesDone[m.id];
-    // A module is "next" if it's the first undone one in the phase
-    const isNext = !isDone && phaseModules.slice(0, idx).every(pm => modulesDone[pm.id]);
+    // Sequential lock: all previous modules must be done
+    const globalIdx = MODULES.findIndex(mm => mm.id === m.id);
+    const prevAllDone = globalIdx === 0 || MODULES.slice(0, globalIdx).every(mm => modulesDone[mm.id]);
+    const isNext   = !isDone && prevAllDone;
+    const isLocked = !isDone && !prevAllDone;
 
     const card = document.createElement('div');
-    card.className = 'module-card' + (isDone ? ' done' : '');
+    card.className = 'module-card' + (isDone ? ' done' : '') + (isLocked ? ' locked' : '');
 
     let statusHtml, ctaText;
     if (isDone) {
       statusHtml = `<div class="mc-status status-done">✓ Completado</div>`;
-      ctaText = 'Volver a visitar';
+      ctaText = 'Revisar';
     } else if (isNext) {
       statusHtml = `<div class="mc-status status-next">▶ Siguiente paso</div>`;
       ctaText = 'Comenzar';
+    } else if (isLocked) {
+      statusHtml = `<div class="mc-status status-locked" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--muted2)">🔒 Completa el anterior primero</div>`;
+      ctaText = '🔒 Bloqueado';
     } else {
       statusHtml = `<div class="mc-status status-pending">○ Pendiente</div>`;
       ctaText = 'Empezar';
@@ -818,7 +824,15 @@ function renderPhaseGrid(gridId, chipId, phase, modulesDone) {
         </div>
       </div>`;
 
-    card.addEventListener('click', () => openModule(m.file));
+    if (isLocked) {
+      card.style.cursor = 'not-allowed';
+      card.addEventListener('click', () => {
+        const prevMod = MODULES[globalIdx - 1];
+        alert('🔒 Completa primero: ' + (prevMod ? prevMod.title : 'el módulo anterior'));
+      });
+    } else {
+      card.addEventListener('click', () => openModule(m.file));
+    }
     grid.appendChild(card);
   });
 }

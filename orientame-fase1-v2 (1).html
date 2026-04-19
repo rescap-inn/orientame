@@ -469,7 +469,7 @@ body::before {
     </div>
 
     <button class="btn-primary" id="submitBtn" onclick="analyzeResponses()">
-      ✨ Analizar mi perfil completo con IA
+      ✨ Ver mi perfil vocacional
     </button>
 
   </div><!-- /form-container -->
@@ -482,7 +482,11 @@ body::before {
       <p>Basado en psicología vocacional moderna, inteligencias múltiples y proyecciones de mercado 2026–2035</p>
     </div>
     <div id="result-content"></div>
-    <p class="watermark">Oriéntame · Fase 1 de 3 · La Fase 2 explorará tus aptitudes y habilidades específicas</p>
+    <div id="next-module-btn" style="display:none;text-align:center;margin-top:24px;padding:20px">
+      <p style="font-size:14px;color:rgba(238,234,244,0.6);margin-bottom:14px">✅ Fase 1 completada — continúa con el siguiente módulo</p>
+      <a href="orientame-fase2-v2.html" style="display:inline-flex;align-items:center;gap:10px;padding:16px 32px;background:linear-gradient(135deg,#7c6af7,#56cfad);border-radius:14px;color:white;font-family:Sora,sans-serif;font-size:15px;font-weight:700;text-decoration:none;transition:all 0.2s">Ir a Fase 2 — Test de Habilidades →</a>
+    </div>
+    <p class="watermark">Oriéntame · Fase 1 completada</p>
   </div>
 
 </div><!-- /wrapper -->
@@ -565,262 +569,40 @@ function recalcProgress() {
 }
 
 // ──────────────────────
-// ANALYZE
+// ANALYZE — 100% local, no API needed
 // ──────────────────────
-async function analyzeResponses() {
-  // Pre-fill name from shared profile
-  const savedProfile = JSON.parse(localStorage.getItem('om:profile') || localStorage.getItem('orientame:leo:profile') || '{}');
-  if (savedProfile.name) {
-    const ni = document.getElementById('nameInput');
-    if (ni && !ni.value) ni.value = savedProfile.name;
-  }
+function analyzeResponses() {
+  // Get name — try from input first, then localStorage
+  const savedProfile = JSON.parse(localStorage.getItem('om:profile') || localStorage.getItem('orientame:dashboard:profile') || localStorage.getItem('orientame:leo:profile') || '{}');
+  const nameInput = document.getElementById('nameInput');
+  const name = (nameInput && nameInput.value.trim()) || savedProfile.name || 'Tú';
 
-  const name = document.getElementById('nameInput').value.trim() || savedProfile.name || 'Tú';
-  const q1_all = getQ1All().join(', ') || 'no indicado';
+  const q1_all = getQ1All().join(', ') || '';
   const q1_arte_visual = (answers['q1b-tags']||[]).join(', ') || 'ninguna';
   const q1_arte_escenico = (answers['q1c-tags']||[]).join(', ') || 'ninguna';
-  const q2 = answers['q2-choices'] || 'no indicado';
-  const q3 = answers['q3-choices'] || 'no indicado';
-  const q4 = answers['q4-choices'] || 'no indicado';
-  const q5_reconocimientos_arte = (answers['q5-tags']||[]).join(', ') || 'ninguno';
-  const q6 = answers['q6-choices'] || 'no indicado';
-  const q7 = answers['q7-choices'] || 'no indicado';
-  const q8 = answers['q8-choices'] || 'no indicado';
-  const q9 = answers['q9-choices'] || 'no indicado';
-  const q10 = answers['q10-choices'] || 'no indicado';
-  const q11 = answers['q11-choices'] || 'no indicado';
-  const q12 = answers['q12-scale'] || 'no indicado';
-  const q13 = document.getElementById('q13-text').value || 'no indicado';
-  const q14 = document.getElementById('q14-text').value || 'no indicado';
-  const q15 = document.getElementById('q15-text').value || 'no indicado';
-  const q16 = document.getElementById('q16-text').value || 'no indicado';
+  const q13 = (document.getElementById('q13-text') && document.getElementById('q13-text').value) || '';
+  const q14 = (document.getElementById('q14-text') && document.getElementById('q14-text').value) || '';
 
   document.getElementById('form-container').style.display = 'none';
   document.getElementById('result-container').style.display = 'block';
-  document.getElementById('result-content').innerHTML = `
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Analizando tu perfil completo...<br>Incluyendo dimensiones artísticas, manuales y escénicas ✨</p>
-    </div>`;
+  window.scrollTo(0, 0);
 
-  const prompt = `Eres un orientador vocacional experto en psicología de las inteligencias múltiples (Howard Gardner), modelo Holland, SCCT y análisis de mercado laboral 2026-2035. Es abril de 2026. El adolescente se llama ${name}.
+  // Generate result locally - always works
+  const resultData = generateLocalResult(name, answers, q1_all, q1_arte_visual, q1_arte_escenico, q13, q14);
 
-RESPUESTAS COMPLETAS — FASE 1:
-Actividades generales y digitales: ${q1_all}
-Arte visual/plástico específico: ${q1_arte_visual}
-Artes escénicas/musicales específicas: ${q1_arte_escenico}
-Reacción ante algo bien hecho: ${q2}
-Forma de expresión con que más cómodo: ${q3}
-Elegiría crear: ${q4}
-Reconocimientos artísticos recibidos: ${q5_reconocimientos_arte}
-Mayor satisfacción personal: ${q6}
-Rol natural en grupos: ${q7}
-Ambiente que lo energiza: ${q8}
-Impacto que quiere tener: ${q9}
-Reacción ante tecnología nueva: ${q10}
-Relación con tecnología: ${q11}
-Nivel tecnología (1-5): ${q12}
-Haría sin que le paguen: "${q13}"
-Habilidades con manos/cuerpo/instrumentos: "${q14}"
-Problema del mundo que le preocupa: "${q15}"
-Estudiaría si garantizara éxito: "${q16}"
-
-Genera un análisis vocacional COMPLETO en español, SOLO JSON válido (sin markdown):
-{
-  "tipo_perfil": "nombre del perfil en 3-5 palabras (incluye dimensión artística si aplica, ej: 'Creador Visual Estratégico', 'Artista Escénico Digital', 'Constructor Analítico')",
-  "descripcion_perfil": "3 oraciones describiendo a este adolescente como ser creativo y profesional. Tono cálido, específico y motivador. Si hay elementos artísticos fuertes, destacarlos.",
-  "tipo_inteligencia_dominante": "El tipo de inteligencia Gardner predominante (ej: Espacial-Visual, Musical, Cinestésica, Lingüística, Lógico-Matemática, Interpersonal, etc.) con una frase breve explicando qué significa para él/ella",
-  "fortalezas_clave": ["fortaleza 1","fortaleza 2","fortaleza 3","fortaleza 4"],
-  "dimension_artistica": {
-    "presente": true o false,
-    "tipo": "qué tipo de arte/expresión predomina en sus respuestas",
-    "nivel_señal": "fuerte / moderado / leve / ausente",
-    "nota": "una oración sobre qué revelan sus respuestas artísticas"
-  },
-  "carreras_recomendadas": [
-    {
-      "nombre": "Nombre de la carrera",
-      "por_que": "una oración conectando sus respuestas con esta carrera",
-      "futuro_ia": "safe|growing|watch",
-      "nota_futuro": "una oración sobre el futuro de esta carrera al 2035",
-      "categoria": "arte|tecnologia|ciencias|humanidades|negocios|mixta"
-    }
-  ],
-  "advertencia_carreras": ["carrera o camino que NO recomendarías con una oración explicando por qué"],
-  "consejo_para_el": "Un párrafo personal y directo para ${name} usando 'tú'. Si tiene dimensión artística fuerte, valídala explícitamente. Conecta sus respuestas con su potencial real. Sin clichés.",
-  "proximos_pasos": ["paso concreto 1","paso concreto 2","paso concreto 3"]
-}
-
-REGLAS CRÍTICAS:
-- Si tiene señales artísticas/manuales/escénicas, INCLUYE al menos 2 carreras de ese mundo con futuro (ej: Dirección Cinematográfica, Diseño UX/UI, Producción Musical Digital, Arquitectura, Animación 3D, Artes Escénicas y Tecnología, Diseño de Experiencias, Terapia a través del Arte)
-- NUNCA recomiendas: data entry, contabilidad básica, diseño gráfico genérico sin estrategia, periodismo impreso tradicional
-- SÍ recomiendas cuando hay arte: carreras que combinan arte + tecnología + futuro (2026-2035)
-- Exactamente 4-5 carreras recomendadas
-- futuro_ia: safe=muy resistente, growing=crece con IA, watch=hay que adaptarse
-- La dimensión_artistica es obligatoria — si no hay señales, nivel_señal='ausente'
-- El tono debe sentirse como un orientador que realmente conoce a este adolescente`;
-
-  // Try API first, always fall back to local algorithm
-  let resultData = null;
+  // Save progress to localStorage
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1200,
-        messages: [{ role: "user", content: prompt }]
-      }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    if (res.ok) {
-      const data = await res.json();
-      const raw = data.content.map(i => i.text || "").join("");
-      const clean = raw.replace(/```json|```/g, "").trim();
-      resultData = JSON.parse(clean);
-    }
-  } catch(e) {
-    // API not available — use local algorithm
-  }
-
-  if (!resultData) {
-    resultData = generateLocalResult(name, answers, q1_all, q1_arte_visual, q1_arte_escenico, q13, q14);
-  }
-
-  // Save to localStorage for other modules
-  try {
-    const prog = JSON.parse(localStorage.getItem('orientame:gamification:progress') || '{}');
+    const prog = JSON.parse(localStorage.getItem('orientame:gamification:progress') || localStorage.getItem('om:progress') || '{}');
     prog.fase1 = true;
     prog.fase1Result = resultData;
     prog.xp = (prog.xp || 0) + 60;
+    prog.badges = (prog.badges || 0) + 1;
     localStorage.setItem('orientame:gamification:progress', JSON.stringify(prog));
+    localStorage.setItem('om:progress', JSON.stringify(prog));
+    localStorage.setItem('om:fase1result', JSON.stringify(resultData));
   } catch(e) {}
 
   renderResult(name, resultData);
-}
-
-function generateLocalResult(name, answers, q1_all, q1_arte_visual, q1_arte_escenico, q13, q14) {
-  // Score each profile based on answers
-  const scores = { tech: 0, arts: 0, health: 0, biz: 0, sci: 0 };
-
-  // Score from tag selections
-  const techTags = ['programar','apps','robots','ia','videojuegos','editar_videos','crear_videos','fotografia','diseño_digital'];
-  const artsTags = ['dibujar','pintar','escultura','moda','decorar','actuar','bailar','cantar','tocar','componer','escribir_historias','diseñar'];
-  const healthTags = ['ayudar','voluntario','animales','bienestar','deporte','cocinar'];
-  const bizTags = ['emprender','vender','organizar','liderar','redes_sociales','marketing'];
-  const sciTags = ['experimentos','investigar','naturaleza','matematicas','astronomia','biologia'];
-
-  const allSelected = q1_all.split(', ');
-  allSelected.forEach(tag => {
-    if (techTags.some(t => tag.includes(t))) scores.tech += 2;
-    if (artsTags.some(t => tag.includes(t))) scores.arts += 2;
-    if (healthTags.some(t => tag.includes(t))) scores.health += 2;
-    if (bizTags.some(t => tag.includes(t))) scores.biz += 2;
-    if (sciTags.some(t => tag.includes(t))) scores.sci += 2;
-  });
-
-  // Arte escénica/visual adds to arts
-  if (q1_arte_visual && q1_arte_visual !== 'ninguna') scores.arts += 3;
-  if (q1_arte_escenico && q1_arte_escenico !== 'ninguna') scores.arts += 3;
-
-  // Text inputs
-  const textAll = (q13 + ' ' + q14).toLowerCase();
-  if (textAll.match(/diseñ|arte|dibujo|música|cine|foto|video|actuar|bailar/)) scores.arts += 2;
-  if (textAll.match(/program|código|tech|app|computad|robót/)) scores.tech += 2;
-  if (textAll.match(/ayudar|curar|médic|psicolog|enferm/)) scores.health += 2;
-  if (textAll.match(/emprender|negocio|vender|empresa|dinero/)) scores.biz += 2;
-  if (textAll.match(/investigar|ciencia|física|química|biología|matemáticas/)) scores.sci += 2;
-
-  // Determine top profile
-  const top = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
-  const hasArt = scores.arts >= 3;
-
-  const profiles = {
-    tech: {
-      tipo_perfil: 'Constructor Digital Innovador',
-      descripcion_perfil: `${name} tiene una mente orientada a crear y resolver con tecnología. Disfruta entender cómo funcionan las cosas y construir soluciones que otros puedan usar. Su combinación de pensamiento lógico y curiosidad lo/la hace ideal para el mundo tech del 2026.`,
-      tipo_inteligencia_dominante: 'Lógico-Matemática e Intrapersonal: piensas en sistemas y encuentras soluciones donde otros ven problemas.',
-      fortalezas_clave: ['Pensamiento sistémico', 'Resolución de problemas', 'Curiosidad tecnológica', 'Autonomía creativa'],
-      carreras_recomendadas: [
-        { nombre: 'Ingeniería de Software / Desarrollo Web', por_que: 'Tu afinidad con la tecnología y la construcción digital es el núcleo de esta carrera.', futuro_ia: 'safe', nota_futuro: 'La IA es una herramienta que multiplica tu productividad — no te reemplaza.', categoria: 'tecnologia' },
-        { nombre: 'Diseño UX/UI', por_que: 'Une tu lado creativo con la tecnología para diseñar experiencias digitales que la gente usa cada día.', futuro_ia: 'growing', nota_futuro: 'Crece con la explosión de apps y productos digitales hasta 2035.', categoria: 'tecnologia' },
-        { nombre: 'Ciencia de Datos e IA', por_que: 'Si te gustan los patrones y los sistemas, este campo te permitirá trabajar en la frontera del conocimiento.', futuro_ia: 'safe', nota_futuro: 'Una de las carreras más demandadas del mundo para 2035.', categoria: 'tecnologia' },
-      ]
-    },
-    arts: {
-      tipo_perfil: 'Creador Visual y Expresivo',
-      descripcion_perfil: `${name} tiene una dimensión creativa y expresiva muy marcada. Necesita crear, expresar y comunicar — ya sea con imágenes, sonidos, movimiento o palabras. Esta capacidad artística, combinada con las herramientas digitales de hoy, abre caminos profesionales con mucho futuro.`,
-      tipo_inteligencia_dominante: 'Espacial-Visual y Musical-Kinestésica: percibes el mundo en imágenes, ritmos y formas que otros no ven.',
-      fortalezas_clave: ['Sensibilidad creativa', 'Expresión visual', 'Pensamiento no lineal', 'Comunicación emocional'],
-      carreras_recomendadas: [
-        { nombre: 'Producción Audiovisual / Cine Digital', por_que: 'Tu capacidad creativa y expresiva encuentra el canal perfecto en la narración visual.', futuro_ia: 'growing', nota_futuro: 'La demanda de contenido audiovisual crece exponencialmente hasta 2035.', categoria: 'arte' },
-        { nombre: 'Diseño UX/UI y Motion Design', por_que: 'Combina tu sensibilidad visual con tecnología para crear experiencias digitales que impacten.', futuro_ia: 'growing', nota_futuro: 'Diseñadores con criterio artístico y conocimiento tech son muy escasos y bien pagados.', categoria: 'mixta' },
-        { nombre: 'Arquitectura y Diseño de Espacios', por_que: 'Si tu creatividad se expresa en formas, espacios y materialidad, la arquitectura te da lienzo ilimitado.', futuro_ia: 'safe', nota_futuro: 'La IA ayuda en planos pero el criterio espacial y humano es irreemplazable.', categoria: 'arte' },
-      ]
-    },
-    health: {
-      tipo_perfil: 'Cuidador Empático e Investigador',
-      descripcion_perfil: `${name} tiene una vocación genuina hacia las personas y su bienestar. Le importa entender, ayudar y mejorar la calidad de vida de otros. Esta empatía, combinada con curiosidad analítica, lo/la orienta hacia carreras con alto impacto humano y social.`,
-      tipo_inteligencia_dominante: 'Interpersonal e Intrapersonal: entiendes a las personas de forma natural y conectas con sus necesidades profundas.',
-      fortalezas_clave: ['Empatía activa', 'Escucha profunda', 'Pensamiento analítico', 'Vocación de servicio'],
-      carreras_recomendadas: [
-        { nombre: 'Psicología Clínica', por_que: 'Tu capacidad empática y de análisis humano encuentra su mayor expresión en acompañar procesos de cambio.', futuro_ia: 'safe', nota_futuro: 'La salud mental es la gran necesidad del siglo XXI — alta demanda hasta 2035.', categoria: 'humanidades' },
-        { nombre: 'Medicina / Ciencias de la Salud', por_que: 'Si tu vocación de ayudar se une a la curiosidad científica, la medicina te ofrece impacto directo en vidas.', futuro_ia: 'safe', nota_futuro: 'La IA asiste al médico pero la relación humana-terapéutica es irreemplazable.', categoria: 'ciencias' },
-        { nombre: 'Nutrición y Salud Integrativa', por_que: 'Campo en crecimiento que combina ciencia, bienestar y la conexión directa con personas.', futuro_ia: 'safe', nota_futuro: 'La personalización de la salud es tendencia global imparable.', categoria: 'ciencias' },
-      ]
-    },
-    biz: {
-      tipo_perfil: 'Estratega Emprendedor Digital',
-      descripcion_perfil: `${name} piensa en grande y en impacto. No solo quiere hacer cosas — quiere que funcionen, escalen y lleguen lejos. Su mentalidad estratégica y orientación a resultados lo/la convierte en un perfil muy valioso en el mundo empresarial y emprendedor del 2026.`,
-      tipo_inteligencia_dominante: 'Interpersonal y Lógica: ves oportunidades donde otros ven obstáculos y sabes cómo motivar a otros hacia una visión.',
-      fortalezas_clave: ['Pensamiento estratégico', 'Liderazgo natural', 'Orientación a resultados', 'Creatividad aplicada'],
-      carreras_recomendadas: [
-        { nombre: 'Emprendimiento e Innovación Digital', por_que: 'Tu mentalidad de impacto y escala encaja perfectamente con construir startups y negocios digitales.', futuro_ia: 'growing', nota_futuro: 'La IA reduce el costo de emprender — nunca fue mejor momento para fundadores.', categoria: 'negocios' },
-        { nombre: 'Marketing Digital y Estrategia de Contenidos', por_que: 'Combina creatividad con datos para hacer que marcas y proyectos lleguen a millones.', futuro_ia: 'growing', nota_futuro: 'El marketing con criterio humano y IA es la combinación más demandada de 2026–2035.', categoria: 'negocios' },
-        { nombre: 'Administración de Empresas Internacional', por_que: 'Para quienes piensan en grande desde el primer día, la gestión internacional abre mercados globales.', futuro_ia: 'growing', nota_futuro: 'La globalización digital hace que las fronteras sean cada vez menos relevantes.', categoria: 'negocios' },
-      ]
-    },
-    sci: {
-      tipo_perfil: 'Investigador Analítico Curioso',
-      descripcion_perfil: `${name} tiene una mente que disfruta profundizar, investigar y entender el mundo desde sus fundamentos. Su curiosidad intelectual y capacidad analítica lo/la orientan hacia campos donde el conocimiento tiene impacto real en cómo vivimos y entendemos el universo.`,
-      tipo_inteligencia_dominante: 'Lógico-Matemática y Naturalista: buscas patrones, causas y explicaciones donde otros ven solo resultados.',
-      fortalezas_clave: ['Pensamiento analítico', 'Curiosidad intelectual', 'Rigor metodológico', 'Visión de largo plazo'],
-      carreras_recomendadas: [
-        { nombre: 'Ciencias de Datos y Machine Learning', por_que: 'Tu mente analítica encuentra en los datos el lenguaje perfecto para entender y predecir el mundo.', futuro_ia: 'safe', nota_futuro: 'La ciencia de datos es la base de toda la economía digital hasta 2035 y más allá.', categoria: 'tecnologia' },
-        { nombre: 'Biotecnología e Ingeniería Biomédica', por_que: 'Si la curiosidad científica se mezcla con querer mejorar vidas, este campo está en plena explosión.', futuro_ia: 'safe', nota_futuro: 'Una de las industrias de mayor crecimiento global de la próxima década.', categoria: 'ciencias' },
-        { nombre: 'Física / Matemáticas Aplicadas', por_que: 'La base de casi toda innovación tecnológica — quienes entienden los fundamentos tienen una ventaja enorme.', futuro_ia: 'safe', nota_futuro: 'Matemáticos y físicos son los profesionales más escasos y mejor pagados en tech.', categoria: 'ciencias' },
-      ]
-    }
-  };
-
-  const result = profiles[top] || profiles.tech;
-
-  // Add artistic dimension if detected
-  const artLevel = scores.arts >= 5 ? 'fuerte' : scores.arts >= 3 ? 'moderado' : scores.arts >= 1 ? 'leve' : 'ausente';
-  result.dimension_artistica = {
-    presente: scores.arts > 0,
-    tipo: q1_arte_visual !== 'ninguna' ? q1_arte_visual : (q1_arte_escenico !== 'ninguna' ? q1_arte_escenico : 'expresión creativa general'),
-    nivel_señal: artLevel,
-    nota: artLevel !== 'ausente' ? `${name} muestra una dimensión artística ${artLevel} que debe integrarse en su camino profesional — no ignorarse.` : 'No se detectaron señales artísticas destacadas en las respuestas.'
-  };
-
-  result.advertencia_carreras = [
-    'Diseño gráfico genérico sin estrategia: muy saturado y vulnerable a la IA generativa sin un enfoque diferenciador.',
-    'Data entry y contabilidad básica: alto riesgo de automatización antes de 2030.'
-  ];
-
-  result.consejo_para_el = `${name}, lo más importante que puedes hacer ahora es explorar sin presión. Las respuestas que diste revelan un perfil con fortalezas reales — no son casualidades. El mundo del 2035 necesita personas que combinen pensamiento propio con herramientas de IA, y tú estás construyendo esa base en el momento exacto. Confía en lo que te mueve.`;
-
-  result.proximos_pasos = [
-    'Explora el Módulo de Juegos de Aptitud — confirmará o sorprenderá con tus habilidades cognitivas reales.',
-    'Habla con Leo (Módulo 2) sobre las carreras que te resonaron — puede profundizar en cualquiera.',
-    'Busca en YouTube un video de "un día en la vida de [carrera que te llamó atención]" — la realidad es el mejor test.'
-  ];
-
-  return result;
 }
 
 // ──────────────────────
@@ -897,8 +679,11 @@ function renderResult(name, r) {
 
     <div style="background:var(--primary-glow);border:1px solid rgba(124,106,247,0.22);border-radius:16px;padding:20px 24px;text-align:center;">
       <p style="font-size:14px;color:var(--primary-light);font-weight:600;margin-bottom:6px;">✅ Fase 1 completada</p>
-      <p style="font-size:13px;color:var(--muted);line-height:1.65;">La Fase 2 medirá tus aptitudes y habilidades específicas — incluyendo manuales, artísticas y escénicas.<br>La Fase 3 integrará la perspectiva de tus padres.</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px;">Continua con la Fase 2 para medir tus habilidades específicas.</p>
+      <a href="orientame-fase2-v2.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 30px;background:linear-gradient(135deg,#7c6af7,#56cfad);border-radius:12px;color:white;font-family:Sora,sans-serif;font-size:14px;font-weight:700;text-decoration:none">Continuar a Fase 2 →</a>
     </div>`;
+  // Show next button
+  var nb = document.getElementById("next-module-btn"); if(nb) nb.style.display="block";
 }
 </script>
 </body>
